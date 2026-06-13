@@ -1,0 +1,164 @@
+/******************************************************************************\
+ * Copyright (c) 2004-2026
+ *
+ * Author(s):
+ *  Volker Fischer
+ *
+ * As of Jamulus 3.12.1dev (commit eb172d47): All new source code contributions must be licensed
+ * under AGPL 3.0 or any later version.
+ *
+ * Existing code: Code contributed before 3.12.1dev (commit eb172d47) was licensed under GPL 2.0+.
+ * This code will be licensed under GPL 3.0 (or any later version) from
+ * 3.12.1dev (commit eb172d47).  When distributed as part of Jamulus, the AGPL 3.0 terms govern
+ * the combined work, including network use provisions.
+ *
+ ******************************************************************************
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ *
+ * ---------------------------------------------------------------------------
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ *
+\******************************************************************************/
+
+#pragma once
+
+#include <CoreAudio/CoreAudio.h>
+#include <AudioToolbox/AudioToolbox.h>
+#include <CoreMIDI/CoreMIDI.h>
+#include <QMutex>
+#include <QMessageBox>
+#include "../soundbase.h"
+#include "../../global.h"
+
+/* Classes ********************************************************************/
+class CSound : public CSoundBase
+{
+    Q_OBJECT
+
+public:
+    CSound ( void ( *fpNewProcessCallback ) ( CVector<short>& psData, void* arg ), void* arg, const bool, const QString& );
+
+    virtual ~CSound();
+
+    virtual int  Init ( const int iNewPrefMonoBufferSize ) override;
+    virtual void Start() override;
+    virtual void Stop() override;
+
+    // channel selection
+    virtual int     GetNumInputChannels() override { return iNumInChanPlusAddChan; }
+    virtual QString GetInputChannelName ( const int iDiD ) override { return sChannelNamesInput[iDiD]; }
+    virtual void    SetLeftInputChannel ( const int iNewChan ) override;
+    virtual void    SetRightInputChannel ( const int iNewChan ) override;
+    virtual int     GetLeftInputChannel() override { return iSelInputLeftChannel; }
+    virtual int     GetRightInputChannel() override { return iSelInputRightChannel; }
+
+    virtual int     GetNumOutputChannels() override { return iNumOutChan; }
+    virtual QString GetOutputChannelName ( const int iDiD ) override { return sChannelNamesOutput[iDiD]; }
+    virtual void    SetLeftOutputChannel ( const int iNewChan ) override;
+    virtual void    SetRightOutputChannel ( const int iNewChan ) override;
+    virtual int     GetLeftOutputChannel() override { return iSelOutputLeftChannel; }
+    virtual int     GetRightOutputChannel() override { return iSelOutputRightChannel; }
+
+    // MIDI functions
+    virtual void        EnableMIDI ( const bool bEnable ) override;
+    virtual bool        IsMIDIEnabled() const override;
+    virtual QStringList GetMIDIDevNames() override;
+
+    // these variables/functions should be protected but cannot since we want
+    // to access them from the callback function
+    CVector<short> vecsTmpAudioSndCrdStereo;
+    int            iCoreAudioBufferSizeMono;
+    int            iCoreAudioBufferSizeStereo;
+    AudioDeviceID  CurrentAudioInputDeviceID;
+    AudioDeviceID  CurrentAudioOutputDeviceID;
+    long           lCurDev;
+    int            iNumInChan;
+    int            iNumInChanPlusAddChan; // includes additional "added" channels
+    int            iNumOutChan;
+    int            iSelInputLeftChannel;
+    int            iSelInputRightChannel;
+    int            iSelOutputLeftChannel;
+    int            iSelOutputRightChannel;
+    int            iSelInBufferLeft;
+    int            iSelInBufferRight;
+    int            iSelInInterlChLeft;
+    int            iSelInInterlChRight;
+    int            iSelAddInBufferLeft;
+    int            iSelAddInBufferRight;
+    int            iSelAddInInterlChLeft;
+    int            iSelAddInInterlChRight;
+    int            iSelOutBufferLeft;
+    int            iSelOutBufferRight;
+    int            iSelOutInterlChLeft;
+    int            iSelOutInterlChRight;
+    CVector<int>   vecNumInBufChan;
+    CVector<int>   vecNumOutBufChan;
+
+protected:
+    virtual QString LoadAndInitializeDriver ( QString strDriverName, bool ) override;
+
+    QString CheckDeviceCapabilities ( const int iDriverIdx );
+    void    UpdateChSelection();
+    void    GetAvailableInOutDevices();
+
+    int CountChannels ( AudioDeviceID devID, bool isInput );
+
+    UInt32 SetBufferSize ( AudioDeviceID& audioDeviceID, const bool bIsInput, UInt32 iPrefBufferSize );
+
+    void GetAudioDeviceInfos ( const AudioDeviceID DeviceID, QString& strDeviceName, bool& bIsInput, bool& bIsOutput );
+
+    bool ConvertCFStringToQString ( const CFStringRef stringRef, QString& sOut );
+
+    void CreateMIDIPort();
+    void DestroyMIDIPort();
+
+    // callbacks
+    static OSStatus deviceNotification ( AudioDeviceID, UInt32, const AudioObjectPropertyAddress* inAddresses, void* inRefCon );
+
+    static OSStatus callbackIO ( AudioDeviceID inDevice,
+                                 const AudioTimeStamp*,
+                                 const AudioBufferList* inInputData,
+                                 const AudioTimeStamp*,
+                                 AudioBufferList* outOutputData,
+                                 const AudioTimeStamp*,
+                                 void* inRefCon );
+
+    static void callbackMIDI ( const MIDIPacketList* pktlist, void* refCon, void* );
+
+    AudioDeviceID       audioInputDevice[MAX_NUMBER_SOUND_CARDS];
+    AudioDeviceID       audioOutputDevice[MAX_NUMBER_SOUND_CARDS];
+    AudioDeviceIOProcID audioInputProcID;
+    AudioDeviceIOProcID audioOutputProcID;
+
+    MIDIClientRef midiClient;
+    MIDIPortRef   midiInPortRef;
+
+    QString sChannelNamesInput[MAX_NUM_IN_OUT_CHANNELS];
+    QString sChannelNamesOutput[MAX_NUM_IN_OUT_CHANNELS];
+
+    QMutex Mutex;
+};

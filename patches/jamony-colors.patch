@@ -1,0 +1,179 @@
+diff --git a/src/clientdlg.cpp b/src/clientdlg.cpp
+index b102c34..d355751 100644
+--- a/src/clientdlg.cpp
++++ b/src/clientdlg.cpp
+@@ -303,7 +303,7 @@ CClientDlg::CClientDlg ( CClient*         pNCliP,
+     // File menu  --------------------------------------------------------------
+     QMenu* pFileMenu = new QMenu ( tr ( "&File" ), this );
+ 
+-    pFileMenu->addAction ( tr ( "&Connection Setup..." ), this, SLOT ( OnOpenConnectionSetupDialog() ), QKeySequence ( Qt::CTRL + Qt::Key_C ) );
++    //pFileMenu->addAction ( tr ( "&Connection Setup..." ), this, SLOT ( OnOpenConnectionSetupDialog() ), QKeySequence ( Qt::CTRL + Qt::Key_C ) );
+ 
+     pFileMenu->addSeparator();
+ 
+@@ -401,7 +401,7 @@ CClientDlg::CClientDlg ( CClient*         pNCliP,
+ 
+     pViewMenu->addSeparator();
+ 
+-    pViewMenu->addAction ( tr ( "C&hat..." ), this, SLOT ( OnOpenChatDialog() ), QKeySequence ( Qt::CTRL + Qt::Key_H ) );
++    //pViewMenu->addAction ( tr ( "C&hat..." ), this, SLOT ( OnOpenChatDialog() ), QKeySequence ( Qt::CTRL + Qt::Key_H ) );
+ 
+     // optionally show analyzer console entry
+     if ( bShowAnalyzerConsole )
+@@ -1385,30 +1385,30 @@ void CClientDlg::SetGUIDesign ( const EGUIDesign eNewDesign )
+             "                         border-right:  40px transparent;"
+             "                         padding:       -5px;"
+             "                         margin:        -5px, -5px, 0px, 0px; }"
+-            "QLabel {                 color:          rgb(220, 220, 220);"
++            "QLabel {                 color:          rgb(255, 255, 255);"
+             "                         font:           bold; }"
+-            "QRadioButton {           color:          rgb(220, 220, 220);"
++            "QRadioButton {           color:          rgb(255, 255, 255);"
+             "                         font:           bold; }"
+             "QScrollArea {            background:     transparent; }"
+             ".QWidget {               background:     transparent; }" // note: matches instances of QWidget, but not of its subclasses
+             "QGroupBox {              background:     transparent; }"
+-            "QGroupBox::title {       color:          rgb(220, 220, 220); }"
++            "QGroupBox::title {       color:          rgb(255, 255, 255); }"
+             "QCheckBox::indicator {   width:          38px;"
+             "                         height:         21px; }"
+             "QCheckBox::indicator:unchecked {"
+             "                         image:          url(:/png/fader/res/ledbuttonnotpressed.png); }"
+             "QCheckBox::indicator:checked {"
+             "                         image:          url(:/png/fader/res/ledbuttonpressed.png); }"
+-            "QCheckBox {              color:          rgb(220, 220, 220);"
++            "QCheckBox {              color:          rgb(255, 255, 255);"
+             "                         font:           bold; }" );
+ #ifdef _WIN32
+         // Workaround QT-Windows problem: This should not be necessary since in the
+         // background frame the style sheet for QRadioButton was already set. But it
+         // seems that it is only applied if the style was set to default and then back
+         // to GD_ORIGINAL. This seems to be a QT related issue...
+-        rbtReverbSelL->setStyleSheet ( "color: rgb(220, 220, 220);"
++        rbtReverbSelL->setStyleSheet ( "color: rgb(255, 255, 255);"
+                                        "font:  bold;" );
+-        rbtReverbSelR->setStyleSheet ( "color: rgb(220, 220, 220);"
++        rbtReverbSelR->setStyleSheet ( "color: rgb(255, 255, 255);"
+                                        "font:  bold;" );
+ #endif
+ 
+@@ -1500,7 +1500,7 @@ void CClientDlg::SetMixerBoardDeco ( const ERecorderState newRecorderState, cons
+         if ( eNewDesign == GD_ORIGINAL )
+         {
+             // no need to set the background color for dark mode in fancy skin, as the background is already dark.
+-            sTitleStyle += "color: rgb(220,220,220); }";
++            sTitleStyle += "color: rgb(255,255,255); }";
+         }
+         else
+         {
+@@ -1515,7 +1515,7 @@ void CClientDlg::SetMixerBoardDeco ( const ERecorderState newRecorderState, cons
+             {
+                 // Dark mode needs a light color
+ 
+-                sTitleStyle += "color: rgb(220,220,220); }";
++                sTitleStyle += "color: rgb(255,255,255); }";
+             }
+             else
+             {
+diff --git a/src/global.h b/src/global.h
+index 5414a58..a9eb98b 100644
+--- a/src/global.h
++++ b/src/global.h
+@@ -88,7 +88,7 @@ LED bar:      lbr
+ // version and application name (use version from qt prject file)
+ #undef VERSION
+ #define VERSION  GetDisplayVersion ( APP_VERSION )
+-#define APP_NAME "Jamulus"
++#define APP_NAME "jamony"
+ 
+ // Windows registry key name of auto run entry for the server
+ #define AUTORUN_SERVER_REG_NAME "Jamulus server"
+diff --git a/src/levelmeter.cpp b/src/levelmeter.cpp
+index 0ac4571..e725dc4 100644
+--- a/src/levelmeter.cpp
++++ b/src/levelmeter.cpp
+@@ -163,12 +163,12 @@ void CLevelMeter::SetBarMeterStyleAndClipStatus ( const ELevelMeterType eNType,
+     case MT_BAR_NARROW:
+         if ( bIsClip )
+         {
+-            pBarMeter->setStyleSheet ( "QProgressBar        { border:     0px solid red;"
++            pBarMeter->setStyleSheet ( "QProgressBar        { border:     0px solid #FF33AA;"
+                                        "                      margin:     0px;"
+                                        "                      padding:    0px;"
+                                        "                      width:      4px;"
+-                                       "                      background: red; }"
+-                                       "QProgressBar::chunk { background: green; }" );
++                                       "                      background: #FF33AA; }"
++                                       "QProgressBar::chunk { background: #BBEE00; }" );
+         }
+         else
+         {
+@@ -176,26 +176,26 @@ void CLevelMeter::SetBarMeterStyleAndClipStatus ( const ELevelMeterType eNType,
+                                        "                      margin:     0px;"
+                                        "                      padding:    0px;"
+                                        "                      width:      4px; }"
+-                                       "QProgressBar::chunk { background: green; }" );
++                                       "QProgressBar::chunk { background: #BBEE00; }" );
+         }
+         break;
+ 
+     default: /* MT_BAR_WIDE */
+         if ( bIsClip )
+         {
+-            pBarMeter->setStyleSheet ( "QProgressBar        { border:     2px solid red;"
++            pBarMeter->setStyleSheet ( "QProgressBar        { border:     2px solid #FF33AA;"
+                                        "                      margin:     1px;"
+                                        "                      padding:    1px;"
+                                        "                      width:      15px;"
+                                        "                      background: transparent; }"
+-                                       "QProgressBar::chunk { background: green; }" );
++                                       "QProgressBar::chunk { background: #BBEE00; }" );
+         }
+         else
+         {
+             pBarMeter->setStyleSheet ( "QProgressBar        { margin:     1px;"
+                                        "                      padding:    1px;"
+                                        "                      width:      15px; }"
+-                                       "QProgressBar::chunk { background: green; }" );
++                                       "QProgressBar::chunk { background: #BBEE00; }" );
+         }
+         break;
+     }
+diff --git a/src/util.h b/src/util.h
+index 84ce8e3..99ecffa 100644
+--- a/src/util.h
++++ b/src/util.h
+@@ -719,19 +719,20 @@ enum ESkillLevel
+     SL_PROFESSIONAL = 3
+ };
+ 
+-// define the GUI RGB colors for each skill level
+-#define RGBCOL_R_SL_NOT_SET         255
+-#define RGBCOL_G_SL_NOT_SET         255
+-#define RGBCOL_B_SL_NOT_SET         255
+-#define RGBCOL_R_SL_BEGINNER        255
+-#define RGBCOL_G_SL_BEGINNER        255
+-#define RGBCOL_B_SL_BEGINNER        200
+-#define RGBCOL_R_SL_INTERMEDIATE    225
+-#define RGBCOL_G_SL_INTERMEDIATE    255
+-#define RGBCOL_B_SL_INTERMEDIATE    225
+-#define RGBCOL_R_SL_SL_PROFESSIONAL 255
+-#define RGBCOL_G_SL_SL_PROFESSIONAL 225
+-#define RGBCOL_B_SL_SL_PROFESSIONAL 225
++// define the jamony brand colors for each skill level
++// Brand: Blue #00AAFF, Purple #9933FF, Pink #FF33AA, Lime #BBEE00
++#define RGBCOL_R_SL_NOT_SET         60
++#define RGBCOL_G_SL_NOT_SET         60
++#define RGBCOL_B_SL_NOT_SET         60
++#define RGBCOL_R_SL_BEGINNER        187
++#define RGBCOL_G_SL_BEGINNER        238
++#define RGBCOL_B_SL_BEGINNER        0
++#define RGBCOL_R_SL_INTERMEDIATE    0
++#define RGBCOL_G_SL_INTERMEDIATE    170
++#define RGBCOL_B_SL_INTERMEDIATE    255
++#define RGBCOL_R_SL_SL_PROFESSIONAL 153
++#define RGBCOL_G_SL_SL_PROFESSIONAL 51
++#define RGBCOL_B_SL_SL_PROFESSIONAL 255
+ 
+ // Stereo signal level meter ---------------------------------------------------
+ class CStereoSignalLevelMeter

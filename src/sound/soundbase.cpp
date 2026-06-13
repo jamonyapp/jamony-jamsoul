@@ -1,0 +1,391 @@
+/******************************************************************************\
+ * Copyright (c) 2004-2026
+ *
+ * Author(s):
+ *  Volker Fischer
+ *
+ * As of Jamulus 3.12.1dev (commit eb172d47): All new source code contributions must be licensed
+ * under AGPL 3.0 or any later version.
+ *
+ * Existing code: Code contributed before 3.12.1dev (commit eb172d47) was licensed under GPL 2.0+.
+ * This code will be licensed under GPL 3.0 (or any later version) from
+ * 3.12.1dev (commit eb172d47).  When distributed as part of Jamulus, the AGPL 3.0 terms govern
+ * the combined work, including network use provisions.
+ *
+ ******************************************************************************
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU Affero General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU Affero General Public License for more details.
+ *
+ * You should have received a copy of the GNU Affero General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ *
+ * ---------------------------------------------------------------------------
+ *
+ * This program is free software: you can redistribute it and/or modify
+ * it under the terms of the GNU General Public License as published by
+ * the Free Software Foundation, either version 3 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
+ * GNU General Public License for more details.
+ *
+ * You should have received a copy of the GNU General Public License
+ * along with this program.  If not, see <https://www.gnu.org/licenses/>.
+ *
+\******************************************************************************/
+
+#include "soundbase.h"
+
+/* Implementation *************************************************************/
+CSoundBase::CSoundBase ( const QString& strNewSystemDriverTechniqueName,
+                         void ( *fpNewProcessCallback ) ( CVector<int16_t>& psData, void* pParg ),
+                         void* pParg ) :
+    fpProcessCallback ( fpNewProcessCallback ),
+    pProcessCallbackArg ( pParg ),
+    bRun ( false ),
+    bCallbackEntered ( false ),
+    strSystemDriverTechniqueName ( strNewSystemDriverTechniqueName ),
+    iCtrlMIDIChannel ( INVALID_MIDI_CH ),
+    aMidiCtls ( 128 )
+{
+    // initializations for the sound card names (default)
+    lNumDevs          = 1;
+    strDriverNames[0] = strSystemDriverTechniqueName;
+    // set current device
+    strCurDevName = ""; // default device
+}
+
+void CSoundBase::Stop()
+{
+    // set flag so that thread can leave the main loop
+    bRun = false;
+
+    // wait for draining the audio process callback
+    QMutexLocker locker ( &MutexAudioProcessCallback );
+}
+
+/******************************************************************************\
+* Device handling                                                              *
+\******************************************************************************/
+QStringList CSoundBase::GetDevNames()
+{
+    QMutexLocker locker ( &MutexDevProperties );
+
+    QStringList slDevNames;
+
+    // put all device names in the string list
+    for ( int iDev = 0; iDev < lNumDevs; iDev++ )
+    {
+        slDevNames << strDriverNames[iDev];
+    }
+
+    return slDevNames;
+}
+
+QString CSoundBase::SetDev ( const QString strDevName )
+{
+    QMutexLocker locker ( &MutexDevProperties );
+
+    // init return parameter with "no error"
+    QString strReturn = "";
+
+    // init flag for "load any driver"
+    bool bTryLoadAnyDriver = false;
+
+    // check if an ASIO driver was already initialized
+    if ( !strCurDevName.isEmpty() )
+    {
+        // a device was already been initialized and is used, first clean up
+        // driver
+        UnloadCurrentDriver();
+
+        const QString strErrorMessage = LoadAndInitializeDriver ( strDevName, false );
+
+        if ( !strErrorMessage.isEmpty() )
+        {
+            if ( strDevName != strCurDevName )
+            {
+                // loading and initializing the new driver failed, go back to
+                // original driver and create error message
+                LoadAndInitializeDriver ( strCurDevName, false );
+
+                // store error return message
+                strReturn = QString ( tr ( "Can't use the selected audio device "
+                                           "because of the following error: %1 "
+                                           "The previous driver will be selected." )
+                                          .arg ( strErrorMessage ) );
+            }
+            else
+            {
+                // loading and initializing the current driver failed, try to find
+                // at least one usable driver
+                bTryLoadAnyDriver = true;
+            }
+        }
+    }
+    else
+    {
+        if ( !strDevName.isEmpty() )
+        {
+            // This is the first time a driver is to be initialized, we first
+            // try to load the selected driver, if this fails, we try to load
+            // the first available driver in the system. If this fails, too, we
+            // throw an error that no driver is available -> it does not make
+            // sense to start the software if no audio hardware is available.
+            if ( !LoadAndInitializeDriver ( strDevName, false ).isEmpty() )
+            {
+                // loading and initializing the new driver failed, try to find
+                // at least one usable driver
+                bTryLoadAnyDriver = true;
+            }
+        }
+        else
+        {
+            // try to find one usable driver (select the first valid driver)
+            bTryLoadAnyDriver = true;
+        }
+    }
+
+    if ( bTryLoadAnyDriver )
+    {
+        // if a driver was previously selected, show a warning message
+        if ( !strDevName.isEmpty() )
+        {
+            strReturn = tr ( "The previously selected audio device "
+                             "is no longer available or the driver has changed to an incompatible state. "
+                             "We'll attempt to find a valid audio device, but this new audio device may cause feedback. "
+                             "Before connecting to a server, please check your audio device settings." );
+        }
+
+        // try to load and initialize any valid driver
+        QVector<QString> vsErrorList = LoadAndInitializeFirstValidDriver();
+
+        if ( !vsErrorList.isEmpty() )
+        {
+            // create error message with all details
+            QString sErrorMessage =
+                tr ( "<b>%1 couldn't find a usable %2 audio device.</b><br><br>" ).arg ( APP_NAME ).arg ( strSystemDriverTechniqueName );
+
+            for ( int i = 0; i < lNumDevs; i++ )
+            {
+                sErrorMessage += "<b>" + GetDeviceName ( i ) + "</b>: " + vsErrorList[i] + "<br><br>";
+            }
+
+#if defined( _WIN32 ) && !defined( WITH_JACK )
+            // to be able to access the ASIO driver setup for changing, e.g., the sample rate, we
+            // offer the user under Windows that we open the driver setups of all registered
+            // ASIO drivers
+            sErrorMessage += "<br>" + tr ( "You may be able to fix errors in the driver settings. Do you want to open these settings now?" );
+
+            if ( QMessageBox::Yes == QMessageBox::information ( nullptr, APP_NAME, sErrorMessage, QMessageBox::Yes | QMessageBox::No ) )
+            {
+                LoadAndInitializeFirstValidDriver ( true );
+            }
+
+            sErrorMessage = QString ( tr ( "Can't start %1. Please restart %1 and check/reconfigure your audio settings." ) ).arg ( APP_NAME );
+#endif
+
+            throw CGenErr ( sErrorMessage );
+        }
+    }
+
+    return strReturn;
+}
+
+QVector<QString> CSoundBase::LoadAndInitializeFirstValidDriver ( const bool bOpenDriverSetup )
+{
+    QVector<QString> vsErrorList;
+
+    // load and initialize first valid ASIO driver
+    bool bValidDriverDetected = false;
+    int  iDriverCnt           = 0;
+
+    // try all available drivers in the system ("lNumDevs" devices)
+    while ( !bValidDriverDetected && ( iDriverCnt < lNumDevs ) )
+    {
+        // try to load and initialize current driver, store error message
+        const QString strCurError = LoadAndInitializeDriver ( GetDeviceName ( iDriverCnt ), bOpenDriverSetup );
+
+        vsErrorList.append ( strCurError );
+
+        if ( strCurError.isEmpty() )
+        {
+            // initialization was successful
+            bValidDriverDetected = true;
+
+            // store ID of selected driver
+            strCurDevName = GetDeviceName ( iDriverCnt );
+
+            // empty error list shows that init was successful
+            vsErrorList.clear();
+        }
+
+        // try next driver
+        iDriverCnt++;
+    }
+
+    return vsErrorList;
+}
+
+/******************************************************************************\
+* MIDI handling                                                                *
+\******************************************************************************/
+
+void CSoundBase::SetMIDIControllerMapping ( int iFaderOffset,
+                                            int iFaderCount,
+                                            int iPanOffset,
+                                            int iPanCount,
+                                            int iSoloOffset,
+                                            int iSoloCount,
+                                            int iMuteOffset,
+                                            int iMuteCount,
+                                            int iMuteMyselfCC )
+{
+    // Clear all previous MIDI mappings
+    for ( int i = 0; i < aMidiCtls.size(); ++i )
+    {
+        aMidiCtls[i] = { None, 0 };
+    }
+
+    // Map fader controllers
+    for ( int i = 0; i < iFaderCount && i < MAX_NUM_CHANNELS; ++i )
+    {
+        int iCC = iFaderOffset + i;
+        if ( iCC >= 0 && iCC < 128 )
+        {
+            aMidiCtls[iCC] = { Fader, i };
+        }
+    }
+
+    // Map pan controllers
+    for ( int i = 0; i < iPanCount && i < MAX_NUM_CHANNELS; ++i )
+    {
+        int iCC = iPanOffset + i;
+        if ( iCC >= 0 && iCC < 128 )
+        {
+            aMidiCtls[iCC] = { Pan, i };
+        }
+    }
+
+    // Map solo controllers
+    for ( int i = 0; i < iSoloCount && i < MAX_NUM_CHANNELS; ++i )
+    {
+        int iCC = iSoloOffset + i;
+        if ( iCC >= 0 && iCC < 128 )
+        {
+            aMidiCtls[iCC] = { Solo, i };
+        }
+    }
+
+    // Map mute controllers
+    for ( int i = 0; i < iMuteCount && i < MAX_NUM_CHANNELS; ++i )
+    {
+        int iCC = iMuteOffset + i;
+        if ( iCC >= 0 && iCC < 128 )
+        {
+            aMidiCtls[iCC] = { Mute, i };
+        }
+    }
+
+    // Map mute myself controller
+    if ( iMuteMyselfCC >= 0 && iMuteMyselfCC < 128 )
+    {
+        aMidiCtls[iMuteMyselfCC] = { MuteMyself, 0 };
+    }
+}
+
+void CSoundBase::ParseMIDIMessage ( const CVector<uint8_t>& vMIDIPaketBytes )
+{
+    if ( vMIDIPaketBytes.Size() > 0 )
+    {
+        const uint8_t iStatusByte = vMIDIPaketBytes[0];
+
+        // check if status byte is correct
+        if ( ( iStatusByte >= 0x80 ) && ( iStatusByte < 0xF0 ) )
+        {
+            // zero-based MIDI channel number (i.e. range 0-15)
+            const int iMIDIChannelZB = iStatusByte & 0x0F;
+
+            /*
+            // debugging
+            printf ( "%02X: ", iMIDIChannelZB );
+            for ( int i = 0; i < vMIDIPaketBytes.Size(); i++ )
+            {
+                printf ( "%02X ", vMIDIPaketBytes[i] );
+            }
+            printf ( "\n" );
+            */
+
+            // per definition if MIDI channel is 0, we listen to all channels
+            // note that iCtrlMIDIChannel is one-based channel number
+            if ( ( iCtrlMIDIChannel == 0 ) || ( iCtrlMIDIChannel - 1 == iMIDIChannelZB ) )
+            {
+                // we only want to parse controller messages
+                if ( ( iStatusByte >= 0xB0 ) && ( iStatusByte < 0xC0 ) )
+                {
+                    // make sure packet is long enough
+                    if ( vMIDIPaketBytes.Size() > 2 && vMIDIPaketBytes[1] <= uint8_t ( 127 ) && vMIDIPaketBytes[2] <= uint8_t ( 127 ) )
+                    {
+                        const CMidiCtlEntry& cCtrl  = aMidiCtls[vMIDIPaketBytes[1]];
+                        const int            iValue = vMIDIPaketBytes[2];
+
+                        emit MidiCCReceived ( vMIDIPaketBytes[1] );
+
+                        switch ( cCtrl.eType )
+                        {
+                        case Fader:
+                        {
+                            // we are assuming that the controller number is the same
+                            // as the audio fader index and the range is 0-127
+                            const int iFaderLevel = static_cast<int> ( static_cast<double> ( iValue ) / 127 * AUD_MIX_FADER_MAX );
+
+                            // consider offset for the faders
+
+                            emit ControllerInFaderLevel ( cCtrl.iChannel, iFaderLevel );
+                        }
+                        break;
+                        case Pan:
+                        {
+                            // Pan levels need to be symmetric between 1 and 127
+                            const int iPanValue = static_cast<int> ( static_cast<double> ( qMax ( iValue, 1 ) - 1 ) / 126 * AUD_MIX_PAN_MAX );
+
+                            emit ControllerInPanValue ( cCtrl.iChannel, iPanValue );
+                        }
+                        break;
+                        case Solo:
+                        {
+                            // We depend on toggles reflecting the desired state
+                            emit ControllerInFaderIsSolo ( cCtrl.iChannel, iValue >= 0x40 );
+                        }
+                        break;
+                        case Mute:
+                        {
+                            // We depend on toggles reflecting the desired state
+                            emit ControllerInFaderIsMute ( cCtrl.iChannel, iValue >= 0x40 );
+                        }
+                        break;
+                        case MuteMyself:
+                        {
+                            // We depend on toggles reflecting the desired state to Mute Myself
+                            emit ControllerInMuteMyself ( iValue >= 0x40 );
+                        }
+                        break;
+                        default:
+                            break;
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
