@@ -91,7 +91,7 @@ public:
         bJackWasShutDown ( false ),
         fInOutLatencyMs ( 0.0f )
     {
-        QString strJackName = QString ( APP_NAME );
+        QString strJackName = qEnvironmentVariable( "JAMULUS_JACK_NAME", APP_NAME );
 
         if ( !strJackClientName.isEmpty() )
         {
