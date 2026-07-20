@@ -144,6 +144,7 @@ CChannelFader::CChannelFader ( QWidget* pNW ) :
     // QWidget takes the ownership of the pMainGrid so that this only has
     // to be created locally in this constructor)
     pFrame = new QFrame ( pNW );
+    pFrame->setFixedWidth ( 76 ); // jamony: fader 固定宽度（纤细苗条，为效果器面板预留空间）
 
     pLevelsBox       = new QWidget ( pFrame );
     plbrChannelLevel = new CLevelMeter ( pLevelsBox );
@@ -1272,6 +1273,12 @@ void CAudioMixerBoard::ChangeFaderOrder ( const EChSortType eChSortType )
             iVisibleFaderCnt++;
         }
     }
+
+    // jamony: group box 宽度跟随可见 fader 数（最多4列），窗口只缩宽度不缩高度（高度由 AppleScript 设 jamony 等高）
+    const int iMaxVisible = qMin ( iNumVisibleFaders, 4 );
+    const int iMixerWidth = iMaxVisible * 76 + ( iMaxVisible > 0 ? ( iMaxVisible - 1 ) * 6 : 0 ) + 20; // fader + 间距 + 边距
+    setFixedWidth ( iMixerWidth );
+    if ( QWidget* pw = window() ) pw->resize ( pw->sizeHint().width(), pw->height() );
 }
 
 void CAudioMixerBoard::UpdateTitle()

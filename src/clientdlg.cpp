@@ -953,6 +953,9 @@ void CClientDlg::OnOpenUserProfileSettings() { ShowGeneralSettings ( SETTING_TAB
 
 void CClientDlg::SetMyWindowTitle ( const int iNumClients )
 {
+    // jamony: 排除 jamony-looper（系统录音客户端，不计入用户数显示）
+    const int iDisplayClients = std::max ( 0, iNumClients - 1 );
+
     // set the window title (and therefore also the task bar icon text of the OS)
     // according to the following specification (#559):
     // <ServerName> - <N> users - Jamulus
@@ -966,7 +969,7 @@ void CClientDlg::SetMyWindowTitle ( const int iNumClients )
         strWinTitle += QString ( APP_NAME ) + " - " + pClient->strClientName + " ";
     }
 
-    if ( iNumClients == 0 )
+    if ( iDisplayClients == 0 )
     {
         // only application name
         if ( !bClientNameIsUsed ) // if --clientname is used, the APP_NAME is the first word in title
@@ -976,15 +979,16 @@ void CClientDlg::SetMyWindowTitle ( const int iNumClients )
     }
     else
     {
-        strWinTitle += MainMixerBoard->GetServerName();
+        // jamony: 不显示服务器地址（安全，不暴露 IP:port）
+        // strWinTitle += MainMixerBoard->GetServerName();
 
-        if ( iNumClients == 1 )
+        if ( iDisplayClients == 1 )
         {
             strWinTitle += " - 1 " + tr ( "user" );
         }
-        else if ( iNumClients > 1 )
+        else if ( iDisplayClients > 1 )
         {
-            strWinTitle += " - " + QString::number ( iNumClients ) + " " + tr ( "users" );
+            strWinTitle += " - " + QString::number ( iDisplayClients ) + " " + tr ( "users" );
         }
 
         if ( !bClientNameIsUsed ) // if --clientname is used, the APP_NAME is the first word in title
@@ -998,10 +1002,10 @@ void CClientDlg::SetMyWindowTitle ( const int iNumClients )
 #if defined( Q_OS_MACOS )
     // for MacOS only we show the number of connected clients as a
     // badge label text if more than one user is connected
-    if ( iNumClients > 1 )
+    if ( iDisplayClients > 1 )
     {
         // show the number of connected clients
-        SetMacBadgeLabelText ( QString ( "%1" ).arg ( iNumClients ) );
+        SetMacBadgeLabelText ( QString ( "%1" ).arg ( iDisplayClients ) );
     }
     else
     {
