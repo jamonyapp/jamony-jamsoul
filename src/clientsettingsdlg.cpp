@@ -55,6 +55,12 @@ CClientSettingsDlg::CClientSettingsDlg ( CClient* pNCliP, CClientSettings* pNSet
 {
     setupUi ( this );
 
+    // jamony: 我的信息由 jamony 用户系统管理，隐藏 Profile tab；自定义目录由 jamony 直连，隐藏
+    tabSettings->setTabVisible ( SETTING_TAB_USER, false );
+    cbxCustomDirectories->hide();
+    lblCustomDirectories->hide();
+    tbtDeleteCustomDirectory->hide();
+
 #if defined( Q_OS_IOS )
     // iOS needs menu to close
     QMenuBar* pMenu  = new QMenuBar ( this );

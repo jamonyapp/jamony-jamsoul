@@ -189,6 +189,9 @@ win32 {
     HEADERS += src/mac/activity.h src/mac/badgelabel.h
     OBJECTIVE_SOURCES += src/mac/activity.mm src/mac/badgelabel.mm
     CONFIG += x86
+    # jamony: 兼容新版 macOS SDK（implicit-function-declaration / deprecated-declarations 默认当 error）
+    QMAKE_CXXFLAGS += -Wno-error=implicit-function-declaration -Wno-error=deprecated-declarations
+    QMAKE_OBJECTIVE_CXXFLAGS += -Wno-error=implicit-function-declaration -Wno-error=deprecated-declarations
     QMAKE_TARGET_BUNDLE_PREFIX = app.jamulussoftware
 
     OSX_ENTITLEMENTS.files = mac/Jamulus.entitlements

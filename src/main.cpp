@@ -950,6 +950,12 @@ int main ( int argc, char** argv )
             Settings.Load ( CommandLineOptions );
             Client.SetSettings ( &Settings );
 
+            // jamony: --clientname 同时设 profile name（调音台 fader tag 显示 jamony 昵称，覆盖 ini 预设）
+            if ( !strClientName.isEmpty() )
+            {
+                Client.ChannelInfo.strName = strClientName;
+            }
+
 #    ifndef NO_JSON_RPC
             if ( pRpcServer )
             {

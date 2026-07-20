@@ -715,19 +715,20 @@ enum ESkillLevel
     SL_PROFESSIONAL = 3
 };
 
-// define the GUI RGB colors for each skill level
-#define RGBCOL_R_SL_NOT_SET         255
-#define RGBCOL_G_SL_NOT_SET         255
-#define RGBCOL_B_SL_NOT_SET         255
-#define RGBCOL_R_SL_BEGINNER        255
-#define RGBCOL_G_SL_BEGINNER        255
-#define RGBCOL_B_SL_BEGINNER        200
-#define RGBCOL_R_SL_INTERMEDIATE    225
-#define RGBCOL_G_SL_INTERMEDIATE    255
-#define RGBCOL_B_SL_INTERMEDIATE    225
-#define RGBCOL_R_SL_SL_PROFESSIONAL 255
-#define RGBCOL_G_SL_SL_PROFESSIONAL 225
-#define RGBCOL_B_SL_SL_PROFESSIONAL 225
+// define the jamony brand colors for each skill level
+// Brand: Blue #00AAFF, Purple #9933FF, Pink #FF33AA, Lime #BBEE00
+#define RGBCOL_R_SL_NOT_SET         60
+#define RGBCOL_G_SL_NOT_SET         60
+#define RGBCOL_B_SL_NOT_SET         60
+#define RGBCOL_R_SL_BEGINNER        187
+#define RGBCOL_G_SL_BEGINNER        238
+#define RGBCOL_B_SL_BEGINNER        0
+#define RGBCOL_R_SL_INTERMEDIATE    0
+#define RGBCOL_G_SL_INTERMEDIATE    170
+#define RGBCOL_B_SL_INTERMEDIATE    255
+#define RGBCOL_R_SL_SL_PROFESSIONAL 153
+#define RGBCOL_G_SL_SL_PROFESSIONAL 51
+#define RGBCOL_B_SL_SL_PROFESSIONAL 255
 
 // Stereo signal level meter ---------------------------------------------------
 class CStereoSignalLevelMeter

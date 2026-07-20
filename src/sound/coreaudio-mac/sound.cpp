@@ -61,7 +61,7 @@ CSound::CSound ( void ( *fpNewProcessCallback ) ( CVector<short>& psData, void* 
     // following lines of code:
     // tell the HAL to use the current thread as it's run loop
     CFRunLoopRef               theRunLoop = CFRunLoopGetCurrent();
-    AudioObjectPropertyAddress property   = { kAudioHardwarePropertyRunLoop, kAudioObjectPropertyScopeGlobal, kAudioObjectPropertyElementMaster };
+    AudioObjectPropertyAddress property   = { kAudioHardwarePropertyRunLoop, kAudioObjectPropertyScopeGlobal, kAudioObjectPropertyElementMain };
 
     AudioObjectSetPropertyData ( kAudioObjectSystemObject, &property, 0, NULL, sizeof ( CFRunLoopRef ), &theRunLoop );
 
@@ -104,7 +104,7 @@ void CSound::GetAvailableInOutDevices()
     AudioObjectPropertyAddress stPropertyAddress;
 
     stPropertyAddress.mScope   = kAudioObjectPropertyScopeGlobal;
-    stPropertyAddress.mElement = kAudioObjectPropertyElementMaster;
+    stPropertyAddress.mElement = kAudioObjectPropertyElementMain;
 
     // first get property size of devices array and allocate memory
     stPropertyAddress.mSelector = kAudioHardwarePropertyDevices;
@@ -191,7 +191,7 @@ void CSound::GetAudioDeviceInfos ( const AudioDeviceID DeviceID, QString& strDev
 
     // check if device is input or output or both (is that possible?)
     stPropertyAddress.mSelector = kAudioDevicePropertyStreams;
-    stPropertyAddress.mElement  = kAudioObjectPropertyElementMaster;
+    stPropertyAddress.mElement  = kAudioObjectPropertyElementMain;
 
     // input check
     iPropertySize            = 0;
@@ -313,7 +313,7 @@ QString CSound::LoadAndInitializeDriver ( QString strDriverName, bool )
         // unregister callbacks if previous device was valid
         if ( lCurDev != INVALID_INDEX )
         {
-            stPropertyAddress.mElement = kAudioObjectPropertyElementMaster;
+            stPropertyAddress.mElement = kAudioObjectPropertyElementMain;
             stPropertyAddress.mScope   = kAudioObjectPropertyScopeGlobal;
 
             // unregister callback functions for device property changes
@@ -344,7 +344,7 @@ QString CSound::LoadAndInitializeDriver ( QString strDriverName, bool )
         CurrentAudioOutputDeviceID = audioOutputDevice[iDriverIdx];
 
         // register callbacks
-        stPropertyAddress.mElement = kAudioObjectPropertyElementMaster;
+        stPropertyAddress.mElement = kAudioObjectPropertyElementMain;
         stPropertyAddress.mScope   = kAudioObjectPropertyScopeGlobal;
 
         // setup callbacks for device property changes
@@ -392,7 +392,7 @@ QString CSound::CheckDeviceCapabilities ( const int iDriverIdx )
     AudioObjectPropertyAddress  stPropertyAddress;
 
     stPropertyAddress.mScope   = kAudioObjectPropertyScopeGlobal;
-    stPropertyAddress.mElement = kAudioObjectPropertyElementMaster;
+    stPropertyAddress.mElement = kAudioObjectPropertyElementMain;
 
     // check input device sample rate
     stPropertyAddress.mSelector = kAudioDevicePropertyNominalSampleRate;
@@ -955,7 +955,7 @@ UInt32 CSound::SetBufferSize ( AudioDeviceID& audioDeviceID, const bool bIsInput
         stPropertyAddress.mScope = kAudioDevicePropertyScopeOutput;
     }
 
-    stPropertyAddress.mElement = kAudioObjectPropertyElementMaster;
+    stPropertyAddress.mElement = kAudioObjectPropertyElementMain;
 
     // first set the value
     UInt32 iSizeBufValue = sizeof ( UInt32 );

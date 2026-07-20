@@ -71,6 +71,12 @@ CClientDlg::CClientDlg ( CClient*         pNCliP,
 {
     setupUi ( this );
 
+    // 聊天功能由 jamony Electron 实现，jamsoul 隐藏聊天按钮
+    chbChat->hide();
+
+    // jamony: 连接由 jamony 通过 --connect 参数控制，隐藏连接/断开按钮
+    butConnect->hide();
+
     // Add help text to controls -----------------------------------------------
     // input level meter
     QString strInpLevH = "<b>" + tr ( "Input Level Meter" ) + ":</b> " +
@@ -305,7 +311,7 @@ CClientDlg::CClientDlg ( CClient*         pNCliP,
     // File menu  --------------------------------------------------------------
     QMenu* pFileMenu = new QMenu ( tr ( "&File" ), this );
 
-    pFileMenu->addAction ( tr ( "&Connection Setup..." ), this, SLOT ( OnOpenConnectionSetupDialog() ), QKeySequence ( Qt::CTRL + Qt::Key_C ) );
+    //pFileMenu->addAction ( tr ( "&Connection Setup..." ), this, SLOT ( OnOpenConnectionSetupDialog() ), QKeySequence ( Qt::CTRL + Qt::Key_C ) );
 
     pFileMenu->addSeparator();
 
@@ -403,7 +409,7 @@ CClientDlg::CClientDlg ( CClient*         pNCliP,
 
     pViewMenu->addSeparator();
 
-    pViewMenu->addAction ( tr ( "C&hat..." ), this, SLOT ( OnOpenChatDialog() ), QKeySequence ( Qt::CTRL + Qt::Key_H ) );
+    //pViewMenu->addAction ( tr ( "C&hat..." ), this, SLOT ( OnOpenChatDialog() ), QKeySequence ( Qt::CTRL + Qt::Key_H ) );
 
     // optionally show analyzer console entry
     if ( bShowAnalyzerConsole )
@@ -416,7 +422,8 @@ CClientDlg::CClientDlg ( CClient*         pNCliP,
     // Settings menu  --------------------------------------------------------------
     QMenu* pSettingsMenu = new QMenu ( tr ( "Sett&ings" ), this );
 
-    pSettingsMenu->addAction ( tr ( "My &Profile..." ), this, SLOT ( OnOpenUserProfileSettings() ), QKeySequence ( Qt::CTRL + Qt::Key_P ) );
+    // jamony: 我的信息由 jamony 用户系统管理，移除 Profile 菜单项
+    //pSettingsMenu->addAction ( tr ( "My &Profile..." ), this, SLOT ( OnOpenUserProfileSettings() ), QKeySequence ( Qt::CTRL + Qt::Key_P ) );
 
     pSettingsMenu->addAction ( tr ( "Audio/Network &Settings..." ), this, SLOT ( OnOpenAudioNetSettings() ), QKeySequence ( Qt::CTRL + Qt::Key_S ) );
 
@@ -428,17 +435,11 @@ CClientDlg::CClientDlg ( CClient*         pNCliP,
         [this] { ShowGeneralSettings ( SETTING_TAB_MIDI ); },
         QKeySequence ( Qt::CTRL + Qt::Key_M ) );
 
-    // Main menu bar -----------------------------------------------------------
-    QMenuBar* pMenu = new QMenuBar ( this );
-
-    pMenu->addMenu ( pFileMenu );
-    pMenu->addMenu ( pEditMenu );
-    pMenu->addMenu ( pViewMenu );
-    pMenu->addMenu ( pSettingsMenu );
-    pMenu->addMenu ( new CHelpMenu ( true, this ) );
-
-    // Now tell the layout about the menu
-    layout()->setMenuBar ( pMenu );
+    // jamony: 菜单栏全删（File/Edit/View/Settings 通过主界面按钮直达；减法 + LSUIElement 隐藏 dock 无菜单栏副作用）
+    // QMenuBar* pMenu = new QMenuBar ( this );
+    // pMenu->setStyleSheet ( ... );
+    // pMenu->addMenu ( pFileMenu/pEditMenu/pViewMenu/pSettingsMenu );
+    // layout()->setMenuBar ( pMenu );
 
     // Window positions --------------------------------------------------------
     // main window
@@ -608,30 +609,32 @@ CClientDlg::CClientDlg ( CClient*         pNCliP,
         chbLocalMute->setCheckState ( Qt::Checked );
     }
 
-    // query the update server version number needed for update check (note
-    // that the connection less message respond may not make it back but that
-    // is not critical since the next time Jamulus is started we have another
-    // chance and the update check is not time-critical at all)
-    CHostAddress UpdateServerHostAddress;
-
-    // Send the request to two servers for redundancy if either or both of them
-    // has a higher release version number, the reply will trigger the notification.
-
-    // Don't use SRV resolution when resolving update servers.
-
-    if ( NetworkUtil::ParseNetworkAddressBare ( UPDATECHECK1_ADDRESS, UpdateServerHostAddress, bEnableIPv6 ) )
-    {
-        pClient->CreateCLServerListReqVerAndOSMes ( UpdateServerHostAddress );
-    }
-
-    if ( NetworkUtil::ParseNetworkAddressBare ( UPDATECHECK2_ADDRESS, UpdateServerHostAddress, bEnableIPv6 ) )
-    {
-        pClient->CreateCLServerListReqVerAndOSMes ( UpdateServerHostAddress );
-    }
+    // jamony: 移除 jamulus 自动更新检查（jamsoul 版本由 jamony 管理，不连 jamulus 更新服务器）
+    // CHostAddress UpdateServerHostAddress;
+    // if ( NetworkUtil::ParseNetworkAddressBare ( UPDATECHECK1_ADDRESS, UpdateServerHostAddress, bEnableIPv6 ) )
+    // {
+    //     pClient->CreateCLServerListReqVerAndOSMes ( UpdateServerHostAddress );
+    // }
+    // if ( NetworkUtil::ParseNetworkAddressBare ( UPDATECHECK2_ADDRESS, UpdateServerHostAddress, bEnableIPv6 ) )
+    // {
+    //     pClient->CreateCLServerListReqVerAndOSMes ( UpdateServerHostAddress );
+    // }
 }
 
 void CClientDlg::closeEvent ( QCloseEvent* Event )
 {
+    // jamony: 连接中时弹确认（防误关 jamsoul）
+    if ( pClient->IsRunning() )
+    {
+        QMessageBox::StandardButton reply = QMessageBox::question ( this, tr ( "退出 jamsoul" ),
+            tr ( "退出 jamsoul 将断开音频连接，确认退出？" ), QMessageBox::Yes | QMessageBox::No, QMessageBox::No );
+        if ( reply != QMessageBox::Yes )
+        {
+            Event->ignore();
+            return;
+        }
+    }
+
     // store window positions
     pSettings->vecWindowPosMain     = saveGeometry();
     pSettings->vecWindowPosSettings = ClientSettingsDlg.saveGeometry();
@@ -866,9 +869,9 @@ void CClientDlg::OnCLVersionAndOSReceived ( CHostAddress InetAddr, COSUtil::EOpS
         // only compare if the server version has no suffix (such as dev or beta)
         if ( strVersion.size() == serverSuffixIndex && QVersionNumber::compare ( serverVersion, myVersion ) > 0 )
         {
-            // show the label and hide it after one minute again
-            lblUpdateCheck->show();
-            QTimer::singleShot ( 60000, [this]() { lblUpdateCheck->hide(); } );
+            // jamony: 移除更新提醒（不 show lblUpdateCheck）
+            // lblUpdateCheck->show();
+            // QTimer::singleShot ( 60000, [this]() { lblUpdateCheck->hide(); } );
         }
 #endif
     }
@@ -1384,37 +1387,32 @@ void CClientDlg::SetGUIDesign ( const EGUIDesign eNewDesign )
     {
     case GD_ORIGINAL:
         backgroundFrame->setStyleSheet (
-            "QFrame#backgroundFrame { border-image:  url(:/png/fader/res/mixerboardbackground.png) 34px 30px 40px 40px;"
-            "                         border-top:    34px transparent;"
-            "                         border-bottom: 40px transparent;"
-            "                         border-left:   30px transparent;"
-            "                         border-right:  40px transparent;"
-            "                         padding:       -5px;"
-            "                         margin:        -5px, -5px, 0px, 0px; }"
-            "QLabel {                 color:          rgb(220, 220, 220);"
+            "QFrame#backgroundFrame { background: #000;"
+            "                         border: none; }"
+            "QLabel {                 color:          rgb(255, 255, 255);"
             "                         font:           bold; }"
-            "QRadioButton {           color:          rgb(220, 220, 220);"
+            "QRadioButton {           color:          rgb(255, 255, 255);"
             "                         font:           bold; }"
             "QScrollArea {            background:     transparent; }"
             ".QWidget {               background:     transparent; }" // note: matches instances of QWidget, but not of its subclasses
-            "QGroupBox {              background:     transparent; }"
-            "QGroupBox::title {       color:          rgb(220, 220, 220); }"
+            "QGroupBox {              background:     #000; }"
+            "QGroupBox::title {       color:          rgb(255, 255, 255); }"
             "QCheckBox::indicator {   width:          38px;"
             "                         height:         21px; }"
             "QCheckBox::indicator:unchecked {"
             "                         image:          url(:/png/fader/res/ledbuttonnotpressed.png); }"
             "QCheckBox::indicator:checked {"
             "                         image:          url(:/png/fader/res/ledbuttonpressed.png); }"
-            "QCheckBox {              color:          rgb(220, 220, 220);"
+            "QCheckBox {              color:          rgb(255, 255, 255);"
             "                         font:           bold; }" );
 #ifdef _WIN32
         // Workaround QT-Windows problem: This should not be necessary since in the
         // background frame the style sheet for QRadioButton was already set. But it
         // seems that it is only applied if the style was set to default and then back
         // to GD_ORIGINAL. This seems to be a QT related issue...
-        rbtReverbSelL->setStyleSheet ( "color: rgb(220, 220, 220);"
+        rbtReverbSelL->setStyleSheet ( "color: rgb(255, 255, 255);"
                                        "font:  bold;" );
-        rbtReverbSelR->setStyleSheet ( "color: rgb(220, 220, 220);"
+        rbtReverbSelR->setStyleSheet ( "color: rgb(255, 255, 255);"
                                        "font:  bold;" );
 #endif
 
@@ -1506,7 +1504,7 @@ void CClientDlg::SetMixerBoardDeco ( const ERecorderState newRecorderState, cons
         if ( eNewDesign == GD_ORIGINAL )
         {
             // no need to set the background color for dark mode in fancy skin, as the background is already dark.
-            sTitleStyle += "color: rgb(220,220,220); }";
+            sTitleStyle += "color: rgb(255,255,255); }";
         }
         else
         {
@@ -1521,11 +1519,11 @@ void CClientDlg::SetMixerBoardDeco ( const ERecorderState newRecorderState, cons
             {
                 // Dark mode needs a light color
 
-                sTitleStyle += "color: rgb(220,220,220); }";
+                sTitleStyle += "color: rgb(255,255,255); }";
             }
             else
             {
-                sTitleStyle += "color: rgb(0,0,0); }";
+                sTitleStyle += "color: rgb(255,255,255); }";
             }
         }
     }

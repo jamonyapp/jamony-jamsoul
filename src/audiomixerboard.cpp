@@ -479,40 +479,12 @@ void CChannelFader::SetupFaderTag ( const ESkillLevel eSkillLevel )
         }
     }
 
-    // setup group box for label/instrument picture: set a thick black border
-    // with nice round edges
+    // setup group box for label/instrument picture: jamony style
     QString strStile = "QGroupBox { border:        2px " + strBorderStyle + " " + strBorderColor +
                        ";"
-                       "            border-radius: 4px;"
-                       "            padding:       3px;";
-
-    // the background color depends on the skill level
-    switch ( eSkillLevel )
-    {
-    case SL_BEGINNER:
-        strStile +=
-            QString ( "background-color: rgb(%1, %2, %3); }" ).arg ( RGBCOL_R_SL_BEGINNER ).arg ( RGBCOL_G_SL_BEGINNER ).arg ( RGBCOL_B_SL_BEGINNER );
-        break;
-
-    case SL_INTERMEDIATE:
-        strStile += QString ( "background-color: rgb(%1, %2, %3); }" )
-                        .arg ( RGBCOL_R_SL_INTERMEDIATE )
-                        .arg ( RGBCOL_G_SL_INTERMEDIATE )
-                        .arg ( RGBCOL_B_SL_INTERMEDIATE );
-        break;
-
-    case SL_PROFESSIONAL:
-        strStile += QString ( "background-color: rgb(%1, %2, %3); }" )
-                        .arg ( RGBCOL_R_SL_SL_PROFESSIONAL )
-                        .arg ( RGBCOL_G_SL_SL_PROFESSIONAL )
-                        .arg ( RGBCOL_B_SL_SL_PROFESSIONAL );
-        break;
-
-    default:
-        strStile +=
-            QString ( "background-color: rgb(%1, %2, %3); }" ).arg ( RGBCOL_R_SL_NOT_SET ).arg ( RGBCOL_G_SL_NOT_SET ).arg ( RGBCOL_B_SL_NOT_SET );
-        break;
-    }
+                       "            border-radius: 10px;"
+                       "            padding:       3px;"
+                       "            background:    #000; }";
 
     pLabelInstBox->setStyleSheet ( strStile );
 }
@@ -800,7 +772,7 @@ void CChannelFader::SetChannelInfos ( const CChannelInfo& cChanInfo )
     if ( eDesign == GD_SLIMFADER )
     {
         // in slim mode use a non-bold font (smaller width font)
-        plblLabel->setStyleSheet ( "QLabel { color: black; }" );
+        plblLabel->setStyleSheet ( "QLabel { color: white; }" );
 
         // break at every 4th character
         iBreakPos = 4;
@@ -808,7 +780,7 @@ void CChannelFader::SetChannelInfos ( const CChannelInfo& cChanInfo )
     else
     {
         // in normal mode use bold font
-        plblLabel->setStyleSheet ( "QLabel { color: black; font: bold; }" );
+        plblLabel->setStyleSheet ( "QLabel { color: white; font: bold; }" );
 
         // break text at predefined position
         iBreakPos = MAX_LEN_FADER_TAG / 2;
@@ -878,8 +850,8 @@ void CChannelFader::SetChannelInfos ( const CChannelInfo& cChanInfo )
             plblCountryFlag->setPixmap ( CountryFlagPixmap );
             eTTCountry = cChanInfo.eCountry;
 
-            // enable country flag
-            plblCountryFlag->setVisible ( true );
+            // jamony: 隐藏国旗 icon（country 字段保留，只不显示）
+            plblCountryFlag->setVisible ( false );
         }
     }
     else
@@ -1266,6 +1238,16 @@ void CAudioMixerBoard::ChangeFaderOrder ( const EChSortType eChSortType )
         }
     }
 
+    // jamony: jamony-looper 幽灵乐手排最后
+    for ( int i = 0; i < MAX_NUM_CHANNELS; i++ )
+    {
+        if ( vecpChanFader[PairList[i].second]->GetReceivedName() == "jamony-looper" )
+        {
+            PairList.move ( i, MAX_NUM_CHANNELS - 1 );
+            break;
+        }
+    }
+
     // we want to distribute iNumVisibleFaders across the first row, then the next, etc
     // up to iNumMixerPanelRows.  So row wants to start at 0 until we get to some number,
     // then increase, where "some number" means we get no more than iNumMixerPanelRows.
@@ -1308,7 +1290,8 @@ void CAudioMixerBoard::UpdateTitle()
     QString strEscServerName = strServerName;
     strEscServerName.replace ( "&", "&&" );
 
-    setTitle ( strTitlePrefix + tr ( "Personal Mix at: %1" ).arg ( strEscServerName ) );
+    // jamony: 连接成功后显示"音频已连接"，不暴露服务器地址/端口
+    setTitle ( strTitlePrefix + tr ( "音频已连接" ) );
     setAccessibleName ( title() );
 }
 

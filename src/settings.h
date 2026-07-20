@@ -185,7 +185,7 @@ public:
         bWindowWasShownSettings ( false ),
         bWindowWasShownChat ( false ),
         bWindowWasShownConnect ( false ),
-        bOwnFaderFirst ( false ),
+        bOwnFaderFirst ( true ),
         iMidiChannel ( 0 ),
         iMidiMuteMyself ( 0 ),
         iMidiFaderOffset ( 0 ),
