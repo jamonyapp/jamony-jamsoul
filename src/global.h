@@ -251,7 +251,7 @@ LED bar:      lbr
 #define PING_UPDATE_TIME_SERVER_LIST_MS 2500 // ms
 
 // defines the interval between Channel Level updates from the server
-#define CHANNEL_LEVEL_UPDATE_INTERVAL 200 // number of frames at 64 samples frame size
+#define CHANNEL_LEVEL_UPDATE_INTERVAL 25  // jamony: 25 frames × 1.333ms ≈ 33ms = 30Hz (分轨电平流畅, 原 200=3.75Hz 卡)
 
 // time-out until a registered server is deleted from the server list if no
 // new registering was made in minutes
