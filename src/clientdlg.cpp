@@ -79,12 +79,6 @@ CClientDlg::CClientDlg ( CClient*         pNCliP,
 {
     setupUi ( this );
 
-    // 聊天功能由 jamony Electron 实现，jamsoul 隐藏聊天按钮
-    chbChat->hide();
-
-    // jamony: 连接由 jamony 通过 --connect 参数控制，隐藏连接/断开按钮
-    butConnect->hide();
-
     // Add help text to controls -----------------------------------------------
     // input level meter
     QString strInpLevH = "<b>" + tr ( "Input Level Meter" ) + ":</b> " +
@@ -126,13 +120,6 @@ CClientDlg::CClientDlg ( CClient*         pNCliP,
     lbrInputLevelR->setAccessibleDescription ( strInpLevHAccDescr );
     lbrInputLevelR->setToolTip ( strInpLevHTT );
     lbrInputLevelR->setEnabled ( false );
-
-    // connect/disconnect button
-    butConnect->setWhatsThis ( "<b>" + tr ( "Connect/Disconnect Button" ) + ":</b> " +
-                               tr ( "Opens a dialog where you can select a server to connect to. "
-                                    "If you are connected, pressing this button will end the session." ) );
-
-    butConnect->setAccessibleName ( tr ( "Connect and disconnect toggle button" ) );
 
     // reverberation level
     QString strAudReverb = "<b>" + tr ( "Reverb effect" ) + ":</b> " +
@@ -262,9 +249,6 @@ CClientDlg::CClientDlg ( CClient*         pNCliP,
 
     // init status label
     OnTimerStatus();
-
-    // init connection button text
-    butConnect->setText ( tr ( "C&onnect" ) );
 
     // init input level meter bars
     lbrInputLevelL->SetValue ( 0 );
@@ -486,12 +470,10 @@ CClientDlg::CClientDlg ( CClient*         pNCliP,
 
     // Connections -------------------------------------------------------------
     // push buttons
-    QObject::connect ( butConnect, &QPushButton::clicked, this, &CClientDlg::OnConnectDisconBut );
+    QObject::connect ( butAutoAdjust, &QPushButton::clicked, this, &CClientDlg::OnAutoAdjustAllFaderLevels ); // jamony: 自动调整分轨信号电平
 
     // check boxes
     QObject::connect ( chbSettings, &QCheckBox::stateChanged, this, &CClientDlg::OnSettingsStateChanged );
-
-    QObject::connect ( chbChat, &QCheckBox::stateChanged, this, &CClientDlg::OnChatStateChanged );
 
     QObject::connect ( chbLocalMute, &QCheckBox::stateChanged, this, &CClientDlg::OnLocalMuteStateChanged );
 
@@ -1411,9 +1393,6 @@ void CClientDlg::Connect ( const QString& strSelectedAddress, const QString& str
         lbrInputLevelL->setEnabled ( true );
         lbrInputLevelR->setEnabled ( true );
 
-        // change connect button text to "disconnect"
-        butConnect->setText ( tr ( "&Disconnect" ) );
-
         // set server name in audio mixer group box title
         MainMixerBoard->SetServerName ( strMixerBoardLabel );
 
@@ -1442,9 +1421,6 @@ void CClientDlg::Disconnect()
     {
         pClient->Stop();
     }
-
-    // change connect button text to "connect"
-    butConnect->setText ( tr ( "C&onnect" ) );
 
     // reset server name in audio mixer group box title
     MainMixerBoard->SetServerName ( "" );
@@ -1500,19 +1476,6 @@ void CClientDlg::UpdateDisplay()
         chbSettings->blockSignals ( true );
         chbSettings->setChecked ( true );
         chbSettings->blockSignals ( false );
-    }
-
-    if ( chbChat->isChecked() && !ChatDlg.isVisible() )
-    {
-        chbChat->blockSignals ( true );
-        chbChat->setChecked ( false );
-        chbChat->blockSignals ( false );
-    }
-    if ( !chbChat->isChecked() && ChatDlg.isVisible() )
-    {
-        chbChat->blockSignals ( true );
-        chbChat->setChecked ( true );
-        chbChat->blockSignals ( false );
     }
 }
 
@@ -1585,6 +1548,17 @@ void CClientDlg::SetGUIDesign ( const EGUIDesign eNewDesign )
         "QCheckBox:checked { color: #FF33AA; border: 1px solid #FF33AA; }"
         "QCheckBox:hover { border: 1px solid #888; }" );
     chbSettings->setFixedHeight ( 16 );
+
+    // jamony: chbLocalMute 移到 B栏底部 frameLocalMute(M+静音), M 字母灯样式 + 边框
+    chbLocalMute->setStyleSheet (
+        "QCheckBox { font: bold; color: #999999; background: #262626;"
+        "            border-radius: 3px; padding: 2px 6px; text-align: center; }"
+        "QCheckBox::indicator { width: 0px; height: 0px; }"
+        "QCheckBox:checked { background: #FF3366; color: #ffffff; }" );
+    chbLocalMute->setFixedWidth ( 40 );
+    lblLocalMuteCaption->setFixedWidth ( 40 );
+    frameLocalMute->setStyleSheet (
+        "QFrame#frameLocalMute { border: 1px solid #444; border-radius: 4px; background: #1a1a1a; }" );
 }
 
 void CClientDlg::SetMeterStyle ( const EMeterStyle eNewMeterStyle )
