@@ -168,7 +168,7 @@ void CLevelMeter::SetBarMeterStyleAndClipStatus ( const ELevelMeterType eNType, 
                                        "                      padding:    0px;"
                                        "                      width:      4px;"
                                        "                      background: red; }"
-                                       "QProgressBar::chunk { background: green; }" );
+                                       "QProgressBar::chunk { background: #BBEE00; }" );
         }
         else
         {
@@ -176,7 +176,7 @@ void CLevelMeter::SetBarMeterStyleAndClipStatus ( const ELevelMeterType eNType, 
                                        "                      margin:     0px;"
                                        "                      padding:    0px;"
                                        "                      width:      4px; }"
-                                       "QProgressBar::chunk { background: green; }" );
+                                       "QProgressBar::chunk { background: #BBEE00; }" );
         }
         break;
 
@@ -188,14 +188,14 @@ void CLevelMeter::SetBarMeterStyleAndClipStatus ( const ELevelMeterType eNType, 
                                        "                      padding:    1px;"
                                        "                      width:      15px;"
                                        "                      background: transparent; }"
-                                       "QProgressBar::chunk { background: green; }" );
+                                       "QProgressBar::chunk { background: #BBEE00; }" );
         }
         else
         {
             pBarMeter->setStyleSheet ( "QProgressBar        { margin:     1px;"
                                        "                      padding:    1px;"
                                        "                      width:      15px; }"
-                                       "QProgressBar::chunk { background: green; }" );
+                                       "QProgressBar::chunk { background: #BBEE00; }" );
         }
         break;
     }

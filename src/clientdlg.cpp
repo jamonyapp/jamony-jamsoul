@@ -47,6 +47,14 @@
 #include "clientdlg.h"
 #include "util.h"
 
+// jamony: 布局 dump 工具所需头文件（UI 调试基建）
+#include <QFile>
+#include <QTextStream>
+#include <QBoxLayout>
+#include <QGridLayout>
+#include <QStackedLayout>
+#include <QSpacerItem>
+
 /* Implementation *************************************************************/
 CClientDlg::CClientDlg ( CClient*         pNCliP,
                          CClientSettings* pNSetP,
@@ -619,6 +627,133 @@ CClientDlg::CClientDlg ( CClient*         pNCliP,
     // {
     //     pClient->CreateCLServerListReqVerAndOSMes ( UpdateServerHostAddress );
     // }
+}
+
+// jamony: 全量布局 dump 辅助（file-local，UI 调试基建）——递归打印 layout 树
+//         每个控件打印 geometry/sizeHint/min/max/sizePolicy，每个 layout 打印 stretch/margin/spacing
+namespace {
+
+void dumpIndent ( QTextStream& s, int depth )
+{
+    for ( int i = 0; i < depth; ++i ) s << "  ";
+}
+
+void dumpLayoutRecursive ( QTextStream& s, QLayout* pLayout, int depth, QWidget* pRoot );
+
+void dumpWidget ( QTextStream& s, QWidget* pWidget, int depth, QWidget* pRoot )
+{
+    if ( !pWidget ) return;
+    const QRect        g  ( pWidget->geometry() );
+    const QPoint       tl ( pWidget->mapTo ( pRoot, QPoint ( 0, 0 ) ) );
+    const QSize        sh ( pWidget->sizeHint() );
+    const QSize        mn ( pWidget->minimumSize() );
+    const QSize        mx ( pWidget->maximumSize() );
+    const QSizePolicy  sp ( pWidget->sizePolicy() );
+
+    dumpIndent ( s, depth );
+    s << "[W] " << pWidget->metaObject()->className()
+      << " name=\"" << pWidget->objectName() << "\""
+      << " parent_geom=" << g.x() << "," << g.y() << " " << g.width() << "x" << g.height()
+      << " root_xy=" << tl.x() << "," << tl.y()
+      << " sizeHint=" << sh.width() << "x" << sh.height()
+      << " minSize=" << mn.width() << "x" << mn.height()
+      << " maxSize=" << mx.width() << "x" << mx.height()
+      << " sizePolicy(hpol=" << static_cast<int> ( sp.horizontalPolicy() )
+      << " vpol=" << static_cast<int> ( sp.verticalPolicy() )
+      << " hstr=" << sp.horizontalStretch() << " vstr=" << sp.verticalStretch() << ")"
+      << " visible=" << pWidget->isVisible() << " hidden=" << pWidget->isHidden()
+      << "\n";
+
+    if ( pWidget->layout() )
+    {
+        dumpLayoutRecursive ( s, pWidget->layout(), depth + 1, pRoot );
+    }
+}
+
+void dumpLayoutRecursive ( QTextStream& s, QLayout* pLayout, int depth, QWidget* pRoot )
+{
+    if ( !pLayout ) return;
+    const QRect     g ( pLayout->geometry() );
+    const QMargins  m ( pLayout->contentsMargins() );
+
+    dumpIndent ( s, depth );
+    s << "[L] " << pLayout->metaObject()->className()
+      << " name=\"" << pLayout->objectName() << "\""
+      << " count=" << pLayout->count()
+      << " spacing=" << pLayout->spacing()
+      << " margins=" << m.left() << "/" << m.top() << "/" << m.right() << "/" << m.bottom()
+      << " geom=" << g.x() << "," << g.y() << " " << g.width() << "x" << g.height()
+      << "\n";
+
+    QBoxLayout*     pBox   = qobject_cast<QBoxLayout*> ( pLayout );
+    QGridLayout*    pGrid  = qobject_cast<QGridLayout*> ( pLayout );
+    QStackedLayout* pStack = qobject_cast<QStackedLayout*> ( pLayout );
+
+    if ( pStack )
+    {
+        dumpIndent ( s, depth + 1 );
+        s << "(stack currentIndex=" << pStack->currentIndex() << ")\n";
+    }
+
+    for ( int i = 0; i < pLayout->count(); ++i )
+    {
+        QLayoutItem* pItem = pLayout->itemAt ( i );
+        if ( !pItem ) continue;
+
+        if ( pItem->widget() )
+        {
+            dumpWidget ( s, pItem->widget(), depth + 1, pRoot );
+        }
+        else if ( pItem->spacerItem() )
+        {
+            QSpacerItem* pSp = pItem->spacerItem();
+            dumpIndent ( s, depth + 1 );
+            s << "[S] spacer sizeHint=" << pSp->sizeHint().width() << "x" << pSp->sizeHint().height()
+              << " sizePolicy=" << static_cast<int> ( pSp->sizePolicy().horizontalPolicy() )
+              << "/" << static_cast<int> ( pSp->sizePolicy().verticalPolicy() ) << "\n";
+        }
+        else if ( pItem->layout() )
+        {
+            dumpLayoutRecursive ( s, pItem->layout(), depth + 1, pRoot );
+        }
+
+        if ( pBox )
+        {
+            dumpIndent ( s, depth + 1 );
+            s << "(item " << i << " stretch=" << pBox->stretch ( i ) << ")\n";
+        }
+        if ( pGrid )
+        {
+            int row, col, rowSpan, colSpan;
+            pGrid->getItemPosition ( i, &row, &col, &rowSpan, &colSpan );
+            dumpIndent ( s, depth + 1 );
+            s << "(grid item " << i << " row=" << row << " col=" << col
+              << " rowSpan=" << rowSpan << " colSpan=" << colSpan << ")\n";
+        }
+    }
+}
+
+} // namespace
+
+void CClientDlg::showEvent ( QShowEvent* Event )
+{
+    // jamony: 首次显示后 dump 完整布局树到 /tmp/jamsoul-layout-dump.txt（UI 调试基建）
+    // 用 singleShot(0) 等首帧 layout 完成，此时 geometry/sizeHint 是真实值
+    Q_UNUSED ( Event )
+    QTimer::singleShot ( 0, this, [this]() {
+        QFile f ( "/tmp/jamsoul-layout-dump.txt" );
+        if ( f.open ( QIODevice::WriteOnly | QIODevice::Truncate | QIODevice::Text ) )
+        {
+            QTextStream s ( &f );
+            s << "=== jamsoul layout dump (root=" << metaObject()->className() << ") ===\n";
+            if ( this->layout() )
+            {
+                dumpLayoutRecursive ( s, this->layout(), 0, this );
+            }
+            s << "=== end ===\n";
+            s.flush();
+        }
+    } );
 }
 
 void CClientDlg::closeEvent ( QCloseEvent* Event )
@@ -1441,6 +1576,15 @@ void CClientDlg::SetGUIDesign ( const EGUIDesign eNewDesign )
 
     // also apply GUI design to child GUI controls
     MainMixerBoard->SetGUIDesign ( eNewDesign );
+
+    // jamony: chbSettings 移到 A栏顶部, 隐藏 checkbox 灯 + 紧密边框 + h=16(=输入标签高)
+    chbSettings->setStyleSheet (
+        "QCheckBox { color: rgb(255,255,255); font: bold; padding: 1px 6px;"
+        "             border: 1px solid #444; border-radius: 3px; background: #1a1a1a; }"
+        "QCheckBox::indicator { width: 0px; height: 0px; }"
+        "QCheckBox:checked { color: #FF33AA; border: 1px solid #FF33AA; }"
+        "QCheckBox:hover { border: 1px solid #888; }" );
+    chbSettings->setFixedHeight ( 16 );
 }
 
 void CClientDlg::SetMeterStyle ( const EMeterStyle eNewMeterStyle )
@@ -1494,9 +1638,11 @@ void CClientDlg::SetMixerBoardDeco ( const ERecorderState newRecorderState, cons
     eLastDesign        = eNewDesign;
 
     // set base style
+    // jamony: 隐藏 title 展示(连接状态3态文案+录音红底), 逻辑代码全保留, 去掉 display:none 即恢复
     QString sTitleStyle = "QGroupBox::title { subcontrol-origin: margin;"
                           "                   subcontrol-position: left top;"
-                          "                   left: 7px;";
+                          "                   left: 7px;"
+                          "                   display: none;";
 
     if ( newRecorderState == RS_RECORDING )
     {

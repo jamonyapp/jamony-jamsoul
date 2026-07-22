@@ -1055,7 +1055,7 @@ void CAudioMixerBoard::SetServerName ( const QString& strNewServerName )
     if ( strServerName.isEmpty() )
     {
         // no connection or connection was reset: show default title
-        setTitle ( tr ( "Server" ) );
+        setTitle ( "" ); // jamony: 隐藏 title 展示(原 tr("Server")), 逻辑保留
     }
     else
     {
@@ -1064,7 +1064,7 @@ void CAudioMixerBoard::SetServerName ( const QString& strNewServerName )
         // list was received, the connection was successful and the title is updated
         // with the correct server name. Make sure to choose a "try to connect" title
         // which is most striking (we use filled blocks and upper case letters).
-        setTitle ( u8"\u2588\u2588\u2588\u2588\u2588  " + tr ( "T R Y I N G   T O   C O N N E C T" ) + u8"  \u2588\u2588\u2588\u2588\u2588" );
+        setTitle ( "" ); // jamony: \u9690\u85cf title \u5c55\u793a(\u539f TRYING TO CONNECT), \u903b\u8f91\u4fdd\u7559
     }
 }
 
@@ -1297,8 +1297,8 @@ void CAudioMixerBoard::UpdateTitle()
     QString strEscServerName = strServerName;
     strEscServerName.replace ( "&", "&&" );
 
-    // jamony: 连接成功后显示"音频已连接"，不暴露服务器地址/端口
-    setTitle ( strTitlePrefix + tr ( "音频已连接" ) );
+    // jamony: 隐藏 title 展示(原 strTitlePrefix+音频已连接, 不暴露服务器地址), 逻辑保留
+    setTitle ( "" );
     setAccessibleName ( title() );
 }
 

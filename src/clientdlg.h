@@ -84,7 +84,7 @@
 
 /* Definitions ****************************************************************/
 // update time for GUI controls
-#define LEVELMETER_UPDATE_TIME_MS  100  // ms
+#define LEVELMETER_UPDATE_TIME_MS  33   // ms  (jamony: 33ms≈30Hz, 与分轨电平刷新率一致)
 #define BUFFER_LED_UPDATE_TIME_MS  300  // ms
 #define LED_BAR_UPDATE_TIME_MS     1000 // ms
 #define CHECK_AUDIO_DEV_OK_TIME_MS 5000 // ms
@@ -140,6 +140,7 @@ protected:
     QTimer         TimerCheckAudioDeviceOk;
     QTimer         TimerDetectFeedback;
 
+    virtual void showEvent ( QShowEvent* Event ); // jamony: 首次显示后 dump 全量布局树到 /tmp/jamsoul-layout-dump.txt（UI 调试基建）
     virtual void closeEvent ( QCloseEvent* Event );
     virtual void dragEnterEvent ( QDragEnterEvent* Event ) { ManageDragNDrop ( Event, true ); }
     virtual void dropEvent ( QDropEvent* Event ) { ManageDragNDrop ( Event, false ); }

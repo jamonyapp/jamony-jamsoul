@@ -712,6 +712,17 @@ double CChannel::UpdateAndGetLevelForMeterdB ( const CVector<short>& vecsAudio, 
     return SignalLevelMeter.GetLevelForMeterdBLeftOrMono();
 }
 
+// jamony: 拆分版 —— 每帧只 Update(不漏帧), 下发时单独 Get
+void CChannel::UpdateLevelForMeterdB ( const CVector<short>& vecsAudio, const int iInSize, const bool bIsStereoIn )
+{
+    SignalLevelMeter.Update ( vecsAudio, iInSize, bIsStereoIn );
+}
+
+double CChannel::GetLevelForMeterdB()
+{
+    return SignalLevelMeter.GetLevelForMeterdBLeftOrMono();
+}
+
 int CChannel::GetUploadRateKbps()
 {
     const int iAudioSizeOut = iNetwFrameSizeFact * iAudioFrameSizeSamples;

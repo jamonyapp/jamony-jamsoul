@@ -71,6 +71,22 @@
               <item>
                <layout class="QVBoxLayout" name="verticalLayout_3">
                 <item>
+                 <layout class="QHBoxLayout" name="horizontalLayoutTopBar">
+                  <item>
+                   <widget class="QCheckBox" name="chbSettings">
+                    <property name="text"><string>音频设置</string></property>
+                    <property name="toolTip"><string>打开音频设置（声卡/缓冲/网络/混音等）</string></property>
+                   </widget>
+                  </item>
+                  <item>
+                   <spacer name="horizontalSpacerTopRight">
+                    <property name="orientation"><enum>Qt::Horizontal</enum></property>
+                    <property name="sizeHint" stdset="0"><size><width>40</width><height>0</height></size></property>
+                   </spacer>
+                  </item>
+                 </layout>
+                </item>
+                <item>
                  <widget class="QLabel" name="pxlLogo">
                   <property name="sizePolicy">
                    <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
@@ -496,13 +512,6 @@
              <widget class="QCheckBox" name="chbLocalMute">
               <property name="text">
                <string>&amp;Mute Myself</string>
-              </property>
-             </widget>
-            </item>
-            <item>
-             <widget class="QCheckBox" name="chbSettings">
-              <property name="text">
-               <string>&amp;Settings</string>
               </property>
              </widget>
             </item>

@@ -175,7 +175,7 @@ public:
     void       SetGUIDesign ( const EGUIDesign eNGD ) { eGUIDesign = eNGD; }
 
     EMeterStyle GetMeterStyle() const { return eMeterStyle; }
-    void        SetMeterStyle ( const EMeterStyle eNMT ) { eMeterStyle = eNMT; }
+    void        SetMeterStyle ( const EMeterStyle ) { eMeterStyle = MT_BAR_WIDE; /* jamony: 电平表固定电平条, 设置入口已删, 不读 INI */ }
 
     EAudioQuality GetAudioQuality() const { return eAudioQuality; }
     void          SetAudioQuality ( const EAudioQuality eNAudioQuality );

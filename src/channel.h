@@ -192,6 +192,10 @@ public:
 
     double UpdateAndGetLevelForMeterdB ( const CVector<short>& vecsAudio, const int iInSize, const bool bIsStereoIn );
 
+    // jamony: 拆分 Update/Get —— 服务器每帧 Update(不漏帧, 电平连续衰减) + 每 N 帧 Get 下发
+    void   UpdateLevelForMeterdB ( const CVector<short>& vecsAudio, const int iInSize, const bool bIsStereoIn );
+    double GetLevelForMeterdB();
+
 protected:
     bool ProtocolIsEnabled();
 

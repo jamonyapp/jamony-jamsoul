@@ -1597,7 +1597,15 @@ bool CServer::CreateLevelsForAllConChannels ( const int                       iN
 {
     bool bLevelsWereUpdated = false;
 
-    // low frequency updates
+    // jamony: 每帧 Update 所有 channel 的电平表(不漏帧, dCurLevel 连续衰减), 与客户端 B栏一致
+    for ( int j = 0; j < iNumClients; j++ )
+    {
+        vecChannels[vecChanIDsCurConChan[j]].UpdateLevelForMeterdB ( vecvecsData[j],
+                                                                     iServerFrameSizeSamples,
+                                                                     vecNumAudioChannels[j] > 1 );
+    }
+
+    // low frequency updates: 每 N 帧才 Get + 下发(下发频率不变, 不加带宽)
     if ( iFrameCount > CHANNEL_LEVEL_UPDATE_INTERVAL )
     {
         iFrameCount        = 0;
@@ -1605,10 +1613,8 @@ bool CServer::CreateLevelsForAllConChannels ( const int                       iN
 
         for ( int j = 0; j < iNumClients; j++ )
         {
-            // update and get signal level for meter in dB for each channel
-            const double dCurSigLevelForMeterdB = vecChannels[vecChanIDsCurConChan[j]].UpdateAndGetLevelForMeterdB ( vecvecsData[j],
-                                                                                                                     iServerFrameSizeSamples,
-                                                                                                                     vecNumAudioChannels[j] > 1 );
+            // get signal level for meter in dB for each channel (值已由每帧 Update 连续维护)
+            const double dCurSigLevelForMeterdB = vecChannels[vecChanIDsCurConChan[j]].GetLevelForMeterdB();
 
             // map value to integer for transmission via the protocol (4 bit available)
             vecLevelsOut[j] = static_cast<uint16_t> ( std::ceil ( dCurSigLevelForMeterdB ) );
