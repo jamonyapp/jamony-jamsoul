@@ -849,8 +849,8 @@ void CClientDlg::UpdateRevSelection()
         }
     }
 
-    // update visibility of the pan controls in the audio mixer board (pan is not supported for mono)
-    MainMixerBoard->SetDisplayPans ( pClient->GetAudioChannels() != CC_MONO );
+    // jamony: 隐藏Pan旋钮(不需要)
+    MainMixerBoard->SetDisplayPans ( false );
 }
 
 void CClientDlg::OnConnectDlgAccepted()
@@ -1573,6 +1573,9 @@ void CClientDlg::SetGUIDesign ( const EGUIDesign eNewDesign )
         "QPushButton { color: rgb(255,255,255); font: bold 13px; padding: 2px 8px;"
         "              border: 1px solid #444; border-radius: 3px; background: #1a1a1a; }"
         "QPushButton:hover { border: 1px solid #888; }" );
+
+    // jamony: 混响效果器机架UI(横向前置)
+    frameReverb->setStyleSheet ( "QFrame#frameReverb { border: 1px solid #333; border-radius: 4px; background: #0f0f0f; }" );
 
     // jamony: 四条分割线灰色(低调) — NoFrame + 1px高/宽 + background-color
     lineMeter->setFrameShape ( QFrame::NoFrame );
