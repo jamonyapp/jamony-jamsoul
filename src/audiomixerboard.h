@@ -131,9 +131,9 @@ protected:
     QHBoxLayout* pLabelGrid;
     QVBoxLayout* pLabelPictGrid;
 
-    QCheckBox* pcbMute;
-    QCheckBox* pcbSolo;
-    QCheckBox* pcbGroup;
+    QPushButton* pcbMute;
+    QPushButton* pcbSolo;
+    QPushButton* pcbGroup;
     QMenu*     pGroupPopupMenu;
 
     QGroupBox* pLabelInstBox;

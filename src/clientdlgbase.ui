@@ -448,6 +448,13 @@
                  </widget>
                 </item>
                 <item>
+                 <spacer name="spacerBeforeAutoAdjust">
+                  <property name="orientation"><enum>Qt::Vertical</enum></property>
+                  <property name="sizeType"><enum>QSizePolicy::Fixed</enum></property>
+                  <property name="sizeHint" stdset="0"><size><width>20</width><height>8</height></size></property>
+                 </spacer>
+                </item>
+                <item>
                  <widget class="QPushButton" name="butAutoAdjust">
                   <property name="sizePolicy">
                    <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
@@ -552,20 +559,16 @@
                  <widget class="QFrame" name="frameLocalMute">
                   <property name="frameShape"><enum>QFrame::NoFrame</enum></property>
                   <layout class="QVBoxLayout" name="verticalLayoutLocalMute">
-                   <property name="leftMargin"><number>1</number></property>
-                   <property name="topMargin"><number>2</number></property>
-                   <property name="rightMargin"><number>1</number></property>
-                   <property name="bottomMargin"><number>2</number></property>
+                   <property name="leftMargin"><number>0</number></property>
+                   <property name="topMargin"><number>0</number></property>
+                   <property name="rightMargin"><number>0</number></property>
+                   <property name="bottomMargin"><number>0</number></property>
                    <item alignment="Qt::AlignHCenter">
-                    <widget class="QCheckBox" name="chbLocalMute">
+                    <widget class="QPushButton" name="chbLocalMute">
                      <property name="text"><string>M</string></property>
                      <property name="toolTip"><string>输入静音：掐断上传信号（本地电平仍跳动，但云端听不到你）</string></property>
-                    </widget>
-                   </item>
-                   <item alignment="Qt::AlignHCenter">
-                    <widget class="QLabel" name="lblLocalMuteCaption">
-                     <property name="text"><string>静音</string></property>
-                     <property name="alignment"><set>Qt::AlignCenter</set></property>
+                     <property name="checkable"><bool>true</bool></property>
+                     <property name="autoDefault"><bool>false</bool></property>
                     </widget>
                    </item>
                   </layout>

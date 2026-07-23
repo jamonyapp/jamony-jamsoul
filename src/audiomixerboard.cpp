@@ -45,6 +45,7 @@
 \******************************************************************************/
 
 #include "audiomixerboard.h"
+#include <QStyleFactory>
 #include <chrono>
 #include <deque>
 
@@ -154,9 +155,12 @@ CChannelFader::CChannelFader ( QWidget* pNW ) :
     pInfoLabel       = new QLabel ( "", pLevelsBox );
 
     pMuteSoloBox = new QWidget ( pFrame );
-    pcbMute      = new QCheckBox ( tr ( "Mute" ), pMuteSoloBox );
-    pcbSolo      = new QCheckBox ( tr ( "Solo" ), pMuteSoloBox );
-    pcbGroup     = new QCheckBox ( "", pMuteSoloBox );
+    pcbMute      = new QPushButton ( tr ( "Mute" ), pMuteSoloBox );
+    pcbMute->setCheckable ( true );
+    pcbSolo      = new QPushButton ( tr ( "Solo" ), pMuteSoloBox );
+    pcbSolo->setCheckable ( true );
+    pcbGroup     = new QPushButton ( "", pMuteSoloBox );
+    pcbGroup->setCheckable ( true );
 
     pLabelInstBox   = new QGroupBox ( pFrame );
     plblLabel       = new QLabel ( "", pFrame );
@@ -215,7 +219,7 @@ CChannelFader::CChannelFader ( QWidget* pNW ) :
     pLevelsGrid->setSpacing ( 0 ); // only minimal space
 
     pMuteSoloGrid->setContentsMargins ( 0, 0, 0, 0 );
-    pMuteSoloGrid->setSpacing ( 0 ); // only minimal space
+    pMuteSoloGrid->setSpacing ( 4 ); // jamony: 分组与MS两行之间留间隙
 
     pLabelGrid->setContentsMargins ( 0, 0, 0, 0 );
     pLabelGrid->setSpacing ( 2 ); // only minimal space between picture and text
@@ -230,9 +234,13 @@ CChannelFader::CChannelFader ( QWidget* pNW ) :
     pLevelsGrid->addWidget ( plbrChannelLevel, 0, Qt::AlignRight );
     pLevelsGrid->addWidget ( pFader, 0, Qt::AlignLeft );
 
-    pMuteSoloGrid->addWidget ( pcbGroup, 0, Qt::AlignLeft );
-    pMuteSoloGrid->addWidget ( pcbMute, 0, Qt::AlignLeft );
-    pMuteSoloGrid->addWidget ( pcbSolo, 0, Qt::AlignLeft );
+    pMuteSoloGrid->addWidget ( pcbGroup, 0, Qt::AlignHCenter );
+    QHBoxLayout* pMSLayout = new QHBoxLayout();
+    pMSLayout->setSpacing ( 2 );
+    pMSLayout->setContentsMargins ( 0, 0, 0, 0 );
+    pMSLayout->addWidget ( pcbMute );
+    pMSLayout->addWidget ( pcbSolo );
+    pMuteSoloGrid->addLayout ( pMSLayout );
 
     pMainGrid->addLayout ( pPanGrid );
     pMainGrid->addWidget ( pLevelsBox, 0, Qt::AlignHCenter );
@@ -301,11 +309,11 @@ CChannelFader::CChannelFader ( QWidget* pNW ) :
 
     QObject::connect ( pPan, &QDial::valueChanged, this, &CChannelFader::OnPanValueChanged );
 
-    QObject::connect ( pcbMute, &QCheckBox::stateChanged, this, &CChannelFader::OnMuteStateChanged );
+    QObject::connect ( pcbMute, &QPushButton::toggled, this, [this](bool c){ OnMuteStateChanged(c?Qt::Checked:0); } );
 
-    QObject::connect ( pcbSolo, &QCheckBox::stateChanged, this, &CChannelFader::soloStateChanged );
+    QObject::connect ( pcbSolo, &QPushButton::toggled, this, [this](bool c){ soloStateChanged(c?Qt::Checked:0); } );
 
-    QObject::connect ( pcbGroup, &QCheckBox::stateChanged, this, &CChannelFader::OnGroupStateChanged );
+    QObject::connect ( pcbGroup, &QPushButton::toggled, this, [this](bool c){ OnGroupStateChanged(c?Qt::Checked:0); } );
 }
 
 void CChannelFader::SetGUIDesign ( const EGUIDesign eNewDesign )
@@ -331,9 +339,26 @@ void CChannelFader::SetGUIDesign ( const EGUIDesign eNewDesign )
         pLabelInstBox->setMinimumHeight ( 52 );                   // maximum height of the instrument+flag pictures
         pPan->setFixedSize ( 50, 50 );
         pPanLabel->setText ( tr ( "PAN" ) );
-        pcbMute->setText ( tr ( "MUTE" ) );
-        pcbSolo->setText ( tr ( "SOLO" ) );
-        strGroupBaseText  = tr ( "GRP" );
+        pcbMute->setText ( tr ( "M" ) );
+        pcbSolo->setText ( tr ( "S" ) );
+        strGroupBaseText  = tr ( "分组" );
+        pcbGroup->setFixedWidth ( 48 ); // jamony: 分组按钮宽≈M+S总宽
+        // jamony: MS按钮 删LED + 试听混音器颜色(Mute红#FF3366/Solo绿#BBEE00/Group紫#9933FF)
+        pcbMute->setStyleSheet (
+            "QPushButton { font: bold 13px; color: #999999; background: #262626;"
+            "            border-radius: 3px; padding: 1px 4px; text-align: center; }"
+            "QPushButton::indicator { width: 0px; height: 0px; }"
+            "QPushButton:checked { background: #FF3366; color: #ffffff; }" );
+        pcbSolo->setStyleSheet (
+            "QPushButton { font: bold 13px; color: #999999; background: #262626;"
+            "            border-radius: 3px; padding: 1px 4px; text-align: center; }"
+            "QPushButton::indicator { width: 0px; height: 0px; }"
+            "QPushButton:checked { background: #BBEE00; color: #121212; }" );
+        pcbGroup->setStyleSheet (
+            "QPushButton { font: bold 13px; color: #999999; background: #262626;"
+            "            border-radius: 3px; padding: 1px 4px; text-align: center; }"
+            "QPushButton::indicator { width: 0px; height: 0px; }"
+            "QPushButton:checked { background: #9933FF; color: #ffffff; }" );
         iInstrPicMaxWidth = INVALID_INDEX; // no instrument picture scaling
         break;
 
@@ -346,7 +371,24 @@ void CChannelFader::SetGUIDesign ( const EGUIDesign eNewDesign )
         pPanLabel->setText ( tr ( "Pan" ) );
         pcbMute->setText ( tr ( "M" ) );
         pcbSolo->setText ( tr ( "S" ) );
-        strGroupBaseText  = tr ( "G" );
+        strGroupBaseText  = tr ( "分组" );
+        pcbGroup->setFixedWidth ( 48 ); // jamony: 分组按钮宽≈M+S总宽
+        // jamony: MS按钮 删LED + 试听混音器颜色(Mute红#FF3366/Solo绿#BBEE00/Group紫#9933FF)
+        pcbMute->setStyleSheet (
+            "QPushButton { font: bold 13px; color: #999999; background: #262626;"
+            "            border-radius: 3px; padding: 1px 4px; text-align: center; }"
+            "QPushButton::indicator { width: 0px; height: 0px; }"
+            "QPushButton:checked { background: #FF3366; color: #ffffff; }" );
+        pcbSolo->setStyleSheet (
+            "QPushButton { font: bold 13px; color: #999999; background: #262626;"
+            "            border-radius: 3px; padding: 1px 4px; text-align: center; }"
+            "QPushButton::indicator { width: 0px; height: 0px; }"
+            "QPushButton:checked { background: #BBEE00; color: #121212; }" );
+        pcbGroup->setStyleSheet (
+            "QPushButton { font: bold 13px; color: #999999; background: #262626;"
+            "            border-radius: 3px; padding: 1px 4px; text-align: center; }"
+            "QPushButton::indicator { width: 0px; height: 0px; }"
+            "QPushButton:checked { background: #9933FF; color: #ffffff; }" );
         iInstrPicMaxWidth = 18; // scale instrument picture to avoid enlarging the width by the picture
         break;
 
@@ -438,19 +480,19 @@ void CChannelFader::SetupFaderTag ( const ESkillLevel eSkillLevel )
         switch ( iGroupID % 4 )
         {
         case 0:
-            strBorderColor = "#C43AC5";
+            strBorderColor = "#9933FF"; // jamony purple
             break;
 
         case 1:
-            strBorderColor = "#2B93D4";
+            strBorderColor = "#00AAFF"; // jamony blue
             break;
 
         case 2:
-            strBorderColor = "#3BC53A";
+            strBorderColor = "#BBEE00"; // jamony green
             break;
 
         case 3:
-            strBorderColor = "#D46C2B";
+            strBorderColor = "#FF33AA"; // jamony pink
             break;
 
         default:
@@ -488,6 +530,20 @@ void CChannelFader::SetupFaderTag ( const ESkillLevel eSkillLevel )
                        "            background:    #000; }";
 
     pLabelInstBox->setStyleSheet ( strStile );
+
+    // jamony: 分组按钮边框同步用户名边框(同色+同样式), 启用时文案白色
+    if ( iGroupID != INVALID_INDEX )
+    {
+        pcbGroup->setStyleSheet (
+            "QPushButton { font: bold 13px; color: #ffffff; background: #262626;"
+            "              border: 2px " + strBorderStyle + " " + strBorderColor + "; border-radius: 3px; padding: 1px 4px; }" );
+    }
+    else
+    {
+        pcbGroup->setStyleSheet (
+            "QPushButton { font: bold 13px; color: #999999; background: #262626;"
+            "              border: 1px solid #444; border-radius: 3px; padding: 1px 4px; }" );
+    }
 }
 
 void CChannelFader::Reset()
@@ -600,7 +656,7 @@ void CChannelFader::SendFaderLevelToServer ( const double dLevel, const bool bIs
     // if mute flag is set or other channel is on solo, do not apply the new
     // fader value to the server (exception: we are on solo, in that case we
     // ignore the "other channel is on solo" flag)
-    const bool bSuppressServerUpdate = !( ( pcbMute->checkState() == Qt::Unchecked ) && ( !bOtherChannelIsSolo || IsSolo() ) );
+    const bool bSuppressServerUpdate = !( ( !pcbMute->isChecked() ) && ( !bOtherChannelIsSolo || IsSolo() ) );
 
     // emit signal for new fader gain value
     emit gainValueChanged ( MathUtils::CalcFaderGain ( static_cast<float> ( dLevel ) ),
@@ -657,11 +713,11 @@ void CChannelFader::UpdateGroupIDDependencies()
     pcbGroup->blockSignals ( true ); // make sure no signals are fired
     if ( iGroupID == INVALID_INDEX )
     {
-        pcbGroup->setCheckState ( Qt::Unchecked );
+        pcbGroup->setChecked ( false );
     }
     else
     {
-        pcbGroup->setCheckState ( Qt::Checked );
+        pcbGroup->setChecked ( true );
     }
     pcbGroup->blockSignals ( false );
 
@@ -781,7 +837,7 @@ void CChannelFader::SetChannelInfos ( const CChannelInfo& cChanInfo )
     else
     {
         // in normal mode use bold font
-        plblLabel->setStyleSheet ( "QLabel { color: white; font: bold; }" );
+        plblLabel->setStyleSheet ( "QLabel { color: white; font: bold 13px; }" );
 
         // break text at predefined position
         iBreakPos = MAX_LEN_FADER_TAG / 2;
@@ -1007,7 +1063,7 @@ CAudioMixerBoard::CAudioMixerBoard ( QWidget* parent ) :
     pGroupBoxLayout->setContentsMargins ( 0, 0, 0, 1 ); // note: to avoid problems at the bottom, use a small margin for that
 
     // add the group box to the scroll area
-    pScrollArea->setMinimumWidth ( 200 ); // at least two faders shall be visible
+    pScrollArea->setMinimumWidth ( 0 ); // jamony: 宽度由 MainMixerBoard setFixedWidth 控制(跟随fader数), 不强制200
     pScrollArea->setWidget ( pMixerWidget );
     pScrollArea->setWidgetResizable ( true ); // make sure it fills the entire scroll area
     pScrollArea->setFrameShape ( QFrame::NoFrame );
@@ -1276,7 +1332,7 @@ void CAudioMixerBoard::ChangeFaderOrder ( const EChSortType eChSortType )
 
     // jamony: group box 宽度跟随可见 fader 数（最多4列），窗口只缩宽度不缩高度（高度由 AppleScript 设 jamony 等高）
     const int iMaxVisible = qMin ( iNumVisibleFaders, 4 );
-    const int iMixerWidth = iMaxVisible * 76 + ( iMaxVisible > 0 ? ( iMaxVisible - 1 ) * 6 : 0 ) + 20; // fader + 间距 + 边距
+    const int iMixerWidth = iMaxVisible * 76 + ( iMaxVisible > 0 ? ( iMaxVisible - 1 ) * 6 : 0 ) + 30; // jamony: fader + 间距 + 边距(pMixerWidget margins24 + QScrollArea margin6)
     setFixedWidth ( iMixerWidth );
     if ( QWidget* pw = window() ) pw->resize ( pw->sizeHint().width(), pw->height() );
 }

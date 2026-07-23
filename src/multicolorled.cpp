@@ -96,72 +96,40 @@ void CMultiColorLED::changeEvent ( QEvent* curEvent )
 
 void CMultiColorLED::SetColor ( const ELightColor eNewColorFlag )
 {
+    setPixmap ( QPixmap() ); // jamony: 清pixmap, 改用stylesheet(jamony品牌色+圆+无外框)
     switch ( eNewColorFlag )
     {
     case RL_RED:
-        // red
         if ( eColorFlag != RL_RED )
         {
-            if ( eType == MT_LED )
-            {
-                setPixmap ( BitmCubeRed );
-            }
-            else
-            {
-                setPixmap ( BitmIndicatorRed );
-            }
+            setStyleSheet ( "background-color: #FF3366; border-radius: 7px; border: none;" );
             setAccessibleDescription ( tr ( "Red" ) );
             eColorFlag = RL_RED;
         }
         break;
 
     case RL_YELLOW:
-        // yellow
         if ( eColorFlag != RL_YELLOW )
         {
-            if ( eType == MT_LED )
-            {
-                setPixmap ( BitmCubeYellow );
-            }
-            else
-            {
-                setPixmap ( BitmIndicatorYellow );
-            }
+            setStyleSheet ( "background-color: #FFCC00; border-radius: 7px; border: none;" );
             setAccessibleDescription ( tr ( "Yellow" ) );
             eColorFlag = RL_YELLOW;
         }
         break;
 
     case RL_GREEN:
-        // green
         if ( eColorFlag != RL_GREEN )
         {
-            if ( eType == MT_LED )
-            {
-                setPixmap ( BitmCubeGreen );
-            }
-            else
-            {
-                setPixmap ( BitmIndicatorGreen );
-            }
+            setStyleSheet ( "background-color: #BBEE00; border-radius: 7px; border: none;" );
             setAccessibleDescription ( tr ( "Green" ) );
             eColorFlag = RL_GREEN;
         }
         break;
 
     default:
-        // if no color is active, set control to grey light
         if ( eColorFlag != RL_GREY )
         {
-            if ( eType == MT_LED )
-            {
-                setPixmap ( BitmCubeGrey );
-            }
-            else
-            {
-                // make it invisible if in indicator mode
-                setPixmap ( QPixmap() );
-            }
+            setStyleSheet ( "background-color: #333333; border-radius: 7px; border: none;" );
             eColorFlag = RL_GREY;
         }
         break;

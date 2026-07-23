@@ -54,6 +54,7 @@
 #include <QGridLayout>
 #include <QStackedLayout>
 #include <QSpacerItem>
+#include <QScrollArea>
 
 /* Implementation *************************************************************/
 CClientDlg::CClientDlg ( CClient*         pNCliP,
@@ -280,7 +281,7 @@ CClientDlg::CClientDlg ( CClient*         pNCliP,
     iClients = 0;
 
     // prepare Mute Myself info label (invisible by default)
-    lblGlobalInfoLabel->setStyleSheet ( ".QLabel { background: red; }" );
+    lblGlobalInfoLabel->setStyleSheet ( ".QLabel { background: #FF3366; color: white; }" );
     lblGlobalInfoLabel->hide();
 
     // prepare update check info label (invisible by default)
@@ -475,7 +476,7 @@ CClientDlg::CClientDlg ( CClient*         pNCliP,
     // check boxes
     QObject::connect ( chbSettings, &QCheckBox::stateChanged, this, &CClientDlg::OnSettingsStateChanged );
 
-    QObject::connect ( chbLocalMute, &QCheckBox::stateChanged, this, &CClientDlg::OnLocalMuteStateChanged );
+    QObject::connect ( chbLocalMute, &QPushButton::toggled, this, [this](bool c){ OnLocalMuteStateChanged(c?Qt::Checked:0); } ); // jamony: QCheckBox→QPushButton, lambda适配int信号
 
     // timers
     QObject::connect ( &TimerSigMet, &QTimer::timeout, this, &CClientDlg::OnTimerSigMet );
@@ -596,7 +597,7 @@ CClientDlg::CClientDlg ( CClient*         pNCliP,
     // mute stream on startup (must be done after the signal connections)
     if ( bMuteStream )
     {
-        chbLocalMute->setCheckState ( Qt::Checked );
+        chbLocalMute->setChecked ( true );
     }
 
     // jamony: 移除 jamulus 自动更新检查（jamsoul 版本由 jamony 管理，不连 jamulus 更新服务器）
@@ -649,6 +650,15 @@ void dumpWidget ( QTextStream& s, QWidget* pWidget, int depth, QWidget* pRoot )
     if ( pWidget->layout() )
     {
         dumpLayoutRecursive ( s, pWidget->layout(), depth + 1, pRoot );
+    }
+
+    // jamony: QScrollArea 的 widget() 不在 layout 里, 单独遍历(fader列)
+    if ( QScrollArea* pSA = qobject_cast<QScrollArea*> ( pWidget ) )
+    {
+        if ( pSA->widget() )
+        {
+            dumpWidget ( s, pSA->widget(), depth + 1, pRoot );
+        }
     }
 }
 
@@ -722,7 +732,7 @@ void CClientDlg::showEvent ( QShowEvent* Event )
     // jamony: 首次显示后 dump 完整布局树到 /tmp/jamsoul-layout-dump.txt（UI 调试基建）
     // 用 singleShot(0) 等首帧 layout 完成，此时 geometry/sizeHint 是真实值
     Q_UNUSED ( Event )
-    QTimer::singleShot ( 0, this, [this]() {
+    QTimer::singleShot ( 3000, this, [this]() { // jamony: 延迟3秒等fader创建完再dump
         QFile f ( "/tmp/jamsoul-layout-dump.txt" );
         if ( f.open ( QIODevice::WriteOnly | QIODevice::Truncate | QIODevice::Text ) )
         {
@@ -1032,7 +1042,7 @@ void CClientDlg::OnLicenceRequired ( ELicenceType eLicenceType )
         }
 
         // unmute the client output stream if local mute button is not pressed
-        if ( chbLocalMute->checkState() == Qt::Unchecked )
+        if ( !chbLocalMute->isChecked() )
         {
             pClient->SetMuteOutStream ( false );
         }
@@ -1231,7 +1241,7 @@ void CClientDlg::OnTimerSigMet()
          ( pClient->GetLevelForMeterdBLeft() > NUM_STEPS_LED_BAR - 0.5 || pClient->GetLevelForMeterdBRight() > NUM_STEPS_LED_BAR - 0.5 ) )
     {
         // mute locally and mute channel
-        chbLocalMute->setCheckState ( Qt::Checked );
+        chbLocalMute->setChecked ( true );
         MainMixerBoard->MuteMyChannel();
 
         // show message box about feedback issue
@@ -1492,9 +1502,9 @@ void CClientDlg::SetGUIDesign ( const EGUIDesign eNewDesign )
             "QFrame#backgroundFrame { background: #000;"
             "                         border: none; }"
             "QLabel {                 color:          rgb(255, 255, 255);"
-            "                         font:           bold; }"
+            "                         font:           bold 13px; }"
             "QRadioButton {           color:          rgb(255, 255, 255);"
-            "                         font:           bold; }"
+            "                         font:           bold 13px; }"
             "QScrollArea {            background:     transparent; }"
             ".QWidget {               background:     transparent; }" // note: matches instances of QWidget, but not of its subclasses
             "QGroupBox {              background:     #000; }"
@@ -1506,16 +1516,16 @@ void CClientDlg::SetGUIDesign ( const EGUIDesign eNewDesign )
             "QCheckBox::indicator:checked {"
             "                         image:          url(:/png/fader/res/ledbuttonpressed.png); }"
             "QCheckBox {              color:          rgb(255, 255, 255);"
-            "                         font:           bold; }" );
+            "                         font:           bold 13px; }" );
 #ifdef _WIN32
         // Workaround QT-Windows problem: This should not be necessary since in the
         // background frame the style sheet for QRadioButton was already set. But it
         // seems that it is only applied if the style was set to default and then back
         // to GD_ORIGINAL. This seems to be a QT related issue...
         rbtReverbSelL->setStyleSheet ( "color: rgb(255, 255, 255);"
-                                       "font:  bold;" );
+                                       "font:  bold 13px;" );
         rbtReverbSelR->setStyleSheet ( "color: rgb(255, 255, 255);"
-                                       "font:  bold;" );
+                                       "font:  bold 13px;" );
 #endif
 
         ledBuffers->SetType ( CMultiColorLED::MT_LED );
@@ -1542,23 +1552,51 @@ void CClientDlg::SetGUIDesign ( const EGUIDesign eNewDesign )
 
     // jamony: chbSettings 移到 A栏顶部, 隐藏 checkbox 灯 + 紧密边框 + h=16(=输入标签高)
     chbSettings->setStyleSheet (
-        "QCheckBox { color: rgb(255,255,255); font: bold; padding: 1px 6px;"
+        "QCheckBox { color: rgb(255,255,255); font: bold 13px; padding: 2px 8px;"
         "             border: 1px solid #444; border-radius: 3px; background: #1a1a1a; }"
         "QCheckBox::indicator { width: 0px; height: 0px; }"
         "QCheckBox:checked { color: #FF33AA; border: 1px solid #FF33AA; }"
         "QCheckBox:hover { border: 1px solid #888; }" );
-    chbSettings->setFixedHeight ( 16 );
+    chbSettings->setFixedHeight ( 22 ); // jamony: 内部高度=butAutoAdjust(22-4padding-2border=16)
 
     // jamony: chbLocalMute 移到 B栏底部 frameLocalMute(M+静音), M 字母灯样式 + 边框
     chbLocalMute->setStyleSheet (
-        "QCheckBox { font: bold; color: #999999; background: #262626;"
-        "            border-radius: 3px; padding: 2px 6px; text-align: center; }"
-        "QCheckBox::indicator { width: 0px; height: 0px; }"
-        "QCheckBox:checked { background: #FF3366; color: #ffffff; }" );
-    chbLocalMute->setFixedWidth ( 40 );
-    lblLocalMuteCaption->setFixedWidth ( 40 );
-    frameLocalMute->setStyleSheet (
-        "QFrame#frameLocalMute { border: 1px solid #444; border-radius: 4px; background: #1a1a1a; }" );
+        "QPushButton { font: bold 13px; color: #999999; background: #262626;"
+        "              border-radius: 3px; padding: 2px 6px; text-align: center; }"
+        "QPushButton:checked { background: #FF3366; color: #ffffff; }" );
+    chbLocalMute->setFixedWidth ( 53 ); // jamony: M按钮撑满B栏宽(=frameLocalMute宽), 去静音文案+外框
+    chbLocalMute->setFixedHeight ( 22 ); // jamony: M按钮高=butAutoAdjust(22)
+    frameLocalMute->setStyleSheet ( "" ); // jamony: 去外框, 只M按钮
+
+    // jamony: butAutoAdjust padding 0 + 紧凑边框, 视觉底框 = geometry 底(对齐 frameLocalMute)
+    butAutoAdjust->setStyleSheet (
+        "QPushButton { color: rgb(255,255,255); font: bold 13px; padding: 2px 8px;"
+        "              border: 1px solid #444; border-radius: 3px; background: #1a1a1a; }"
+        "QPushButton:hover { border: 1px solid #888; }" );
+
+    // jamony: 四条分割线灰色(低调) — NoFrame + 1px高/宽 + background-color
+    lineMeter->setFrameShape ( QFrame::NoFrame );
+    lineMeter->setStyleSheet ( "background-color: #444; border: none;" );
+    lineMeter->setFixedWidth ( 1 );
+    linePanReverb->setFrameShape ( QFrame::NoFrame );
+    linePanReverb->setStyleSheet ( "background-color: #444; border: none;" );
+    linePanReverb->setFixedWidth ( 1 );
+    lineUpperLowerLeft->setFrameShape ( QFrame::NoFrame );
+    lineUpperLowerLeft->setStyleSheet ( "background-color: #444; border: none;" );
+    lineUpperLowerLeft->setFixedHeight ( 1 );
+    lineUpperLowerLeft_2->setFrameShape ( QFrame::NoFrame );
+    lineUpperLowerLeft_2->setStyleSheet ( "background-color: #444; border: none;" );
+    lineUpperLowerLeft_2->setFixedHeight ( 1 );
+
+    // jamony: gridLayout 占满A栏宽 + 列均匀分布(删HBox右侧spacer + 6列stretch=1)
+    static bool bGridAdjusted = false;
+    if ( !bGridAdjusted )
+    {
+        QLayoutItem* sp = horizontalLayoutPingWrap->takeAt ( 1 );
+        if ( sp ) delete sp;
+        for ( int i = 0; i < 6; i++ ) gridLayout->setColumnStretch ( i, 1 );
+        bGridAdjusted = true;
+    }
 }
 
 void CClientDlg::SetMeterStyle ( const EMeterStyle eNewMeterStyle )
