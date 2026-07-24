@@ -502,6 +502,12 @@ void CClientSettings::ReadSettingsFromXML ( const QDomDocument& IniXMLDocument, 
         pClient->SetReverbLevel ( iValue );
     }
 
+    // boost level (0..AUD_BOOST_MAX -> 0..+18 dB)
+    if ( GetNumericIniSet ( IniXMLDocument, "client", "boostlev", 0, AUD_BOOST_MAX, iValue ) )
+    {
+        pClient->SetBoostLevel ( iValue );
+    }
+
     // reverberation channel assignment
     if ( GetFlagIniSet ( IniXMLDocument, "client", "reverblchan", bValue ) )
     {
@@ -947,6 +953,9 @@ void CClientSettings::WriteSettingsToXML ( QDomDocument& IniXMLDocument, bool is
 
     // reverberation level
     SetNumericIniSet ( IniXMLDocument, "client", "revlev", pClient->GetReverbLevel() );
+
+    // boost level
+    SetNumericIniSet ( IniXMLDocument, "client", "boostlev", pClient->GetBoostLevel() );
 
     // reverberation channel assignment
     SetFlagIniSet ( IniXMLDocument, "client", "reverblchan", pClient->IsReverbOnLeftChan() );

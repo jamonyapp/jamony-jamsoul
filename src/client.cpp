@@ -77,6 +77,7 @@ CClient::CClient ( const quint16  iPortNumber,
     iAudioInFader ( AUD_FADER_IN_MIDDLE ),
     bReverbOnLeftChan ( false ),
     iReverbLevel ( 0 ),
+    iBoostLevel ( 0 ),
     iInputBoost ( 1 ),
     iSndCrdPrefFrameSizeFactor ( FRAME_SIZE_FACTOR_DEFAULT ),
     iSndCrdFrameSizeFactor ( FRAME_SIZE_FACTOR_DEFAULT ),
@@ -1355,6 +1356,11 @@ void CClient::Init()
     // init reverberation
     AudioReverb.Init ( eAudioChannelConf, iStereoBlockSizeSam, SYSTEM_SAMPLE_RATE_HZ );
 
+    // init boost effect (GUI client only — headless looper never loads effects)
+#ifndef HEADLESS
+    AudioBoost.Init ( eAudioChannelConf, iStereoBlockSizeSam, SYSTEM_SAMPLE_RATE_HZ );
+#endif
+
     // init the sound card conversion buffers
     if ( bSndCrdConversionBufferRequired )
     {
@@ -1445,6 +1451,15 @@ void CClient::ProcessAudioDataIntern ( CVector<int16_t>& vecsStereoSndCrd )
     // update stereo signal level meter (not needed in headless mode)
 #ifndef HEADLESS
     SignalLevelMeter.Update ( vecsStereoSndCrd, iMonoBlockSizeSam, true );
+#endif
+
+    // add boost effect if activated (effect chain start: after level meter, before reverb).
+    // GUI client only — headless looper only streams audio / plays drums, no tone shaping.
+#ifndef HEADLESS
+    if ( iBoostLevel != 0 )
+    {
+        AudioBoost.Process ( vecsStereoSndCrd, static_cast<float> ( iBoostLevel ) / AUD_BOOST_MAX );
+    }
 #endif
 
     // add reverberation effect if activated

@@ -208,6 +208,16 @@ public slots:
 
     void OnAudioReverbValueChanged ( int value ) { pClient->SetReverbLevel ( value ); }
 
+    void OnAudioBoostValueChanged ( int value )
+    {
+        pClient->SetBoostLevel ( value );
+        // integer dB readout: 0..100 -> 0..+18 dB
+        if ( value == 0 )
+            lblBoostDb->setText ( "0 dB" );
+        else
+            lblBoostDb->setText ( QString ( "+%1 dB" ).arg ( value * 18 / AUD_BOOST_MAX ) );
+    }
+
     void OnReverbSelLClicked() { pClient->SetReverbOnLeftChan ( true ); }
 
     void OnReverbSelRClicked() { pClient->SetReverbOnLeftChan ( false ); }

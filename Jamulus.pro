@@ -189,6 +189,9 @@ win32 {
     HEADERS += src/mac/activity.h src/mac/badgelabel.h
     OBJECTIVE_SOURCES += src/mac/activity.mm src/mac/badgelabel.mm
     CONFIG += x86
+    # jamony: 本机 arm64 Mac，强制 QT_ARCH=arm64——否则 qmake 误判 x86_64 触发 opus SSE4.1 分支，
+    # 而 -arch arm64 编 x86 intrinsics(mmintrin.h) 失败。arm64 下 opus 走纯 C，不编 x86 SSE。
+    QT_ARCH = arm64
     # jamony: 兼容新版 macOS SDK（implicit-function-declaration / deprecated-declarations 默认当 error）
     QMAKE_CXXFLAGS += -Wno-error=implicit-function-declaration -Wno-error=deprecated-declarations
     QMAKE_OBJECTIVE_CXXFLAGS += -Wno-error=implicit-function-declaration -Wno-error=deprecated-declarations
@@ -391,6 +394,7 @@ FORMS_GUI = src/aboutdlgbase.ui \
 }
 
 HEADERS += src/plugins/audioreverb.h \
+    src/plugins/audioboost.h \
     src/buffer.h \
     src/channel.h \
     src/global.h \
@@ -499,6 +503,7 @@ HEADERS_OPUS_X86 = libs/opus/celt/x86/celt_lpc_sse.h \
     $$files(libs/opus/silk/x86/*.h)
 
 SOURCES += src/plugins/audioreverb.cpp \
+    src/plugins/audioboost.cpp \
     src/buffer.cpp \
     src/channel.cpp \
     src/main.cpp \

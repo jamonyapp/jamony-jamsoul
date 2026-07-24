@@ -137,6 +137,18 @@ CClientDlg::CClientDlg ( CClient*         pNCliP,
 
     sldAudioReverb->setAccessibleName ( tr ( "Reverb effect level setting" ) );
 
+    // boost effect
+    QString strAudBoost = "<b>" + tr ( "Boost effect" ) + ":</b> " +
+                          tr ( "Clean boost applied to the signal before the reverb. "
+                               "Continuous gain from 0 to +18 dB; a soft-knee limiter "
+                               "prevents hard clipping as the signal approaches full scale." );
+
+    lblAudioBoost->setWhatsThis ( strAudBoost );
+    sldAudioBoost->setWhatsThis ( strAudBoost );
+    lblBoostDb->setWhatsThis ( strAudBoost );
+
+    sldAudioBoost->setAccessibleName ( tr ( "Boost effect level setting" ) );
+
     // reverberation channel selection
     QString strRevChanSel = "<b>" + tr ( "Reverb Channel Selection" ) + ":</b> " +
                             tr ( "With these radio buttons the audio input channel on which the "
@@ -264,6 +276,16 @@ CClientDlg::CClientDlg ( CClient*         pNCliP,
     const int iCurAudReverb = pClient->GetReverbLevel();
     sldAudioReverb->setValue ( iCurAudReverb );
     sldAudioReverb->setTickInterval ( AUD_REVERB_MAX / 5 );
+
+    // init audio boost
+    sldAudioBoost->setRange ( 0, AUD_BOOST_MAX );
+    const int iCurAudBoost = pClient->GetBoostLevel();
+    sldAudioBoost->setValue ( iCurAudBoost );
+    sldAudioBoost->setTickInterval ( AUD_BOOST_MAX / 5 );
+    if ( iCurAudBoost == 0 )
+        lblBoostDb->setText ( "0 dB" );
+    else
+        lblBoostDb->setText ( QString ( "+%1 dB" ).arg ( iCurAudBoost * 18 / AUD_BOOST_MAX ) );
 
     // init input boost
     pClient->SetInputBoost ( pSettings->iInputBoost );
@@ -492,6 +514,8 @@ CClientDlg::CClientDlg ( CClient*         pNCliP,
     QObject::connect ( &TimerDetectFeedback, &QTimer::timeout, this, &CClientDlg::OnTimerDetectFeedback );
 
     QObject::connect ( sldAudioReverb, &QSlider::valueChanged, this, &CClientDlg::OnAudioReverbValueChanged );
+
+    QObject::connect ( sldAudioBoost, &QSlider::valueChanged, this, &CClientDlg::OnAudioBoostValueChanged );
 
     // radio buttons
     QObject::connect ( rbtReverbSelL, &QRadioButton::clicked, this, &CClientDlg::OnReverbSelLClicked );
@@ -1576,6 +1600,9 @@ void CClientDlg::SetGUIDesign ( const EGUIDesign eNewDesign )
 
     // jamony: 混响效果器机架UI(横向前置)
     frameReverb->setStyleSheet ( "QFrame#frameReverb { border: 1px solid #333; border-radius: 4px; background: #0f0f0f; }" );
+
+    // jamony: Boost效果器机架UI(横向，同混响风格)
+    frameBoost->setStyleSheet ( "QFrame#frameBoost { border: 1px solid #333; border-radius: 4px; background: #0f0f0f; }" );
 
     // jamony: 四条分割线灰色(低调) — NoFrame + 1px高/宽 + background-color
     lineMeter->setFrameShape ( QFrame::NoFrame );

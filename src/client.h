@@ -61,6 +61,7 @@
 #include "channel.h"
 #include "util.h"
 #include "plugins/audioreverb.h"
+#include "plugins/audioboost.h"
 #include "buffer.h"
 #include "signalhandler.h"
 
@@ -95,6 +96,9 @@
 
 // audio reverberation range
 #define AUD_REVERB_MAX 100
+
+// audio boost range (0..100 maps to 0..+18 dB)
+#define AUD_BOOST_MAX 100
 
 // default delay period between successive gain updates (ms)
 // this will be increased to double the ping time if connected to a distant server
@@ -188,6 +192,9 @@ public:
 
     int  GetReverbLevel() const { return iReverbLevel; }
     void SetReverbLevel ( const int iNL ) { iReverbLevel = iNL; }
+
+    int  GetBoostLevel() const { return iBoostLevel; }
+    void SetBoostLevel ( const int iNL ) { iBoostLevel = iNL; }
 
     bool IsReverbOnLeftChan() const { return bReverbOnLeftChan; }
     void SetReverbOnLeftChan ( const bool bIL )
@@ -401,6 +408,8 @@ protected:
     bool         bReverbOnLeftChan;
     int          iReverbLevel;
     CAudioReverb AudioReverb;
+    int          iBoostLevel;
+    CAudioBoost  AudioBoost;
     int          iInputBoost;
 
     int iSndCrdPrefFrameSizeFactor;
