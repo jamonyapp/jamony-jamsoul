@@ -395,6 +395,7 @@ FORMS_GUI = src/aboutdlgbase.ui \
 
 HEADERS += src/plugins/audioreverb.h \
     src/plugins/audioboost.h \
+    src/plugins/audiooverdrive.h \
     src/buffer.h \
     src/channel.h \
     src/global.h \
@@ -428,6 +429,7 @@ HEADERS_GUI = src/serverdlg.h
         src/clientdlg.h \
         src/levelmeter.h \
         src/analyzerconsole.h \
+        src/jamonyknob.h \
         src/multicolorled.h
 }
 
@@ -504,6 +506,7 @@ HEADERS_OPUS_X86 = libs/opus/celt/x86/celt_lpc_sse.h \
 
 SOURCES += src/plugins/audioreverb.cpp \
     src/plugins/audioboost.cpp \
+    src/plugins/audiooverdrive.cpp \
     src/buffer.cpp \
     src/channel.cpp \
     src/main.cpp \
@@ -535,6 +538,7 @@ SOURCES_GUI = src/serverdlg.cpp
         src/clientdlg.cpp \
         src/multicolorled.cpp \
         src/levelmeter.cpp \
+        src/jamonyknob.cpp \
         src/analyzerconsole.cpp
 }
 

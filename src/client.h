@@ -62,6 +62,7 @@
 #include "util.h"
 #include "plugins/audioreverb.h"
 #include "plugins/audioboost.h"
+#include "plugins/audiooverdrive.h"
 #include "buffer.h"
 #include "signalhandler.h"
 
@@ -99,6 +100,9 @@
 
 // audio boost range (0..100 maps to 0..+18 dB)
 #define AUD_BOOST_MAX 100
+
+// audio overdrive range (0..100 maps drive/level/tone)
+#define AUD_OVERDRIVE_MAX 100
 
 // default delay period between successive gain updates (ms)
 // this will be increased to double the ping time if connected to a distant server
@@ -196,12 +200,27 @@ public:
     int  GetBoostLevel() const { return iBoostLevel; }
     void SetBoostLevel ( const int iNL ) { iBoostLevel = iNL; }
 
+    bool GetBoostEnabled() const { return bBoostEnabled; }
+    void SetBoostEnabled ( const bool bOn ) { bBoostEnabled = bOn; }
+
+    int  GetOverdriveDrive() const { return iOverdriveDrive; }
+    void SetOverdriveDrive ( const int iNV ) { iOverdriveDrive = iNV; }
+    int  GetOverdriveLevel() const { return iOverdriveLevel; }
+    void SetOverdriveLevel ( const int iNV ) { iOverdriveLevel = iNV; }
+    int  GetOverdriveTone() const { return iOverdriveTone; }
+    void SetOverdriveTone ( const int iNV ) { iOverdriveTone = iNV; }
+    bool GetOverdriveEnabled() const { return bOverdriveEnabled; }
+    void SetOverdriveEnabled ( const bool bOn ) { bOverdriveEnabled = bOn; }
+
     bool IsReverbOnLeftChan() const { return bReverbOnLeftChan; }
     void SetReverbOnLeftChan ( const bool bIL )
     {
         bReverbOnLeftChan = bIL;
         AudioReverb.Clear();
     }
+
+    bool GetReverbEnabled() const { return bReverbEnabled; }
+    void SetReverbEnabled ( const bool bOn ) { bReverbEnabled = bOn; }
 
     void SetDoAutoSockBufSize ( const bool bValue );
     bool GetDoAutoSockBufSize() const { return Channel.GetDoAutoSockBufSize(); }
@@ -407,9 +426,16 @@ protected:
     int          iAudioInFader;
     bool         bReverbOnLeftChan;
     int          iReverbLevel;
+    bool         bReverbEnabled;
     CAudioReverb AudioReverb;
     int          iBoostLevel;
+    bool         bBoostEnabled;
     CAudioBoost  AudioBoost;
+    int          iOverdriveDrive;
+    int          iOverdriveLevel;
+    int          iOverdriveTone;
+    bool         bOverdriveEnabled;
+    CAudioOverdrive AudioOverdrive;
     int          iInputBoost;
 
     int iSndCrdPrefFrameSizeFactor;

@@ -287,6 +287,28 @@ CClientDlg::CClientDlg ( CClient*         pNCliP,
     else
         lblBoostDb->setText ( QString ( "+%1 dB" ).arg ( iCurAudBoost * 18 / AUD_BOOST_MAX ) );
 
+    // init audio overdrive knobs
+    knobOverdriveDrive->setRange ( 0, AUD_OVERDRIVE_MAX );
+    knobOverdriveDrive->setValue ( pClient->GetOverdriveDrive() );
+    knobOverdriveDrive->setDefaultValue ( 0 );
+    knobOverdriveDrive->setLabel ( tr ( "Drive" ) );
+    knobOverdriveLevel->setRange ( 0, AUD_OVERDRIVE_MAX );
+    knobOverdriveLevel->setValue ( pClient->GetOverdriveLevel() );
+    knobOverdriveLevel->setDefaultValue ( AUD_OVERDRIVE_MAX ); // Level 默认 100%
+    knobOverdriveLevel->setLabel ( tr ( "Level" ) );
+    knobOverdriveTone->setRange ( 0, AUD_OVERDRIVE_MAX );
+    knobOverdriveTone->setValue ( pClient->GetOverdriveTone() );
+    knobOverdriveTone->setDefaultValue ( AUD_OVERDRIVE_MAX / 2 ); // Tone 默认中
+    knobOverdriveTone->setLabel ( tr ( "Tone" ) );
+
+    // init effect on/off buttons + LED (boost / overdrive / reverb)
+    btnBoostOnOff->setChecked ( pClient->GetBoostEnabled() );
+    ledBoost->SetLight ( pClient->GetBoostEnabled() ? CMultiColorLED::RL_GREEN : CMultiColorLED::RL_GREY );
+    btnOverdriveOnOff->setChecked ( pClient->GetOverdriveEnabled() );
+    ledOverdrive->SetLight ( pClient->GetOverdriveEnabled() ? CMultiColorLED::RL_GREEN : CMultiColorLED::RL_GREY );
+    btnReverbOnOff->setChecked ( pClient->GetReverbEnabled() );
+    ledReverb->SetLight ( pClient->GetReverbEnabled() ? CMultiColorLED::RL_GREEN : CMultiColorLED::RL_GREY );
+
     // init input boost
     pClient->SetInputBoost ( pSettings->iInputBoost );
 
@@ -516,6 +538,16 @@ CClientDlg::CClientDlg ( CClient*         pNCliP,
     QObject::connect ( sldAudioReverb, &QSlider::valueChanged, this, &CClientDlg::OnAudioReverbValueChanged );
 
     QObject::connect ( sldAudioBoost, &QSlider::valueChanged, this, &CClientDlg::OnAudioBoostValueChanged );
+
+    // overdrive knobs
+    QObject::connect ( knobOverdriveDrive, &JamonyKnob::valueChanged, this, &CClientDlg::OnOverdriveDriveChanged );
+    QObject::connect ( knobOverdriveLevel, &JamonyKnob::valueChanged, this, &CClientDlg::OnOverdriveLevelChanged );
+    QObject::connect ( knobOverdriveTone, &JamonyKnob::valueChanged, this, &CClientDlg::OnOverdriveToneChanged );
+
+    // effect on/off buttons (boost / overdrive / reverb)
+    QObject::connect ( btnBoostOnOff, &QPushButton::toggled, this, &CClientDlg::OnBoostOnOffToggled );
+    QObject::connect ( btnOverdriveOnOff, &QPushButton::toggled, this, &CClientDlg::OnOverdriveOnOffToggled );
+    QObject::connect ( btnReverbOnOff, &QPushButton::toggled, this, &CClientDlg::OnReverbOnOffToggled );
 
     // radio buttons
     QObject::connect ( rbtReverbSelL, &QRadioButton::clicked, this, &CClientDlg::OnReverbSelLClicked );
@@ -1603,6 +1635,9 @@ void CClientDlg::SetGUIDesign ( const EGUIDesign eNewDesign )
 
     // jamony: Boost效果器机架UI(横向，同混响风格)
     frameBoost->setStyleSheet ( "QFrame#frameBoost { border: 1px solid #333; border-radius: 4px; background: #0f0f0f; }" );
+
+    // jamony: 过载效果器机架UI(横向，3旋钮+LED+开关)
+    frameOverdrive->setStyleSheet ( "QFrame#frameOverdrive { border: 1px solid #333; border-radius: 4px; background: #0f0f0f; }" );
 
     // jamony: 四条分割线灰色(低调) — NoFrame + 1px高/宽 + background-color
     lineMeter->setFrameShape ( QFrame::NoFrame );

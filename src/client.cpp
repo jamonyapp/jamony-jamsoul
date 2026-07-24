@@ -77,7 +77,13 @@ CClient::CClient ( const quint16  iPortNumber,
     iAudioInFader ( AUD_FADER_IN_MIDDLE ),
     bReverbOnLeftChan ( false ),
     iReverbLevel ( 0 ),
+    bReverbEnabled ( false ),
     iBoostLevel ( 0 ),
+    bBoostEnabled ( true ),
+    iOverdriveDrive ( 0 ),
+    iOverdriveLevel ( 100 ),
+    iOverdriveTone ( 50 ),
+    bOverdriveEnabled ( true ),
     iInputBoost ( 1 ),
     iSndCrdPrefFrameSizeFactor ( FRAME_SIZE_FACTOR_DEFAULT ),
     iSndCrdFrameSizeFactor ( FRAME_SIZE_FACTOR_DEFAULT ),
@@ -1359,6 +1365,9 @@ void CClient::Init()
     // init boost effect (GUI client only — headless looper never loads effects)
 #ifndef HEADLESS
     AudioBoost.Init ( eAudioChannelConf, iStereoBlockSizeSam, SYSTEM_SAMPLE_RATE_HZ );
+
+    // init overdrive effect
+    AudioOverdrive.Init ( eAudioChannelConf, iStereoBlockSizeSam, SYSTEM_SAMPLE_RATE_HZ );
 #endif
 
     // init the sound card conversion buffers
@@ -1453,17 +1462,26 @@ void CClient::ProcessAudioDataIntern ( CVector<int16_t>& vecsStereoSndCrd )
     SignalLevelMeter.Update ( vecsStereoSndCrd, iMonoBlockSizeSam, true );
 #endif
 
-    // add boost effect if activated (effect chain start: after level meter, before reverb).
+    // add boost effect if activated (effect chain start: after level meter, before overdrive).
     // GUI client only — headless looper only streams audio / plays drums, no tone shaping.
 #ifndef HEADLESS
-    if ( iBoostLevel != 0 )
+    if ( bBoostEnabled && iBoostLevel != 0 )
     {
         AudioBoost.Process ( vecsStereoSndCrd, static_cast<float> ( iBoostLevel ) / AUD_BOOST_MAX );
+    }
+
+    // add overdrive effect if enabled and drive > 0 (after boost, before reverb)
+    if ( bOverdriveEnabled && iOverdriveDrive != 0 )
+    {
+        AudioOverdrive.Process ( vecsStereoSndCrd,
+                                 static_cast<float> ( iOverdriveDrive ) / AUD_OVERDRIVE_MAX,
+                                 static_cast<float> ( iOverdriveLevel ) / AUD_OVERDRIVE_MAX,
+                                 static_cast<float> ( iOverdriveTone ) / AUD_OVERDRIVE_MAX );
     }
 #endif
 
     // add reverberation effect if activated
-    if ( iReverbLevel != 0 )
+    if ( bReverbEnabled && iReverbLevel != 0 )
     {
         AudioReverb.Process ( vecsStereoSndCrd, bReverbOnLeftChan, static_cast<float> ( iReverbLevel ) / AUD_REVERB_MAX / 4 );
     }

@@ -218,6 +218,25 @@ public slots:
             lblBoostDb->setText ( QString ( "+%1 dB" ).arg ( value * 18 / AUD_BOOST_MAX ) );
     }
 
+    void OnOverdriveDriveChanged ( int value ) { pClient->SetOverdriveDrive ( value ); }
+    void OnOverdriveLevelChanged ( int value ) { pClient->SetOverdriveLevel ( value ); }
+    void OnOverdriveToneChanged ( int value ) { pClient->SetOverdriveTone ( value ); }
+    void OnOverdriveOnOffToggled ( bool on )
+    {
+        pClient->SetOverdriveEnabled ( on );
+        ledOverdrive->SetLight ( on ? CMultiColorLED::RL_GREEN : CMultiColorLED::RL_GREY );
+    }
+    void OnBoostOnOffToggled ( bool on )
+    {
+        pClient->SetBoostEnabled ( on );
+        ledBoost->SetLight ( on ? CMultiColorLED::RL_GREEN : CMultiColorLED::RL_GREY );
+    }
+    void OnReverbOnOffToggled ( bool on )
+    {
+        pClient->SetReverbEnabled ( on );
+        ledReverb->SetLight ( on ? CMultiColorLED::RL_GREEN : CMultiColorLED::RL_GREY );
+    }
+
     void OnReverbSelLClicked() { pClient->SetReverbOnLeftChan ( true ); }
 
     void OnReverbSelRClicked() { pClient->SetReverbOnLeftChan ( false ); }

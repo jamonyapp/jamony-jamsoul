@@ -508,6 +508,38 @@ void CClientSettings::ReadSettingsFromXML ( const QDomDocument& IniXMLDocument, 
         pClient->SetBoostLevel ( iValue );
     }
 
+    // boost enabled flag
+    if ( GetFlagIniSet ( IniXMLDocument, "client", "booston", bValue ) )
+    {
+        pClient->SetBoostEnabled ( bValue );
+    }
+
+    // overdrive drive/level/tone
+    if ( GetNumericIniSet ( IniXMLDocument, "client", "overdrvdrive", 0, AUD_OVERDRIVE_MAX, iValue ) )
+    {
+        pClient->SetOverdriveDrive ( iValue );
+    }
+    if ( GetNumericIniSet ( IniXMLDocument, "client", "overdrvlevel", 0, AUD_OVERDRIVE_MAX, iValue ) )
+    {
+        pClient->SetOverdriveLevel ( iValue );
+    }
+    if ( GetNumericIniSet ( IniXMLDocument, "client", "overdrvtone", 0, AUD_OVERDRIVE_MAX, iValue ) )
+    {
+        pClient->SetOverdriveTone ( iValue );
+    }
+
+    // overdrive enabled flag
+    if ( GetFlagIniSet ( IniXMLDocument, "client", "overdrvon", bValue ) )
+    {
+        pClient->SetOverdriveEnabled ( bValue );
+    }
+
+    // reverberation enabled flag
+    if ( GetFlagIniSet ( IniXMLDocument, "client", "reverbon", bValue ) )
+    {
+        pClient->SetReverbEnabled ( bValue );
+    }
+
     // reverberation channel assignment
     if ( GetFlagIniSet ( IniXMLDocument, "client", "reverblchan", bValue ) )
     {
@@ -956,6 +988,20 @@ void CClientSettings::WriteSettingsToXML ( QDomDocument& IniXMLDocument, bool is
 
     // boost level
     SetNumericIniSet ( IniXMLDocument, "client", "boostlev", pClient->GetBoostLevel() );
+
+    // boost enabled flag
+    SetFlagIniSet ( IniXMLDocument, "client", "booston", pClient->GetBoostEnabled() );
+
+    // overdrive drive/level/tone
+    SetNumericIniSet ( IniXMLDocument, "client", "overdrvdrive", pClient->GetOverdriveDrive() );
+    SetNumericIniSet ( IniXMLDocument, "client", "overdrvlevel", pClient->GetOverdriveLevel() );
+    SetNumericIniSet ( IniXMLDocument, "client", "overdrvtone", pClient->GetOverdriveTone() );
+
+    // overdrive enabled flag
+    SetFlagIniSet ( IniXMLDocument, "client", "overdrvon", pClient->GetOverdriveEnabled() );
+
+    // reverberation enabled flag
+    SetFlagIniSet ( IniXMLDocument, "client", "reverbon", pClient->GetReverbEnabled() );
 
     // reverberation channel assignment
     SetFlagIniSet ( IniXMLDocument, "client", "reverblchan", pClient->IsReverbOnLeftChan() );
