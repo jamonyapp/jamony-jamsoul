@@ -534,6 +534,26 @@ void CClientSettings::ReadSettingsFromXML ( const QDomDocument& IniXMLDocument, 
         pClient->SetOverdriveEnabled ( bValue );
     }
 
+    // distortion drive/level/tone
+    if ( GetNumericIniSet ( IniXMLDocument, "client", "distrtdrive", 0, AUD_DISTORTION_MAX, iValue ) )
+    {
+        pClient->SetDistortionDrive ( iValue );
+    }
+    if ( GetNumericIniSet ( IniXMLDocument, "client", "distrlevel", 0, AUD_DISTORTION_MAX, iValue ) )
+    {
+        pClient->SetDistortionLevel ( iValue );
+    }
+    if ( GetNumericIniSet ( IniXMLDocument, "client", "distrtone", 0, AUD_DISTORTION_MAX, iValue ) )
+    {
+        pClient->SetDistortionTone ( iValue );
+    }
+
+    // distortion enabled flag
+    if ( GetFlagIniSet ( IniXMLDocument, "client", "distrton", bValue ) )
+    {
+        pClient->SetDistortionEnabled ( bValue );
+    }
+
     // reverberation enabled flag
     if ( GetFlagIniSet ( IniXMLDocument, "client", "reverbon", bValue ) )
     {
@@ -999,6 +1019,14 @@ void CClientSettings::WriteSettingsToXML ( QDomDocument& IniXMLDocument, bool is
 
     // overdrive enabled flag
     SetFlagIniSet ( IniXMLDocument, "client", "overdrvon", pClient->GetOverdriveEnabled() );
+
+    // distortion drive/level/tone
+    SetNumericIniSet ( IniXMLDocument, "client", "distrtdrive", pClient->GetDistortionDrive() );
+    SetNumericIniSet ( IniXMLDocument, "client", "distrlevel", pClient->GetDistortionLevel() );
+    SetNumericIniSet ( IniXMLDocument, "client", "distrtone", pClient->GetDistortionTone() );
+
+    // distortion enabled flag
+    SetFlagIniSet ( IniXMLDocument, "client", "distrton", pClient->GetDistortionEnabled() );
 
     // reverberation enabled flag
     SetFlagIniSet ( IniXMLDocument, "client", "reverbon", pClient->GetReverbEnabled() );

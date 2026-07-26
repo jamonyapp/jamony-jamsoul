@@ -396,6 +396,8 @@ FORMS_GUI = src/aboutdlgbase.ui \
 HEADERS += src/plugins/audioreverb.h \
     src/plugins/audioboost.h \
     src/plugins/audiooverdrive.h \
+    src/plugins/audiooversample.h \
+    src/plugins/audiodistortion.h \
     src/buffer.h \
     src/channel.h \
     src/global.h \
@@ -507,6 +509,7 @@ HEADERS_OPUS_X86 = libs/opus/celt/x86/celt_lpc_sse.h \
 SOURCES += src/plugins/audioreverb.cpp \
     src/plugins/audioboost.cpp \
     src/plugins/audiooverdrive.cpp \
+    src/plugins/audiodistortion.cpp \
     src/buffer.cpp \
     src/channel.cpp \
     src/main.cpp \

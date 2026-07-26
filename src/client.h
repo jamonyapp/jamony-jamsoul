@@ -63,6 +63,7 @@
 #include "plugins/audioreverb.h"
 #include "plugins/audioboost.h"
 #include "plugins/audiooverdrive.h"
+#include "plugins/audiodistortion.h"
 #include "buffer.h"
 #include "signalhandler.h"
 
@@ -103,6 +104,9 @@
 
 // audio overdrive range (0..100 maps drive/level/tone)
 #define AUD_OVERDRIVE_MAX 100
+
+// audio distortion range (0..100 maps drive/level/tone)
+#define AUD_DISTORTION_MAX 100
 
 // default delay period between successive gain updates (ms)
 // this will be increased to double the ping time if connected to a distant server
@@ -211,6 +215,15 @@ public:
     void SetOverdriveTone ( const int iNV ) { iOverdriveTone = iNV; }
     bool GetOverdriveEnabled() const { return bOverdriveEnabled; }
     void SetOverdriveEnabled ( const bool bOn ) { bOverdriveEnabled = bOn; }
+
+    int  GetDistortionDrive() const { return iDistortionDrive; }
+    void SetDistortionDrive ( const int iNV ) { iDistortionDrive = iNV; }
+    int  GetDistortionLevel() const { return iDistortionLevel; }
+    void SetDistortionLevel ( const int iNV ) { iDistortionLevel = iNV; }
+    int  GetDistortionTone() const { return iDistortionTone; }
+    void SetDistortionTone ( const int iNV ) { iDistortionTone = iNV; }
+    bool GetDistortionEnabled() const { return bDistortionEnabled; }
+    void SetDistortionEnabled ( const bool bOn ) { bDistortionEnabled = bOn; }
 
     bool IsReverbOnLeftChan() const { return bReverbOnLeftChan; }
     void SetReverbOnLeftChan ( const bool bIL )
@@ -436,6 +449,11 @@ protected:
     int          iOverdriveTone;
     bool         bOverdriveEnabled;
     CAudioOverdrive AudioOverdrive;
+    int          iDistortionDrive;
+    int          iDistortionLevel;
+    int          iDistortionTone;
+    bool         bDistortionEnabled;
+    CAudioDistortion AudioDistortion;
     int          iInputBoost;
 
     int iSndCrdPrefFrameSizeFactor;

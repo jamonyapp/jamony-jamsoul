@@ -42,6 +42,7 @@ jamulus.sln
 jamulus.vcxproj
 jamulus.vcxproj.filters
 Jamulus.app/
+jamsoul.app/
 .DS_Store
 linux/opus*
 linux/jack2

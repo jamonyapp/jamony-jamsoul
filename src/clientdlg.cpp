@@ -301,11 +301,27 @@ CClientDlg::CClientDlg ( CClient*         pNCliP,
     knobOverdriveTone->setDefaultValue ( AUD_OVERDRIVE_MAX / 2 ); // Tone 默认中
     knobOverdriveTone->setLabel ( tr ( "Tone" ) );
 
+    // init audio distortion knobs
+    knobDistortionDrive->setRange ( 0, AUD_DISTORTION_MAX );
+    knobDistortionDrive->setValue ( pClient->GetDistortionDrive() );
+    knobDistortionDrive->setDefaultValue ( 0 );
+    knobDistortionDrive->setLabel ( tr ( "Drive" ) );
+    knobDistortionLevel->setRange ( 0, AUD_DISTORTION_MAX );
+    knobDistortionLevel->setValue ( pClient->GetDistortionLevel() );
+    knobDistortionLevel->setDefaultValue ( AUD_DISTORTION_MAX ); // Level 默认 100%
+    knobDistortionLevel->setLabel ( tr ( "Level" ) );
+    knobDistortionTone->setRange ( 0, AUD_DISTORTION_MAX );
+    knobDistortionTone->setValue ( pClient->GetDistortionTone() );
+    knobDistortionTone->setDefaultValue ( AUD_DISTORTION_MAX / 2 ); // Tone 默认中
+    knobDistortionTone->setLabel ( tr ( "Tone" ) );
+
     // init effect on/off buttons + LED (boost / overdrive / reverb)
     btnBoostOnOff->setChecked ( pClient->GetBoostEnabled() );
     ledBoost->SetLight ( pClient->GetBoostEnabled() ? CMultiColorLED::RL_GREEN : CMultiColorLED::RL_GREY );
     btnOverdriveOnOff->setChecked ( pClient->GetOverdriveEnabled() );
     ledOverdrive->SetLight ( pClient->GetOverdriveEnabled() ? CMultiColorLED::RL_GREEN : CMultiColorLED::RL_GREY );
+    btnDistortionOnOff->setChecked ( pClient->GetDistortionEnabled() );
+    ledDistortion->SetLight ( pClient->GetDistortionEnabled() ? CMultiColorLED::RL_GREEN : CMultiColorLED::RL_GREY );
     btnReverbOnOff->setChecked ( pClient->GetReverbEnabled() );
     ledReverb->SetLight ( pClient->GetReverbEnabled() ? CMultiColorLED::RL_GREEN : CMultiColorLED::RL_GREY );
 
@@ -544,9 +560,15 @@ CClientDlg::CClientDlg ( CClient*         pNCliP,
     QObject::connect ( knobOverdriveLevel, &JamonyKnob::valueChanged, this, &CClientDlg::OnOverdriveLevelChanged );
     QObject::connect ( knobOverdriveTone, &JamonyKnob::valueChanged, this, &CClientDlg::OnOverdriveToneChanged );
 
+    // distortion knobs
+    QObject::connect ( knobDistortionDrive, &JamonyKnob::valueChanged, this, &CClientDlg::OnDistortionDriveChanged );
+    QObject::connect ( knobDistortionLevel, &JamonyKnob::valueChanged, this, &CClientDlg::OnDistortionLevelChanged );
+    QObject::connect ( knobDistortionTone, &JamonyKnob::valueChanged, this, &CClientDlg::OnDistortionToneChanged );
+
     // effect on/off buttons (boost / overdrive / reverb)
     QObject::connect ( btnBoostOnOff, &QPushButton::toggled, this, &CClientDlg::OnBoostOnOffToggled );
     QObject::connect ( btnOverdriveOnOff, &QPushButton::toggled, this, &CClientDlg::OnOverdriveOnOffToggled );
+    QObject::connect ( btnDistortionOnOff, &QPushButton::toggled, this, &CClientDlg::OnDistortionOnOffToggled );
     QObject::connect ( btnReverbOnOff, &QPushButton::toggled, this, &CClientDlg::OnReverbOnOffToggled );
 
     // radio buttons

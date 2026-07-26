@@ -1,5 +1,5 @@
 /******************************************************************************\
-* Audio Overdrive (tanh soft-clip + tone LPF + level)                         *
+* Audio Overdrive (tanh soft-clip + tone LPF + level, 2x oversampled)         *
 \******************************************************************************/
 
 #include "audiooverdrive.h"
@@ -10,9 +10,22 @@ void CAudioOverdrive::Init ( const EAudChanConf eNAudioChannelConf, const int iN
     (void) eNAudioChannelConf; // 两路独立处理，声道配置不影响
 
     iStereoBlockSizeSam = iNStereoBlockSizeSam;
+    iMonoBlockSizeSam   = iNStereoBlockSizeSam / 2;
     fSampleRate = static_cast<float> ( iSampleRate );
+
     fToneStateL = 0.0f;
     fToneStateR = 0.0f;
+
+    // 过采样器 + 工作缓冲（单路 N → 2N → N）
+    const int iTwoN = iMonoBlockSizeSam * 2;
+    oversamplerL.Init ( iMonoBlockSizeSam );
+    oversamplerR.Init ( iMonoBlockSizeSam );
+    vecfInL.Init ( iMonoBlockSizeSam );
+    vecfInR.Init ( iMonoBlockSizeSam );
+    vecfWorkL.Init ( iTwoN );
+    vecfWorkR.Init ( iTwoN );
+    vecfOutL.Init ( iMonoBlockSizeSam );
+    vecfOutR.Init ( iMonoBlockSizeSam );
 }
 
 void CAudioOverdrive::Process ( CVector<int16_t>& vecsStereoInOut,
@@ -22,29 +35,41 @@ void CAudioOverdrive::Process ( CVector<int16_t>& vecsStereoInOut,
     const float fDriveDb = fDriveNorm * 40.0f;
     const float fGain = powf ( 10.0f, fDriveDb / 20.0f );
 
-    // tone 一阶低通：截止 800Hz~12kHz（暗↔亮）
+    // tone 一阶低通：截止 800Hz~12kHz（暗↔亮），在原始采样率跑（线性环节不必过采样）
     const float fc = 800.0f + fToneNorm * 11200.0f;
     const float fAlpha = 1.0f - expf ( -2.0f * 3.14159265f * fc / fSampleRate );
 
-    for ( int i = 0; i < iStereoBlockSizeSam; i += 2 )
-    {
-        // ---- L ----
-        float xl = vecsStereoInOut[i] / 32768.0f;
-        // tanh 软 clip（gain=1 小信号单位增益，gain↑ 小信号放大、大信号软压饱和）
-        float yl = tanhf ( fGain * xl );
-        // tone 一阶 LPF
-        fToneStateL += fAlpha * ( yl - fToneStateL );
-        yl = fToneStateL;
-        // level 输出补偿
-        yl *= fLevelNorm;
-        vecsStereoInOut[i] = Float2Short ( yl * 32768.0f );
+    const int N  = iMonoBlockSizeSam;
+    const int N2 = iMonoBlockSizeSam * 2;
 
-        // ---- R ----
-        float xr = vecsStereoInOut[i + 1] / 32768.0f;
-        float yr = tanhf ( fGain * xr );
+    // ---- 拆 L/R 交错 int16 → 单路 float ----
+    for ( int n = 0; n < N; n++ )
+    {
+        vecfInL[n] = vecsStereoInOut[2 * n]     / 32768.0f;
+        vecfInR[n] = vecsStereoInOut[2 * n + 1] / 32768.0f;
+    }
+
+    // ---- L: 2x 上采样 → tanh 软 clip @2x → 下采样 ----
+    oversamplerL.Upsample ( vecfInL, vecfWorkL );
+    for ( int k = 0; k < N2; k++ ) { vecfWorkL[k] = tanhf ( fGain * vecfWorkL[k] ); }
+    oversamplerL.Downsample ( vecfWorkL, vecfOutL );
+
+    // ---- R: 同 ----
+    oversamplerR.Upsample ( vecfInR, vecfWorkR );
+    for ( int k = 0; k < N2; k++ ) { vecfWorkR[k] = tanhf ( fGain * vecfWorkR[k] ); }
+    oversamplerR.Downsample ( vecfWorkR, vecfOutR );
+
+    // ---- tone LPF + level + 写回交错 int16（原采样率） ----
+    for ( int n = 0; n < N; n++ )
+    {
+        float yl = vecfOutL[n];
+        fToneStateL += fAlpha * ( yl - fToneStateL );
+        yl = fToneStateL * fLevelNorm;
+        vecsStereoInOut[2 * n] = Float2Short ( yl * 32768.0f );
+
+        float yr = vecfOutR[n];
         fToneStateR += fAlpha * ( yr - fToneStateR );
-        yr = fToneStateR;
-        yr *= fLevelNorm;
-        vecsStereoInOut[i + 1] = Float2Short ( yr * 32768.0f );
+        yr = fToneStateR * fLevelNorm;
+        vecsStereoInOut[2 * n + 1] = Float2Short ( yr * 32768.0f );
     }
 }

@@ -226,6 +226,14 @@ public slots:
         pClient->SetOverdriveEnabled ( on );
         ledOverdrive->SetLight ( on ? CMultiColorLED::RL_GREEN : CMultiColorLED::RL_GREY );
     }
+    void OnDistortionDriveChanged ( int value ) { pClient->SetDistortionDrive ( value ); }
+    void OnDistortionLevelChanged ( int value ) { pClient->SetDistortionLevel ( value ); }
+    void OnDistortionToneChanged ( int value ) { pClient->SetDistortionTone ( value ); }
+    void OnDistortionOnOffToggled ( bool on )
+    {
+        pClient->SetDistortionEnabled ( on );
+        ledDistortion->SetLight ( on ? CMultiColorLED::RL_GREEN : CMultiColorLED::RL_GREY );
+    }
     void OnBoostOnOffToggled ( bool on )
     {
         pClient->SetBoostEnabled ( on );

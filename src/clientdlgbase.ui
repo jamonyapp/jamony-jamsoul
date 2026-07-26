@@ -284,6 +284,50 @@
                  </widget>
                 </item>
                 <item>
+                 <widget class="QFrame" name="frameDistortion">
+                  <property name="frameShape"><enum>QFrame::NoFrame</enum></property>
+                  <layout class="QHBoxLayout" name="distortionRackLayout">
+                   <property name="spacing"><number>6</number></property>
+                   <property name="leftMargin"><number>4</number></property>
+                   <property name="topMargin"><number>4</number></property>
+                   <property name="rightMargin"><number>4</number></property>
+                   <property name="bottomMargin"><number>4</number></property>
+                   <item>
+                    <widget class="CMultiColorLED" name="ledDistortion" native="true">
+                     <property name="minimumSize"><size><width>14</width><height>14</height></size></property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QPushButton" name="btnDistortionOnOff">
+                     <property name="text"><string>On</string></property>
+                     <property name="checkable"><bool>true</bool></property>
+                     <property name="maximumSize"><size><width>44</width><height>16777215</height></size></property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QLabel" name="lblAudioDistortion">
+                     <property name="text"><string>失真</string></property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="JamonyKnob" name="knobDistortionDrive" native="true">
+                     <property name="minimumSize"><size><width>54</width><height>54</height></size></property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="JamonyKnob" name="knobDistortionLevel" native="true">
+                     <property name="minimumSize"><size><width>54</width><height>54</height></size></property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="JamonyKnob" name="knobDistortionTone" native="true">
+                     <property name="minimumSize"><size><width>54</width><height>54</height></size></property>
+                    </widget>
+                   </item>
+                  </layout>
+                 </widget>
+                </item>
+                <item>
                  <spacer>
                   <property name="orientation">
                    <enum>Qt::Vertical</enum>

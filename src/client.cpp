@@ -84,6 +84,10 @@ CClient::CClient ( const quint16  iPortNumber,
     iOverdriveLevel ( 100 ),
     iOverdriveTone ( 50 ),
     bOverdriveEnabled ( true ),
+    iDistortionDrive ( 0 ),
+    iDistortionLevel ( 100 ),
+    iDistortionTone ( 50 ),
+    bDistortionEnabled ( false ),
     iInputBoost ( 1 ),
     iSndCrdPrefFrameSizeFactor ( FRAME_SIZE_FACTOR_DEFAULT ),
     iSndCrdFrameSizeFactor ( FRAME_SIZE_FACTOR_DEFAULT ),
@@ -1368,6 +1372,9 @@ void CClient::Init()
 
     // init overdrive effect
     AudioOverdrive.Init ( eAudioChannelConf, iStereoBlockSizeSam, SYSTEM_SAMPLE_RATE_HZ );
+
+    // init distortion effect
+    AudioDistortion.Init ( eAudioChannelConf, iStereoBlockSizeSam, SYSTEM_SAMPLE_RATE_HZ );
 #endif
 
     // init the sound card conversion buffers
@@ -1470,13 +1477,22 @@ void CClient::ProcessAudioDataIntern ( CVector<int16_t>& vecsStereoSndCrd )
         AudioBoost.Process ( vecsStereoSndCrd, static_cast<float> ( iBoostLevel ) / AUD_BOOST_MAX );
     }
 
-    // add overdrive effect if enabled and drive > 0 (after boost, before reverb)
+    // add overdrive effect if enabled and drive > 0 (after boost, before distortion)
     if ( bOverdriveEnabled && iOverdriveDrive != 0 )
     {
         AudioOverdrive.Process ( vecsStereoSndCrd,
                                  static_cast<float> ( iOverdriveDrive ) / AUD_OVERDRIVE_MAX,
                                  static_cast<float> ( iOverdriveLevel ) / AUD_OVERDRIVE_MAX,
                                  static_cast<float> ( iOverdriveTone ) / AUD_OVERDRIVE_MAX );
+    }
+
+    // add distortion effect if enabled and drive > 0 (after overdrive, before reverb)
+    if ( bDistortionEnabled && iDistortionDrive != 0 )
+    {
+        AudioDistortion.Process ( vecsStereoSndCrd,
+                                  static_cast<float> ( iDistortionDrive ) / AUD_DISTORTION_MAX,
+                                  static_cast<float> ( iDistortionLevel ) / AUD_DISTORTION_MAX,
+                                  static_cast<float> ( iDistortionTone ) / AUD_DISTORTION_MAX );
     }
 #endif
 
