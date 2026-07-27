@@ -47,6 +47,12 @@
 #include "clientdlg.h"
 #include "util.h"
 
+#include <QWindow>
+#ifdef Q_OS_MACOS
+#include <objc/runtime.h>
+#include <objc/message.h>
+#endif
+
 // jamony: 布局 dump 工具所需头文件（UI 调试基建）
 #include <QFile>
 #include <QTextStream>
@@ -76,9 +82,16 @@ CClientDlg::CClientDlg ( CClient*         pNCliP,
     ClientSettingsDlg ( pNCliP, pNSetP, parent ),
     ChatDlg ( parent ),
     ConnectDlg ( pNSetP, bNewShowComplRegConnList, bNEnableIPv6, parent ),
-    AnalyzerConsole ( pNCliP, parent )
+    AnalyzerConsole ( pNCliP, parent ),
+    m_pIpc ( nullptr )
 {
     setupUi ( this );
+
+    // jamony: 窗口跟随 IPC (stdin 监听 jamony focus 指令, 跟随前置不抢焦点)
+    m_pIpc = new JamsoulIpc ( this );
+    connect ( m_pIpc, &JamsoulIpc::RaiseRequested, this, &CClientDlg::OnIpcRaise );
+    connect ( m_pIpc, &JamsoulIpc::MoveRequested, this, &CClientDlg::OnIpcMove );
+    m_pIpc->Start();
 
     // Add help text to controls -----------------------------------------------
     // input level meter
@@ -868,6 +881,23 @@ void dumpLayoutRecursive ( QTextStream& s, QLayout* pLayout, int depth, QWidget*
 }
 
 } // namespace
+
+// jamony: 跟随前置, 用原生 NSWindow orderFront: (前置不 makeKey, 不抢焦点, jamony 可操作)
+void CClientDlg::OnIpcRaise()
+{
+#ifdef Q_OS_MACOS
+    if ( QWindow* w = windowHandle() )
+    {
+        id nsView = reinterpret_cast<id> ( w->winId() );
+        // [nsView window] → NSWindow
+        id nsWindow = reinterpret_cast<id ( * )( id, SEL )> ( objc_msgSend ) ( nsView, sel_registerName ( "window" ) );
+        // [nsWindow orderFront:nil] — 前置但不 makeKey (不抢焦点)
+        reinterpret_cast<void ( * )( id, SEL, id )> ( objc_msgSend ) ( nsWindow, sel_registerName ( "orderFront:" ), nil );
+    }
+#else
+    raise();
+#endif
+}
 
 void CClientDlg::showEvent ( QShowEvent* Event )
 {

@@ -403,6 +403,7 @@ HEADERS += src/plugins/audioreverb.h \
     src/plugins/audiodelayline.h \
     src/plugins/audiochorus.h \
     src/plugins/audiodelay.h \
+    src/jamsoulipc.h \
     src/buffer.h \
     src/channel.h \
     src/global.h \
@@ -518,6 +519,7 @@ SOURCES += src/plugins/audioreverb.cpp \
     src/plugins/audioeq.cpp \
     src/plugins/audiochorus.cpp \
     src/plugins/audiodelay.cpp \
+    src/jamsoulipc.cpp \
     src/buffer.cpp \
     src/channel.cpp \
     src/main.cpp \

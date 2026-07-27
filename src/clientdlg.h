@@ -61,6 +61,7 @@
 #include <QFileDialog>
 #include <QActionGroup>
 #include <QSoundEffect>
+#include "jamsoulipc.h"
 #if QT_VERSION >= QT_VERSION_CHECK( 5, 6, 0 )
 #    include <QVersionNumber>
 #endif
@@ -124,6 +125,7 @@ protected:
     void SetPingTime ( const int iPingTime, const int iOverallDelayMs, const CMultiColorLED::ELightColor eOverallDelayLEDColor );
 
     CClient*         pClient;
+    JamsoulIpc*      m_pIpc;
     CClientSettings* pSettings;
 
     int            iClients;
@@ -255,6 +257,10 @@ public slots:
         pClient->SetDelayEnabled ( on );
         ledDelayEff->SetLight ( on ? CMultiColorLED::RL_GREEN : CMultiColorLED::RL_GREY );
     }
+    // jamony 窗口跟随 IPC (stdin 指令)
+    // OnIpcRaise 用原生 NSWindow orderFront: (前置不 makeKey, 不抢焦点, jamony 可操作)
+    void OnIpcRaise();
+    void OnIpcMove ( int x, int y ) { move ( x, y ); }
     void OnBoostOnOffToggled ( bool on )
     {
         pClient->SetBoostEnabled ( on );
