@@ -88,6 +88,18 @@ CClient::CClient ( const quint16  iPortNumber,
     iDistortionLevel ( 100 ),
     iDistortionTone ( 50 ),
     bDistortionEnabled ( false ),
+    iEqBands { 50, 50, 50, 50, 50, 50, 50 },
+    iEqIn ( 50 ),
+    iEqOut ( 50 ),
+    bEqEnabled ( false ),
+    iChorusRate ( 40 ),
+    iChorusDepth ( 50 ),
+    iChorusMix ( 50 ),
+    bChorusEnabled ( false ),
+    iDelayTime ( 35 ),
+    iDelayFeedback ( 40 ),
+    iDelayLevel ( 50 ),
+    bDelayEnabled ( false ),
     iInputBoost ( 1 ),
     iSndCrdPrefFrameSizeFactor ( FRAME_SIZE_FACTOR_DEFAULT ),
     iSndCrdFrameSizeFactor ( FRAME_SIZE_FACTOR_DEFAULT ),
@@ -1375,6 +1387,15 @@ void CClient::Init()
 
     // init distortion effect
     AudioDistortion.Init ( eAudioChannelConf, iStereoBlockSizeSam, SYSTEM_SAMPLE_RATE_HZ );
+
+    // init eq effect
+    AudioEq.Init ( eAudioChannelConf, iStereoBlockSizeSam, SYSTEM_SAMPLE_RATE_HZ );
+
+    // init chorus effect
+    AudioChorus.Init ( eAudioChannelConf, iStereoBlockSizeSam, SYSTEM_SAMPLE_RATE_HZ );
+
+    // init delay effect
+    AudioDelay.Init ( eAudioChannelConf, iStereoBlockSizeSam, SYSTEM_SAMPLE_RATE_HZ );
 #endif
 
     // init the sound card conversion buffers
@@ -1493,6 +1514,38 @@ void CClient::ProcessAudioDataIntern ( CVector<int16_t>& vecsStereoSndCrd )
                                   static_cast<float> ( iDistortionDrive ) / AUD_DISTORTION_MAX,
                                   static_cast<float> ( iDistortionLevel ) / AUD_DISTORTION_MAX,
                                   static_cast<float> ( iDistortionTone ) / AUD_DISTORTION_MAX );
+    }
+
+    // add eq effect if enabled (after distortion, before reverb)。线性环节，无 drive!=0 判断
+    if ( bEqEnabled )
+    {
+        float fBandNorm[AUD_EQ_BANDS];
+        for ( int i = 0; i < AUD_EQ_BANDS; i++ )
+        {
+            fBandNorm[i] = static_cast<float> ( iEqBands[i] ) / AUD_EQ_MAX;
+        }
+        AudioEq.Process ( vecsStereoSndCrd,
+                          static_cast<float> ( iEqIn ) / AUD_EQ_MAX,
+                          static_cast<float> ( iEqOut ) / AUD_EQ_MAX,
+                          fBandNorm );
+    }
+
+    // add chorus effect if enabled (after EQ, before delay。调制类)
+    if ( bChorusEnabled )
+    {
+        AudioChorus.Process ( vecsStereoSndCrd,
+                              static_cast<float> ( iChorusRate ) / AUD_CHORUS_MAX,
+                              static_cast<float> ( iChorusDepth ) / AUD_CHORUS_MAX,
+                              static_cast<float> ( iChorusMix ) / AUD_CHORUS_MAX );
+    }
+
+    // add delay effect if enabled (after chorus, before reverb。时间类)
+    if ( bDelayEnabled )
+    {
+        AudioDelay.Process ( vecsStereoSndCrd,
+                             static_cast<float> ( iDelayTime ) / AUD_DELAY_MAX,
+                             static_cast<float> ( iDelayFeedback ) / AUD_DELAY_MAX,
+                             static_cast<float> ( iDelayLevel ) / AUD_DELAY_MAX );
     }
 #endif
 

@@ -328,6 +328,132 @@
                  </widget>
                 </item>
                 <item>
+                 <widget class="QFrame" name="frameEq">
+                  <property name="frameShape"><enum>QFrame::NoFrame</enum></property>
+                  <layout class="QHBoxLayout" name="eqRackLayout">
+                   <property name="spacing"><number>4</number></property>
+                   <property name="leftMargin"><number>4</number></property>
+                   <property name="topMargin"><number>4</number></property>
+                   <property name="rightMargin"><number>4</number></property>
+                   <property name="bottomMargin"><number>4</number></property>
+                   <item>
+                    <widget class="CMultiColorLED" name="ledEq" native="true">
+                     <property name="minimumSize"><size><width>14</width><height>14</height></size></property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QPushButton" name="btnEqOnOff">
+                     <property name="text"><string>On</string></property>
+                     <property name="checkable"><bool>true</bool></property>
+                     <property name="maximumSize"><size><width>44</width><height>16777215</height></size></property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QLabel" name="lblAudioEq">
+                     <property name="text"><string>EQ</string></property>
+                    </widget>
+                   </item>
+                   <item><layout class="QVBoxLayout" name="eqBand0Layout"><property name="spacing"><number>2</number></property><item><widget class="QSlider" name="sldEqBand0"><property name="minimum"><number>0</number></property><property name="maximum"><number>100</number></property><property name="value"><number>50</number></property><property name="orientation"><enum>Qt::Vertical</enum></property><property name="minimumSize"><size><width>24</width><height>70</height></size></property></widget></item><item><widget class="QLabel" name="lblEqBand0"><property name="text"><string>50</string></property><property name="alignment"><set>Qt::AlignCenter</set></property></widget></item></layout></item>
+                   <item><layout class="QVBoxLayout" name="eqBand1Layout"><property name="spacing"><number>2</number></property><item><widget class="QSlider" name="sldEqBand1"><property name="minimum"><number>0</number></property><property name="maximum"><number>100</number></property><property name="value"><number>50</number></property><property name="orientation"><enum>Qt::Vertical</enum></property><property name="minimumSize"><size><width>24</width><height>70</height></size></property></widget></item><item><widget class="QLabel" name="lblEqBand1"><property name="text"><string>120</string></property><property name="alignment"><set>Qt::AlignCenter</set></property></widget></item></layout></item>
+                   <item><layout class="QVBoxLayout" name="eqBand2Layout"><property name="spacing"><number>2</number></property><item><widget class="QSlider" name="sldEqBand2"><property name="minimum"><number>0</number></property><property name="maximum"><number>100</number></property><property name="value"><number>50</number></property><property name="orientation"><enum>Qt::Vertical</enum></property><property name="minimumSize"><size><width>24</width><height>70</height></size></property></widget></item><item><widget class="QLabel" name="lblEqBand2"><property name="text"><string>250</string></property><property name="alignment"><set>Qt::AlignCenter</set></property></widget></item></layout></item>
+                   <item><layout class="QVBoxLayout" name="eqBand3Layout"><property name="spacing"><number>2</number></property><item><widget class="QSlider" name="sldEqBand3"><property name="minimum"><number>0</number></property><property name="maximum"><number>100</number></property><property name="value"><number>50</number></property><property name="orientation"><enum>Qt::Vertical</enum></property><property name="minimumSize"><size><width>24</width><height>70</height></size></property></widget></item><item><widget class="QLabel" name="lblEqBand3"><property name="text"><string>500</string></property><property name="alignment"><set>Qt::AlignCenter</set></property></widget></item></layout></item>
+                   <item><layout class="QVBoxLayout" name="eqBand4Layout"><property name="spacing"><number>2</number></property><item><widget class="QSlider" name="sldEqBand4"><property name="minimum"><number>0</number></property><property name="maximum"><number>100</number></property><property name="value"><number>50</number></property><property name="orientation"><enum>Qt::Vertical</enum></property><property name="minimumSize"><size><width>24</width><height>70</height></size></property></widget></item><item><widget class="QLabel" name="lblEqBand4"><property name="text"><string>1.2k</string></property><property name="alignment"><set>Qt::AlignCenter</set></property></widget></item></layout></item>
+                   <item><layout class="QVBoxLayout" name="eqBand5Layout"><property name="spacing"><number>2</number></property><item><widget class="QSlider" name="sldEqBand5"><property name="minimum"><number>0</number></property><property name="maximum"><number>100</number></property><property name="value"><number>50</number></property><property name="orientation"><enum>Qt::Vertical</enum></property><property name="minimumSize"><size><width>24</width><height>70</height></size></property></widget></item><item><widget class="QLabel" name="lblEqBand5"><property name="text"><string>3k</string></property><property name="alignment"><set>Qt::AlignCenter</set></property></widget></item></layout></item>
+                   <item><layout class="QVBoxLayout" name="eqBand6Layout"><property name="spacing"><number>2</number></property><item><widget class="QSlider" name="sldEqBand6"><property name="minimum"><number>0</number></property><property name="maximum"><number>100</number></property><property name="value"><number>50</number></property><property name="orientation"><enum>Qt::Vertical</enum></property><property name="minimumSize"><size><width>24</width><height>70</height></size></property></widget></item><item><widget class="QLabel" name="lblEqBand6"><property name="text"><string>6k</string></property><property name="alignment"><set>Qt::AlignCenter</set></property></widget></item></layout></item>
+                   <item><layout class="QVBoxLayout" name="eqInLayout"><property name="spacing"><number>2</number></property><item><widget class="QSlider" name="sldEqIn"><property name="minimum"><number>0</number></property><property name="maximum"><number>100</number></property><property name="value"><number>50</number></property><property name="orientation"><enum>Qt::Vertical</enum></property><property name="minimumSize"><size><width>24</width><height>70</height></size></property></widget></item><item><widget class="QLabel" name="lblEqIn"><property name="text"><string>IN</string></property><property name="alignment"><set>Qt::AlignCenter</set></property></widget></item></layout></item>
+                   <item><layout class="QVBoxLayout" name="eqOutLayout"><property name="spacing"><number>2</number></property><item><widget class="QSlider" name="sldEqOut"><property name="minimum"><number>0</number></property><property name="maximum"><number>100</number></property><property name="value"><number>50</number></property><property name="orientation"><enum>Qt::Vertical</enum></property><property name="minimumSize"><size><width>24</width><height>70</height></size></property></widget></item><item><widget class="QLabel" name="lblEqOut"><property name="text"><string>OUT</string></property><property name="alignment"><set>Qt::AlignCenter</set></property></widget></item></layout></item>
+                  </layout>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QFrame" name="frameChorus">
+                  <property name="frameShape"><enum>QFrame::NoFrame</enum></property>
+                  <layout class="QHBoxLayout" name="chorusRackLayout">
+                   <property name="spacing"><number>6</number></property>
+                   <property name="leftMargin"><number>4</number></property>
+                   <property name="topMargin"><number>4</number></property>
+                   <property name="rightMargin"><number>4</number></property>
+                   <property name="bottomMargin"><number>4</number></property>
+                   <item>
+                    <widget class="CMultiColorLED" name="ledChorus" native="true">
+                     <property name="minimumSize"><size><width>14</width><height>14</height></size></property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QPushButton" name="btnChorusOnOff">
+                     <property name="text"><string>On</string></property>
+                     <property name="checkable"><bool>true</bool></property>
+                     <property name="maximumSize"><size><width>44</width><height>16777215</height></size></property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QLabel" name="lblAudioChorus">
+                     <property name="text"><string>合唱</string></property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="JamonyKnob" name="knobChorusRate" native="true">
+                     <property name="minimumSize"><size><width>54</width><height>54</height></size></property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="JamonyKnob" name="knobChorusDepth" native="true">
+                     <property name="minimumSize"><size><width>54</width><height>54</height></size></property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="JamonyKnob" name="knobChorusMix" native="true">
+                     <property name="minimumSize"><size><width>54</width><height>54</height></size></property>
+                    </widget>
+                   </item>
+                  </layout>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QFrame" name="frameDelay">
+                  <property name="frameShape"><enum>QFrame::NoFrame</enum></property>
+                  <layout class="QHBoxLayout" name="delayRackLayout">
+                   <property name="spacing"><number>6</number></property>
+                   <property name="leftMargin"><number>4</number></property>
+                   <property name="topMargin"><number>4</number></property>
+                   <property name="rightMargin"><number>4</number></property>
+                   <property name="bottomMargin"><number>4</number></property>
+                   <item>
+                    <widget class="CMultiColorLED" name="ledDelayEff" native="true">
+                     <property name="minimumSize"><size><width>14</width><height>14</height></size></property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QPushButton" name="btnDelayOnOff">
+                     <property name="text"><string>On</string></property>
+                     <property name="checkable"><bool>true</bool></property>
+                     <property name="maximumSize"><size><width>44</width><height>16777215</height></size></property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="QLabel" name="lblAudioDelay">
+                     <property name="text"><string>延迟</string></property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="JamonyKnob" name="knobDelayTime" native="true">
+                     <property name="minimumSize"><size><width>54</width><height>54</height></size></property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="JamonyKnob" name="knobDelayFeedback" native="true">
+                     <property name="minimumSize"><size><width>54</width><height>54</height></size></property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="JamonyKnob" name="knobDelayLevel" native="true">
+                     <property name="minimumSize"><size><width>54</width><height>54</height></size></property>
+                    </widget>
+                   </item>
+                  </layout>
+                 </widget>
+                </item>
+                <item>
                  <spacer>
                   <property name="orientation">
                    <enum>Qt::Vertical</enum>

@@ -850,6 +850,20 @@ int main ( int argc, char** argv )
 #    endif
 #endif
 
+#if !defined(HEADLESS)
+    // jamony: 失活窗口保持活跃配色 (LED/推子颜色不消失, 不被系统 Inactive palette 变灰)
+    if ( bUseGUI )
+    {
+        QPalette pal = static_cast<QApplication*> ( pApp )->palette();
+        for ( int r = 0; r < QPalette::NColorRoles; ++r )
+        {
+            const QPalette::ColorRole role = static_cast<QPalette::ColorRole> ( r );
+            pal.setColor ( QPalette::Inactive, role, pal.color ( QPalette::Active, role ) );
+        }
+        static_cast<QApplication*> ( pApp )->setPalette ( pal );
+    }
+#endif
+
 #ifdef ANDROID
     // special Android coded needed for record audio permission handling
     auto result = QtAndroid::checkPermission ( QString ( "android.permission.RECORD_AUDIO" ) );

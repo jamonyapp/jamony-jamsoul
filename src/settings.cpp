@@ -554,6 +554,65 @@ void CClientSettings::ReadSettingsFromXML ( const QDomDocument& IniXMLDocument, 
         pClient->SetDistortionEnabled ( bValue );
     }
 
+    // eq bands (7) + in/out level
+    for ( int i = 0; i < AUD_EQ_BANDS; i++ )
+    {
+        if ( GetNumericIniSet ( IniXMLDocument, "client", QString ( "eqb%1" ).arg ( i ), 0, AUD_EQ_MAX, iValue ) )
+        {
+            pClient->SetEqBand ( i, iValue );
+        }
+    }
+    if ( GetNumericIniSet ( IniXMLDocument, "client", "eqin", 0, AUD_EQ_MAX, iValue ) )
+    {
+        pClient->SetEqIn ( iValue );
+    }
+    if ( GetNumericIniSet ( IniXMLDocument, "client", "eqout", 0, AUD_EQ_MAX, iValue ) )
+    {
+        pClient->SetEqOut ( iValue );
+    }
+
+    // eq enabled flag
+    if ( GetFlagIniSet ( IniXMLDocument, "client", "eqon", bValue ) )
+    {
+        pClient->SetEqEnabled ( bValue );
+    }
+
+    // chorus rate/depth/mix
+    if ( GetNumericIniSet ( IniXMLDocument, "client", "chorusrate", 0, AUD_CHORUS_MAX, iValue ) )
+    {
+        pClient->SetChorusRate ( iValue );
+    }
+    if ( GetNumericIniSet ( IniXMLDocument, "client", "chorusdepth", 0, AUD_CHORUS_MAX, iValue ) )
+    {
+        pClient->SetChorusDepth ( iValue );
+    }
+    if ( GetNumericIniSet ( IniXMLDocument, "client", "chorusmix", 0, AUD_CHORUS_MAX, iValue ) )
+    {
+        pClient->SetChorusMix ( iValue );
+    }
+    if ( GetFlagIniSet ( IniXMLDocument, "client", "choruson", bValue ) )
+    {
+        pClient->SetChorusEnabled ( bValue );
+    }
+
+    // delay time/feedback/level
+    if ( GetNumericIniSet ( IniXMLDocument, "client", "delaytime", 0, AUD_DELAY_MAX, iValue ) )
+    {
+        pClient->SetDelayTime ( iValue );
+    }
+    if ( GetNumericIniSet ( IniXMLDocument, "client", "delayfb", 0, AUD_DELAY_MAX, iValue ) )
+    {
+        pClient->SetDelayFeedback ( iValue );
+    }
+    if ( GetNumericIniSet ( IniXMLDocument, "client", "delaylevel", 0, AUD_DELAY_MAX, iValue ) )
+    {
+        pClient->SetDelayLevel ( iValue );
+    }
+    if ( GetFlagIniSet ( IniXMLDocument, "client", "delayon", bValue ) )
+    {
+        pClient->SetDelayEnabled ( bValue );
+    }
+
     // reverberation enabled flag
     if ( GetFlagIniSet ( IniXMLDocument, "client", "reverbon", bValue ) )
     {
@@ -1027,6 +1086,29 @@ void CClientSettings::WriteSettingsToXML ( QDomDocument& IniXMLDocument, bool is
 
     // distortion enabled flag
     SetFlagIniSet ( IniXMLDocument, "client", "distrton", pClient->GetDistortionEnabled() );
+
+    // eq bands (7) + in/out level
+    for ( int i = 0; i < AUD_EQ_BANDS; i++ )
+    {
+        SetNumericIniSet ( IniXMLDocument, "client", QString ( "eqb%1" ).arg ( i ), pClient->GetEqBand ( i ) );
+    }
+    SetNumericIniSet ( IniXMLDocument, "client", "eqin", pClient->GetEqIn() );
+    SetNumericIniSet ( IniXMLDocument, "client", "eqout", pClient->GetEqOut() );
+
+    // eq enabled flag
+    SetFlagIniSet ( IniXMLDocument, "client", "eqon", pClient->GetEqEnabled() );
+
+    // chorus rate/depth/mix
+    SetNumericIniSet ( IniXMLDocument, "client", "chorusrate", pClient->GetChorusRate() );
+    SetNumericIniSet ( IniXMLDocument, "client", "chorusdepth", pClient->GetChorusDepth() );
+    SetNumericIniSet ( IniXMLDocument, "client", "chorusmix", pClient->GetChorusMix() );
+    SetFlagIniSet ( IniXMLDocument, "client", "choruson", pClient->GetChorusEnabled() );
+
+    // delay time/feedback/level
+    SetNumericIniSet ( IniXMLDocument, "client", "delaytime", pClient->GetDelayTime() );
+    SetNumericIniSet ( IniXMLDocument, "client", "delayfb", pClient->GetDelayFeedback() );
+    SetNumericIniSet ( IniXMLDocument, "client", "delaylevel", pClient->GetDelayLevel() );
+    SetFlagIniSet ( IniXMLDocument, "client", "delayon", pClient->GetDelayEnabled() );
 
     // reverberation enabled flag
     SetFlagIniSet ( IniXMLDocument, "client", "reverbon", pClient->GetReverbEnabled() );

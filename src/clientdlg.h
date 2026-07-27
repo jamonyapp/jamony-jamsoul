@@ -234,6 +234,27 @@ public slots:
         pClient->SetDistortionEnabled ( on );
         ledDistortion->SetLight ( on ? CMultiColorLED::RL_GREEN : CMultiColorLED::RL_GREY );
     }
+    void OnEqOnOffToggled ( bool on )
+    {
+        pClient->SetEqEnabled ( on );
+        ledEq->SetLight ( on ? CMultiColorLED::RL_GREEN : CMultiColorLED::RL_GREY );
+    }
+    void OnChorusRateChanged ( int value ) { pClient->SetChorusRate ( value ); }
+    void OnChorusDepthChanged ( int value ) { pClient->SetChorusDepth ( value ); }
+    void OnChorusMixChanged ( int value ) { pClient->SetChorusMix ( value ); }
+    void OnChorusOnOffToggled ( bool on )
+    {
+        pClient->SetChorusEnabled ( on );
+        ledChorus->SetLight ( on ? CMultiColorLED::RL_GREEN : CMultiColorLED::RL_GREY );
+    }
+    void OnDelayTimeChanged ( int value ) { pClient->SetDelayTime ( value ); }
+    void OnDelayFeedbackChanged ( int value ) { pClient->SetDelayFeedback ( value ); }
+    void OnDelayLevelChanged ( int value ) { pClient->SetDelayLevel ( value ); }
+    void OnDelayOnOffToggled ( bool on )
+    {
+        pClient->SetDelayEnabled ( on );
+        ledDelayEff->SetLight ( on ? CMultiColorLED::RL_GREEN : CMultiColorLED::RL_GREY );
+    }
     void OnBoostOnOffToggled ( bool on )
     {
         pClient->SetBoostEnabled ( on );

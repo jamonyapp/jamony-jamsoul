@@ -64,6 +64,9 @@
 #include "plugins/audioboost.h"
 #include "plugins/audiooverdrive.h"
 #include "plugins/audiodistortion.h"
+#include "plugins/audioeq.h"
+#include "plugins/audiochorus.h"
+#include "plugins/audiodelay.h"
 #include "buffer.h"
 #include "signalhandler.h"
 
@@ -107,6 +110,8 @@
 
 // audio distortion range (0..100 maps drive/level/tone)
 #define AUD_DISTORTION_MAX 100
+
+// audio eq: 7 bands + in/out level (0..100, midpoint 50 = 0dB)。AUD_EQ_BANDS/MAX 见 audioeq.h
 
 // default delay period between successive gain updates (ms)
 // this will be increased to double the ping time if connected to a distant server
@@ -224,6 +229,33 @@ public:
     void SetDistortionTone ( const int iNV ) { iDistortionTone = iNV; }
     bool GetDistortionEnabled() const { return bDistortionEnabled; }
     void SetDistortionEnabled ( const bool bOn ) { bDistortionEnabled = bOn; }
+
+    int  GetEqBand ( const int iIdx ) const { return iEqBands[iIdx]; }
+    void SetEqBand ( const int iIdx, const int iNV ) { iEqBands[iIdx] = iNV; }
+    int  GetEqIn() const { return iEqIn; }
+    void SetEqIn ( const int iNV ) { iEqIn = iNV; }
+    int  GetEqOut() const { return iEqOut; }
+    void SetEqOut ( const int iNV ) { iEqOut = iNV; }
+    bool GetEqEnabled() const { return bEqEnabled; }
+    void SetEqEnabled ( const bool bOn ) { bEqEnabled = bOn; }
+
+    int  GetChorusRate() const { return iChorusRate; }
+    void SetChorusRate ( const int iNV ) { iChorusRate = iNV; }
+    int  GetChorusDepth() const { return iChorusDepth; }
+    void SetChorusDepth ( const int iNV ) { iChorusDepth = iNV; }
+    int  GetChorusMix() const { return iChorusMix; }
+    void SetChorusMix ( const int iNV ) { iChorusMix = iNV; }
+    bool GetChorusEnabled() const { return bChorusEnabled; }
+    void SetChorusEnabled ( const bool bOn ) { bChorusEnabled = bOn; }
+
+    int  GetDelayTime() const { return iDelayTime; }
+    void SetDelayTime ( const int iNV ) { iDelayTime = iNV; }
+    int  GetDelayFeedback() const { return iDelayFeedback; }
+    void SetDelayFeedback ( const int iNV ) { iDelayFeedback = iNV; }
+    int  GetDelayLevel() const { return iDelayLevel; }
+    void SetDelayLevel ( const int iNV ) { iDelayLevel = iNV; }
+    bool GetDelayEnabled() const { return bDelayEnabled; }
+    void SetDelayEnabled ( const bool bOn ) { bDelayEnabled = bOn; }
 
     bool IsReverbOnLeftChan() const { return bReverbOnLeftChan; }
     void SetReverbOnLeftChan ( const bool bIL )
@@ -454,6 +486,21 @@ protected:
     int          iDistortionTone;
     bool         bDistortionEnabled;
     CAudioDistortion AudioDistortion;
+    int          iEqBands[AUD_EQ_BANDS];
+    int          iEqIn;
+    int          iEqOut;
+    bool         bEqEnabled;
+    CAudioEq     AudioEq;
+    int          iChorusRate;
+    int          iChorusDepth;
+    int          iChorusMix;
+    bool         bChorusEnabled;
+    CAudioChorus AudioChorus;
+    int          iDelayTime;
+    int          iDelayFeedback;
+    int          iDelayLevel;
+    bool         bDelayEnabled;
+    CAudioDelay  AudioDelay;
     int          iInputBoost;
 
     int iSndCrdPrefFrameSizeFactor;

@@ -305,7 +305,7 @@ CClientDlg::CClientDlg ( CClient*         pNCliP,
     knobDistortionDrive->setRange ( 0, AUD_DISTORTION_MAX );
     knobDistortionDrive->setValue ( pClient->GetDistortionDrive() );
     knobDistortionDrive->setDefaultValue ( 0 );
-    knobDistortionDrive->setLabel ( tr ( "Drive" ) );
+    knobDistortionDrive->setLabel ( tr ( "dis" ) );
     knobDistortionLevel->setRange ( 0, AUD_DISTORTION_MAX );
     knobDistortionLevel->setValue ( pClient->GetDistortionLevel() );
     knobDistortionLevel->setDefaultValue ( AUD_DISTORTION_MAX ); // Level 默认 100%
@@ -315,6 +315,40 @@ CClientDlg::CClientDlg ( CClient*         pNCliP,
     knobDistortionTone->setDefaultValue ( AUD_DISTORTION_MAX / 2 ); // Tone 默认中
     knobDistortionTone->setLabel ( tr ( "Tone" ) );
 
+    // init audio eq faders (7 bands + in/out, 垂直 QSlider, 中点 50=0dB)
+    QSlider* eqBandSliders[AUD_EQ_BANDS] = { sldEqBand0, sldEqBand1, sldEqBand2, sldEqBand3, sldEqBand4, sldEqBand5, sldEqBand6 };
+    for ( int i = 0; i < AUD_EQ_BANDS; i++ ) { eqBandSliders[i]->setValue ( pClient->GetEqBand ( i ) ); }
+    sldEqIn->setValue ( pClient->GetEqIn() );
+    sldEqOut->setValue ( pClient->GetEqOut() );
+
+    // init audio chorus knobs (Rate/Depth/Mix)
+    knobChorusRate->setRange ( 0, AUD_CHORUS_MAX );
+    knobChorusRate->setValue ( pClient->GetChorusRate() );
+    knobChorusRate->setDefaultValue ( 40 );
+    knobChorusRate->setLabel ( tr ( "Rate" ) );
+    knobChorusDepth->setRange ( 0, AUD_CHORUS_MAX );
+    knobChorusDepth->setValue ( pClient->GetChorusDepth() );
+    knobChorusDepth->setDefaultValue ( AUD_CHORUS_MAX / 2 );
+    knobChorusDepth->setLabel ( tr ( "Depth" ) );
+    knobChorusMix->setRange ( 0, AUD_CHORUS_MAX );
+    knobChorusMix->setValue ( pClient->GetChorusMix() );
+    knobChorusMix->setDefaultValue ( AUD_CHORUS_MAX / 2 );
+    knobChorusMix->setLabel ( tr ( "Mix" ) );
+
+    // init audio delay knobs (Time/Feedback/Level)
+    knobDelayTime->setRange ( 0, AUD_DELAY_MAX );
+    knobDelayTime->setValue ( pClient->GetDelayTime() );
+    knobDelayTime->setDefaultValue ( 35 );
+    knobDelayTime->setLabel ( tr ( "Time" ) );
+    knobDelayFeedback->setRange ( 0, AUD_DELAY_MAX );
+    knobDelayFeedback->setValue ( pClient->GetDelayFeedback() );
+    knobDelayFeedback->setDefaultValue ( 40 );
+    knobDelayFeedback->setLabel ( tr ( "Fb" ) );
+    knobDelayLevel->setRange ( 0, AUD_DELAY_MAX );
+    knobDelayLevel->setValue ( pClient->GetDelayLevel() );
+    knobDelayLevel->setDefaultValue ( AUD_DELAY_MAX / 2 );
+    knobDelayLevel->setLabel ( tr ( "Level" ) );
+
     // init effect on/off buttons + LED (boost / overdrive / reverb)
     btnBoostOnOff->setChecked ( pClient->GetBoostEnabled() );
     ledBoost->SetLight ( pClient->GetBoostEnabled() ? CMultiColorLED::RL_GREEN : CMultiColorLED::RL_GREY );
@@ -322,6 +356,12 @@ CClientDlg::CClientDlg ( CClient*         pNCliP,
     ledOverdrive->SetLight ( pClient->GetOverdriveEnabled() ? CMultiColorLED::RL_GREEN : CMultiColorLED::RL_GREY );
     btnDistortionOnOff->setChecked ( pClient->GetDistortionEnabled() );
     ledDistortion->SetLight ( pClient->GetDistortionEnabled() ? CMultiColorLED::RL_GREEN : CMultiColorLED::RL_GREY );
+    btnEqOnOff->setChecked ( pClient->GetEqEnabled() );
+    ledEq->SetLight ( pClient->GetEqEnabled() ? CMultiColorLED::RL_GREEN : CMultiColorLED::RL_GREY );
+    btnChorusOnOff->setChecked ( pClient->GetChorusEnabled() );
+    ledChorus->SetLight ( pClient->GetChorusEnabled() ? CMultiColorLED::RL_GREEN : CMultiColorLED::RL_GREY );
+    btnDelayOnOff->setChecked ( pClient->GetDelayEnabled() );
+    ledDelayEff->SetLight ( pClient->GetDelayEnabled() ? CMultiColorLED::RL_GREEN : CMultiColorLED::RL_GREY );
     btnReverbOnOff->setChecked ( pClient->GetReverbEnabled() );
     ledReverb->SetLight ( pClient->GetReverbEnabled() ? CMultiColorLED::RL_GREEN : CMultiColorLED::RL_GREY );
 
@@ -565,10 +605,34 @@ CClientDlg::CClientDlg ( CClient*         pNCliP,
     QObject::connect ( knobDistortionLevel, &JamonyKnob::valueChanged, this, &CClientDlg::OnDistortionLevelChanged );
     QObject::connect ( knobDistortionTone, &JamonyKnob::valueChanged, this, &CClientDlg::OnDistortionToneChanged );
 
+    // eq faders (7 bands + in/out, lambda 带索引)
+    QObject::connect ( sldEqBand0, &QSlider::valueChanged, this, [this]( int v ){ pClient->SetEqBand ( 0, v ); } );
+    QObject::connect ( sldEqBand1, &QSlider::valueChanged, this, [this]( int v ){ pClient->SetEqBand ( 1, v ); } );
+    QObject::connect ( sldEqBand2, &QSlider::valueChanged, this, [this]( int v ){ pClient->SetEqBand ( 2, v ); } );
+    QObject::connect ( sldEqBand3, &QSlider::valueChanged, this, [this]( int v ){ pClient->SetEqBand ( 3, v ); } );
+    QObject::connect ( sldEqBand4, &QSlider::valueChanged, this, [this]( int v ){ pClient->SetEqBand ( 4, v ); } );
+    QObject::connect ( sldEqBand5, &QSlider::valueChanged, this, [this]( int v ){ pClient->SetEqBand ( 5, v ); } );
+    QObject::connect ( sldEqBand6, &QSlider::valueChanged, this, [this]( int v ){ pClient->SetEqBand ( 6, v ); } );
+    QObject::connect ( sldEqIn, &QSlider::valueChanged, this, [this]( int v ){ pClient->SetEqIn ( v ); } );
+    QObject::connect ( sldEqOut, &QSlider::valueChanged, this, [this]( int v ){ pClient->SetEqOut ( v ); } );
+
+    // chorus knobs
+    QObject::connect ( knobChorusRate, &JamonyKnob::valueChanged, this, &CClientDlg::OnChorusRateChanged );
+    QObject::connect ( knobChorusDepth, &JamonyKnob::valueChanged, this, &CClientDlg::OnChorusDepthChanged );
+    QObject::connect ( knobChorusMix, &JamonyKnob::valueChanged, this, &CClientDlg::OnChorusMixChanged );
+
+    // delay knobs
+    QObject::connect ( knobDelayTime, &JamonyKnob::valueChanged, this, &CClientDlg::OnDelayTimeChanged );
+    QObject::connect ( knobDelayFeedback, &JamonyKnob::valueChanged, this, &CClientDlg::OnDelayFeedbackChanged );
+    QObject::connect ( knobDelayLevel, &JamonyKnob::valueChanged, this, &CClientDlg::OnDelayLevelChanged );
+
     // effect on/off buttons (boost / overdrive / reverb)
     QObject::connect ( btnBoostOnOff, &QPushButton::toggled, this, &CClientDlg::OnBoostOnOffToggled );
     QObject::connect ( btnOverdriveOnOff, &QPushButton::toggled, this, &CClientDlg::OnOverdriveOnOffToggled );
     QObject::connect ( btnDistortionOnOff, &QPushButton::toggled, this, &CClientDlg::OnDistortionOnOffToggled );
+    QObject::connect ( btnEqOnOff, &QPushButton::toggled, this, &CClientDlg::OnEqOnOffToggled );
+    QObject::connect ( btnChorusOnOff, &QPushButton::toggled, this, &CClientDlg::OnChorusOnOffToggled );
+    QObject::connect ( btnDelayOnOff, &QPushButton::toggled, this, &CClientDlg::OnDelayOnOffToggled );
     QObject::connect ( btnReverbOnOff, &QPushButton::toggled, this, &CClientDlg::OnReverbOnOffToggled );
 
     // radio buttons
@@ -1660,6 +1724,53 @@ void CClientDlg::SetGUIDesign ( const EGUIDesign eNewDesign )
 
     // jamony: 过载效果器机架UI(横向，3旋钮+LED+开关)
     frameOverdrive->setStyleSheet ( "QFrame#frameOverdrive { border: 1px solid #333; border-radius: 4px; background: #0f0f0f; }" );
+
+    // jamony: 失真效果器机架UI(横向，3旋钮+LED+开关，同过载风格)
+    frameDistortion->setStyleSheet ( "QFrame#frameDistortion { border: 1px solid #333; border-radius: 4px; background: #0f0f0f; }" );
+
+    // jamony: EQ效果器机架UI(横向，9垂直fader+LED+开关，同风格)
+    frameEq->setStyleSheet ( "QFrame#frameEq { border: 1px solid #333; border-radius: 4px; background: #0f0f0f; }" );
+
+    // jamony: 合唱/延迟效果器机架UI(横向，3旋钮+LED+开关，同风格)
+    frameChorus->setStyleSheet ( "QFrame#frameChorus { border: 1px solid #333; border-radius: 4px; background: #0f0f0f; }" );
+    frameDelay->setStyleSheet ( "QFrame#frameDelay { border: 1px solid #333; border-radius: 4px; background: #0f0f0f; }" );
+
+    // jamony: 效果器 On/Off 按钮统一 stylesheet (失活保持颜色, 与 LED 逻辑一致; macOS native 按钮失活会变灰)
+    const QString sOnOffBtn =
+        "QPushButton { background: #1a1a1a; color: #888888; border: 1px solid #444; border-radius: 3px; padding: 2px 10px; font: bold 12px; }"
+        "QPushButton:checked { background: #BBEE00; color: #1a1a1a; border: 1px solid #BBEE00; }"
+        "QPushButton:hover { border: 1px solid #888; }";
+    btnBoostOnOff->setStyleSheet ( sOnOffBtn );
+    btnOverdriveOnOff->setStyleSheet ( sOnOffBtn );
+    btnDistortionOnOff->setStyleSheet ( sOnOffBtn );
+    btnEqOnOff->setStyleSheet ( sOnOffBtn );
+    btnChorusOnOff->setStyleSheet ( sOnOffBtn );
+    btnDelayOnOff->setStyleSheet ( sOnOffBtn );
+    btnReverbOnOff->setStyleSheet ( sOnOffBtn );
+
+    // jamony: 推子(QSlider) stylesheet (失活保持颜色, 非 native 渲染)
+    const QString sVSlider =
+        "QSlider::groove:vertical { background: #333333; width: 4px; border-radius: 2px; }"
+        "QSlider::add-page:vertical { background: qlineargradient(x1:0, y1:1, x2:0, y2:0, stop:0 #00aaff, stop:0.35 #9933ff, stop:0.7 #ff33aa, stop:1 #bbee00); border-radius: 2px; }"
+        "QSlider::handle:vertical { background: #ffffff; height: 12px; margin: 0 -4px; border-radius: 6px; }"
+        "QSlider::handle:vertical:hover { background: #e0e0e0; }";
+    QSlider* const eqFaders[] = { sldEqBand0, sldEqBand1, sldEqBand2, sldEqBand3, sldEqBand4, sldEqBand5, sldEqBand6, sldEqIn, sldEqOut };
+    for ( QSlider* s : eqFaders ) { s->setStyleSheet ( sVSlider ); }
+    const QString sHSlider =
+        "QSlider::groove:horizontal { background: #333333; height: 4px; border-radius: 2px; }"
+        "QSlider::sub-page:horizontal { background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #00aaff, stop:0.35 #9933ff, stop:0.7 #ff33aa, stop:1 #bbee00); border-radius: 2px; }"
+        "QSlider::handle:horizontal { background: #ffffff; width: 12px; margin: -4px 0; border-radius: 6px; }"
+        "QSlider::handle:horizontal:hover { background: #e0e0e0; }";
+    sldAudioReverb->setStyleSheet ( sHSlider );
+    sldAudioBoost->setStyleSheet ( sHSlider );
+
+    // jamony: 混响左右选项(QRadioButton) stylesheet (失活保持颜色, 非 native 渲染)
+    const QString sRadio =
+        "QRadioButton { color: #ffffff; }"
+        "QRadioButton::indicator { width: 10px; height: 10px; border-radius: 5px; border: 1px solid #666666; background: #1a1a1a; }"
+        "QRadioButton::indicator:checked { background: #BBEE00; border: 1px solid #BBEE00; }";
+    rbtReverbSelL->setStyleSheet ( sRadio );
+    rbtReverbSelR->setStyleSheet ( sRadio );
 
     // jamony: 四条分割线灰色(低调) — NoFrame + 1px高/宽 + background-color
     lineMeter->setFrameShape ( QFrame::NoFrame );

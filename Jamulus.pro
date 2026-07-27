@@ -398,6 +398,11 @@ HEADERS += src/plugins/audioreverb.h \
     src/plugins/audiooverdrive.h \
     src/plugins/audiooversample.h \
     src/plugins/audiodistortion.h \
+    src/plugins/audiobiquad.h \
+    src/plugins/audioeq.h \
+    src/plugins/audiodelayline.h \
+    src/plugins/audiochorus.h \
+    src/plugins/audiodelay.h \
     src/buffer.h \
     src/channel.h \
     src/global.h \
@@ -510,6 +515,9 @@ SOURCES += src/plugins/audioreverb.cpp \
     src/plugins/audioboost.cpp \
     src/plugins/audiooverdrive.cpp \
     src/plugins/audiodistortion.cpp \
+    src/plugins/audioeq.cpp \
+    src/plugins/audiochorus.cpp \
+    src/plugins/audiodelay.cpp \
     src/buffer.cpp \
     src/channel.cpp \
     src/main.cpp \
