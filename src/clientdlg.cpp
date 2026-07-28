@@ -91,14 +91,64 @@ CClientDlg::CClientDlg ( CClient*         pNCliP,
 {
     setupUi ( this );
 
-    // jamony: 机架标题卡 (替换大 logo, logo 缩小进标题卡前置)
+    // jamony: A 栏 spacing 统一 6 (与 m_pRackLayout 效果器间距一致, 等距)
+    verticalLayout_3->setSpacing ( 6 );
+
+    // jamony: 效果器滚动区 (7 Pedal; 标题卡/pingWrap/butAutoAdjust 固定不滚动)
+    m_pRackScroll = new QScrollArea ( this );
+    m_pRackScroll->setWidgetResizable ( true );
+    m_pRackScroll->setHorizontalScrollBarPolicy ( Qt::ScrollBarAlwaysOff );
+    m_pRackScroll->setVerticalScrollBarPolicy ( Qt::ScrollBarAsNeeded );
+    m_pRackScroll->setFrameShape ( QFrame::NoFrame );
+    QWidget* pRackContent = new QWidget ( m_pRackScroll );
+    m_pRackLayout = new QVBoxLayout ( pRackContent );
+    m_pRackLayout->setContentsMargins ( 0, 0, 0, 0 );
+    m_pRackLayout->setSpacing ( 6 );
+    m_pRackScroll->setWidget ( pRackContent );
+
+    // 机架标题卡 (固定, 不滚动)
     JamonyFxHeader* pFxHeader = new JamonyFxHeader ( this );
-    verticalLayout_3->insertWidget ( 1, pFxHeader ); // 插在 topBar(0) 后, pxlLogo 前
+    verticalLayout_3->insertWidget ( 1, pFxHeader );
     pxlLogo->setVisible ( false );
+    verticalLayout_3->insertWidget ( 2, m_pRackScroll ); // 标题卡后
+    // 移除 verticalLayout_3 的弹性 spacer, 让 QScrollArea 占满
+    for ( int i = verticalLayout_3->count() - 1; i >= 0; --i )
+    {
+        QLayoutItem* it = verticalLayout_3->itemAt ( i );
+        if ( it && it->spacerItem() ) { delete verticalLayout_3->takeAt ( i ); }
+    }
+
+    // B 步: ping+autoadjust 整体背景框 (参考标题卡样式: 圆角 panel + 边框)
+    QFrame* pStatusPanel = new QFrame ( this );
+    pStatusPanel->setObjectName ( "statusPanel" );
+    pStatusPanel->setStyleSheet ( "QFrame#statusPanel { background: #0d0d0d; border: 1px solid rgba(255,255,255,26); border-radius: 6px; }" );
+    QVBoxLayout* pStatusLay = new QVBoxLayout ( pStatusPanel );
+    pStatusLay->setContentsMargins ( 10, 6, 10, 6 );
+    pStatusLay->setSpacing ( 4 );
+    const int iPingIdx = verticalLayout_3->indexOf ( horizontalLayoutPingWrap );
+    if ( iPingIdx >= 0 )
+    {
+        QLayoutItem* pPing = verticalLayout_3->takeAt ( iPingIdx );
+        if ( QLayout* pPL = pPing->layout() )
+        {
+            // 递归 reparent pingWrap 所有子 widget 到 panel (layout 跨容器移动需手动 reparent)
+            std::function<void ( QLayout*, QWidget* )> reparentAll = [&] ( QLayout* l, QWidget* np ) {
+                for ( int i = 0; i < l->count(); ++i )
+                {
+                    QLayoutItem* it = l->itemAt ( i );
+                    if ( it->widget() ) { it->widget()->setParent ( np ); }
+                    else if ( it->layout() ) { reparentAll ( it->layout(), np ); }
+                }
+            };
+            reparentAll ( pPL, pStatusPanel );
+        }
+        pStatusLay->addItem ( pPing );
+    }
+    pStatusLay->addWidget ( butAutoAdjust );
+    verticalLayout_3->insertWidget ( 1, pStatusPanel ); // chbSettings(0) 后
 
     // jamony: Boost 接入 PedalWidget (首个效果器, 全链路验证)
     frameBoost->setVisible ( false );
-    const int iBoostIdx = verticalLayout_3->indexOf ( frameBoost );
     PedalWidget* pBoostPedal = new PedalWidget ( this );
     pBoostPedal->setName ( QStringLiteral ( "Clean Boost" ) );
     pBoostPedal->setAccent ( QColor ( "#00aaff" ) );
@@ -116,11 +166,10 @@ CClientDlg::CClientDlg ( CClient*         pNCliP,
     pBoostPedal->bodyLayout()->addWidget ( pBoostGain );
     connect ( pBoostGain, &JamonyFader::valueChanged, this, &CClientDlg::OnAudioBoostValueChanged );
     connect ( pBoostPedal, &PedalWidget::powerToggled, this, &CClientDlg::OnBoostOnOffToggled );
-    verticalLayout_3->insertWidget ( iBoostIdx, pBoostPedal );
+    m_pRackLayout->addWidget ( pBoostPedal );
 
     // jamony: Overdrive 接入 PedalWidget (3 旋钮 Drive/Tone/Level, 全 0-100)
     frameOverdrive->setVisible ( false );
-    const int iOdIdx = verticalLayout_3->indexOf ( frameOverdrive );
     PedalWidget* pOdPedal = new PedalWidget ( this );
     pOdPedal->setName ( QStringLiteral ( "Overdrive" ) );
     pOdPedal->setAccent ( QColor ( "#4c6eff" ) );
@@ -145,11 +194,10 @@ CClientDlg::CClientDlg ( CClient*         pNCliP,
     addOdKnob ( tr ( "Tone" ), pClient->GetOverdriveTone(), AUD_OVERDRIVE_MAX / 2, &CClientDlg::OnOverdriveToneChanged );
     addOdKnob ( tr ( "Level" ), pClient->GetOverdriveLevel(), AUD_OVERDRIVE_MAX, &CClientDlg::OnOverdriveLevelChanged );
     pOdPedal->bodyLayout()->addWidget ( pOdRow );
-    verticalLayout_3->insertWidget ( iOdIdx, pOdPedal );
+    m_pRackLayout->addWidget ( pOdPedal );
 
     // jamony: Distortion 接入 PedalWidget (3 旋钮 Dis/Tone/Level, 全 0-100)
     frameDistortion->setVisible ( false );
-    const int iDistIdx = verticalLayout_3->indexOf ( frameDistortion );
     PedalWidget* pDistPedal = new PedalWidget ( this );
     pDistPedal->setName ( QStringLiteral ( "Distortion" ) );
     pDistPedal->setAccent ( QColor ( "#ff2d55" ) );
@@ -174,11 +222,10 @@ CClientDlg::CClientDlg ( CClient*         pNCliP,
     addDistKnob ( tr ( "Tone" ), pClient->GetDistortionTone(), AUD_DISTORTION_MAX / 2, &CClientDlg::OnDistortionToneChanged );
     addDistKnob ( tr ( "Level" ), pClient->GetDistortionLevel(), AUD_DISTORTION_MAX, &CClientDlg::OnDistortionLevelChanged );
     pDistPedal->bodyLayout()->addWidget ( pDistRow );
-    verticalLayout_3->insertWidget ( iDistIdx, pDistPedal );
+    m_pRackLayout->addWidget ( pDistPedal );
 
     // jamony: EQ 接入 PedalWidget (9 垂直推子: 7 频段 + IN/OUT, ±dB 显示)
     frameEq->setVisible ( false );
-    const int iEqIdx = verticalLayout_3->indexOf ( frameEq );
     PedalWidget* pEqPedal = new PedalWidget ( this );
     pEqPedal->setName ( QStringLiteral ( "Equalizer" ) );
     pEqPedal->setAccent ( QColor ( "#cc33d4" ) );
@@ -225,11 +272,10 @@ CClientDlg::CClientDlg ( CClient*         pNCliP,
     addEqIo ( tr ( "OUT" ), pClient->GetEqOut(), &CClient::SetEqOut );
     pEqPedal->bodyLayout()->addWidget ( pEqRow );
     connect ( pEqPedal, &PedalWidget::powerToggled, this, &CClientDlg::OnEqOnOffToggled );
-    verticalLayout_3->insertWidget ( iEqIdx, pEqPedal );
+    m_pRackLayout->addWidget ( pEqPedal );
 
     // jamony: Chorus 接入 PedalWidget (3 旋钮 Rate[Hz]/Depth[ms]/Mix[0-100])
     frameChorus->setVisible ( false );
-    const int iChIdx = verticalLayout_3->indexOf ( frameChorus );
     PedalWidget* pChPedal = new PedalWidget ( this );
     pChPedal->setName ( QStringLiteral ( "Chorus" ) );
     pChPedal->setAccent ( QColor ( "#ff33aa" ) );
@@ -262,11 +308,10 @@ CClientDlg::CClientDlg ( CClient*         pNCliP,
                 [] ( int v ) { return QString::number ( v ); },
                 &CClientDlg::OnChorusMixChanged );
     pChPedal->bodyLayout()->addWidget ( pChRow );
-    verticalLayout_3->insertWidget ( iChIdx, pChPedal );
+    m_pRackLayout->addWidget ( pChPedal );
 
     // jamony: Delay 接入 PedalWidget (3 旋钮 Time[ms]/Feedback[0-100]/Level[0-100])
     frameDelay->setVisible ( false );
-    const int iDelayIdx = verticalLayout_3->indexOf ( frameDelay );
     PedalWidget* pDelayPedal = new PedalWidget ( this );
     pDelayPedal->setName ( QStringLiteral ( "Delay" ) );
     pDelayPedal->setAccent ( QColor ( "#dd9055" ) );
@@ -299,12 +344,11 @@ CClientDlg::CClientDlg ( CClient*         pNCliP,
                    [] ( int v ) { return QString::number ( v ); },
                    &CClientDlg::OnDelayLevelChanged );
     pDelayPedal->bodyLayout()->addWidget ( pDelayRow );
-    verticalLayout_3->insertWidget ( iDelayIdx, pDelayPedal );
+    m_pRackLayout->addWidget ( pDelayPedal );
 
     // jamony: Reverb 接入 PedalWidget (3 旋钮 Pre[ms]/Decay[s]/Damp + Mix 推子 + L/R)
-    // Reverb 在效果器链最后 → 插在 Delay Pedal 之后(不 addWidget 末尾, 避免排到 A 栏 jamulus 其他控件后)
+    // Reverb 在效果器链最后 → m_pRackLayout addWidget 顺序末尾(Delay 后)
     frameReverb->setVisible ( false );
-    const int iReverbIdx = verticalLayout_3->indexOf ( pDelayPedal ) + 1;
     PedalWidget* pReverbPedal = new PedalWidget ( this );
     pReverbPedal->setName ( QStringLiteral ( "Reverb" ) );
     pReverbPedal->setAccent ( QColor ( "#bbee00" ) );
@@ -357,7 +401,8 @@ CClientDlg::CClientDlg ( CClient*         pNCliP,
     connect ( pReverbLr, &LrSelect::valueChanged, this, [this] ( bool left ) { pClient->SetReverbOnLeftChan ( left ); } );
     pReverbPedal->bodyLayout()->addWidget ( pReverbMixRow );
     connect ( pReverbPedal, &PedalWidget::powerToggled, this, &CClientDlg::OnReverbOnOffToggled );
-    verticalLayout_3->insertWidget ( iReverbIdx, pReverbPedal ); // frameReverb 原位
+    m_pRackLayout->addWidget ( pReverbPedal ); // m_pRackLayout 末尾 = 效果器链最后
+    m_pRackLayout->addStretch(); // 末尾弹性: 折叠后栏头集中, 下方空余(不被 layout 拉伸填充)
 
     // jamony: 窗口跟随 IPC (stdin 监听 jamony focus 指令, 跟随前置不抢焦点)
     m_pIpc = new JamsoulIpc ( this );

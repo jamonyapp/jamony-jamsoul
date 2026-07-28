@@ -20,7 +20,7 @@
 PedalWidget::PedalWidget ( QWidget* parent ) : QWidget ( parent )
 {
     setAttribute ( Qt::WA_OpaquePaintEvent, false );
-    setSizePolicy ( QSizePolicy::Preferred, QSizePolicy::Maximum );
+    setSizePolicy ( QSizePolicy::Preferred, QSizePolicy::Minimum ); // vertical Minimum: 防被 QScrollArea 压缩
 
     auto* pMain = new QVBoxLayout ( this );
     pMain->setContentsMargins ( 0, 0, 0, 0 );
@@ -55,6 +55,7 @@ PedalWidget::PedalWidget ( QWidget* parent ) : QWidget ( parent )
 
     // ---- body (可折叠) ----
     m_pBody = new QWidget;
+    m_pBody->setSizePolicy ( QSizePolicy::Preferred, QSizePolicy::Fixed ); // body 高度恒=sizeHint, 不被 layout 拉长
     m_pBodyLayout = new QVBoxLayout ( m_pBody );
     m_pBodyLayout->setContentsMargins ( 10, 8, 10, 8 );
     m_pBodyLayout->setSpacing ( 6 );
@@ -118,19 +119,9 @@ void PedalWidget::onFoldClicked()
 {
     m_bFolded = !m_bFolded;
     m_pFoldBtn->setFolded ( m_bFolded );
-    if ( m_bFolded )
-    {
-        m_pFoldAnim->setStartValue ( m_pBody->height() );
-        m_pFoldAnim->setEndValue ( 0 );
-        m_pBody->setMaximumHeight ( 0 );
-    }
-    else
-    {
-        m_pBody->setMaximumHeight ( QWIDGETSIZE_MAX );
-        m_pFoldAnim->setStartValue ( 0 );
-        m_pFoldAnim->setEndValue ( m_pBody->sizeHint().height() );
-    }
-    m_pFoldAnim->start();
+    // 直接隐藏 body (含所有子控件), 避免 maximumHeight 0 时控件 sizePolicy Minimum 溢出
+    m_pBody->setVisible ( !m_bFolded );
+    m_pBody->setMaximumHeight ( m_bFolded ? 0 : QWIDGETSIZE_MAX );
 }
 
 void PedalWidget::paintEvent ( QPaintEvent* )
@@ -154,11 +145,15 @@ void PedalWidget::paintEvent ( QPaintEvent* )
         p.restore();
     }
 
-    // 3. 顶部条背景 + 底部分隔线
+    // 3. 顶部条背景 (顶部圆角对齐 panel, 底部直角接 body) + 底部分隔线
+    // 用 QPainterPath 一次填充, 避免 drawRoundedRect+drawRect 叠加导致底部深黑条
+    QPainterPath hdrPath;
+    hdrPath.setFillRule ( Qt::WindingFill ); // 避免 OddEven 重叠区域空洞露出 panel 灰
+    hdrPath.addRoundedRect ( QRectF ( r.left(), r.top(), r.width(), 28 ), 6, 6 );
+    hdrPath.addRect ( QRectF ( r.left(), r.top() + 22, r.width(), 6 ) ); // 底部直角(覆盖圆角)
     p.setPen ( Qt::NoPen );
     p.setBrush ( QColor ( 0, 0, 0, 102 ) ); // bg-black/40
-    p.drawRoundedRect ( QRectF ( r.left(), r.top(), r.width(), 28 ), 6, 6 );
-    p.drawRect ( QRectF ( r.left(), r.top() + 22, r.width(), 6 ) ); // 盖住下半圆角
+    p.drawPath ( hdrPath );
     p.setPen ( QPen ( QColor ( 255, 255, 255, 26 ), 1 ) );
     p.drawLine ( QPointF ( r.left(), r.top() + 28 ), QPointF ( r.right(), r.top() + 28 ) );
 

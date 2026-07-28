@@ -83,6 +83,9 @@
 #    include "mac/badgelabel.h"
 #endif
 
+class QScrollArea;
+class QVBoxLayout;
+
 /* Definitions ****************************************************************/
 // update time for GUI controls
 #define LEVELMETER_UPDATE_TIME_MS  33   // ms  (jamony: 33ms≈30Hz, 与分轨电平刷新率一致)
@@ -127,6 +130,8 @@ protected:
     CClient*         pClient;
     JamsoulIpc*      m_pIpc;
     CClientSettings* pSettings;
+    QScrollArea*     m_pRackScroll = nullptr;  // jamony: 效果器滚动区
+    QVBoxLayout*     m_pRackLayout = nullptr;  // jamony: 7 Pedal 所在 layout
 
     int            iClients;
     bool           bConnected;
