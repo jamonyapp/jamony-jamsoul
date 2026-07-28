@@ -502,6 +502,20 @@ void CClientSettings::ReadSettingsFromXML ( const QDomDocument& IniXMLDocument, 
         pClient->SetReverbLevel ( iValue );
     }
 
+    // jamony: reverb extended params (Decay/PreDelay/Damping)
+    if ( GetNumericIniSet ( IniXMLDocument, "client", "revdec", 0, AUD_REVERB_DECAY_MAX, iValue ) )
+    {
+        pClient->SetReverbDecay ( iValue );
+    }
+    if ( GetNumericIniSet ( IniXMLDocument, "client", "revpre", 0, AUD_REVERB_PREDELAY_MAX, iValue ) )
+    {
+        pClient->SetReverbPreDelay ( iValue );
+    }
+    if ( GetNumericIniSet ( IniXMLDocument, "client", "revdmp", 0, AUD_REVERB_DAMPING_MAX, iValue ) )
+    {
+        pClient->SetReverbDamping ( iValue );
+    }
+
     // boost level (0..AUD_BOOST_MAX -> 0..+18 dB)
     if ( GetNumericIniSet ( IniXMLDocument, "client", "boostlev", 0, AUD_BOOST_MAX, iValue ) )
     {
@@ -1064,6 +1078,11 @@ void CClientSettings::WriteSettingsToXML ( QDomDocument& IniXMLDocument, bool is
 
     // reverberation level
     SetNumericIniSet ( IniXMLDocument, "client", "revlev", pClient->GetReverbLevel() );
+
+    // jamony: reverb extended params (Decay/PreDelay/Damping)
+    SetNumericIniSet ( IniXMLDocument, "client", "revdec", pClient->GetReverbDecay() );
+    SetNumericIniSet ( IniXMLDocument, "client", "revpre", pClient->GetReverbPreDelay() );
+    SetNumericIniSet ( IniXMLDocument, "client", "revdmp", pClient->GetReverbDamping() );
 
     // boost level
     SetNumericIniSet ( IniXMLDocument, "client", "boostlev", pClient->GetBoostLevel() );

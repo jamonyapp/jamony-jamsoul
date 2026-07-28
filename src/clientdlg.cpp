@@ -46,6 +46,10 @@
 
 #include "clientdlg.h"
 #include "util.h"
+#include "jamonyfxheader.h"
+#include "jamonypedal.h"
+#include "jamonyfader.h"
+#include "jamonyrackwidgets.h"
 
 #include <QWindow>
 #ifdef Q_OS_MACOS
@@ -86,6 +90,274 @@ CClientDlg::CClientDlg ( CClient*         pNCliP,
     m_pIpc ( nullptr )
 {
     setupUi ( this );
+
+    // jamony: 机架标题卡 (替换大 logo, logo 缩小进标题卡前置)
+    JamonyFxHeader* pFxHeader = new JamonyFxHeader ( this );
+    verticalLayout_3->insertWidget ( 1, pFxHeader ); // 插在 topBar(0) 后, pxlLogo 前
+    pxlLogo->setVisible ( false );
+
+    // jamony: Boost 接入 PedalWidget (首个效果器, 全链路验证)
+    frameBoost->setVisible ( false );
+    const int iBoostIdx = verticalLayout_3->indexOf ( frameBoost );
+    PedalWidget* pBoostPedal = new PedalWidget ( this );
+    pBoostPedal->setName ( QStringLiteral ( "Clean Boost" ) );
+    pBoostPedal->setAccent ( QColor ( "#00aaff" ) );
+    pBoostPedal->setDecor ( PedalWidget::Splash );
+    pBoostPedal->setPowerOn ( pClient->GetBoostEnabled() );
+    JamonyFader* pBoostGain = new JamonyFader ( Qt::Horizontal, pBoostPedal );
+    pBoostGain->setRange ( 0, AUD_BOOST_MAX );
+    pBoostGain->setValue ( pClient->GetBoostLevel() );
+    pBoostGain->setLabel ( tr ( "Gain" ) );
+    pBoostGain->setAccent ( QColor ( "#00aaff" ) );
+    pBoostGain->setDisplay ( [] ( int v ) -> QString {
+        if ( v == 0 ) { return QStringLiteral ( "0 dB" ); }
+        return QStringLiteral ( "+%1 dB" ).arg ( v * 18 / AUD_BOOST_MAX );
+    } );
+    pBoostPedal->bodyLayout()->addWidget ( pBoostGain );
+    connect ( pBoostGain, &JamonyFader::valueChanged, this, &CClientDlg::OnAudioBoostValueChanged );
+    connect ( pBoostPedal, &PedalWidget::powerToggled, this, &CClientDlg::OnBoostOnOffToggled );
+    verticalLayout_3->insertWidget ( iBoostIdx, pBoostPedal );
+
+    // jamony: Overdrive 接入 PedalWidget (3 旋钮 Drive/Tone/Level, 全 0-100)
+    frameOverdrive->setVisible ( false );
+    const int iOdIdx = verticalLayout_3->indexOf ( frameOverdrive );
+    PedalWidget* pOdPedal = new PedalWidget ( this );
+    pOdPedal->setName ( QStringLiteral ( "Overdrive" ) );
+    pOdPedal->setAccent ( QColor ( "#4c6eff" ) );
+    pOdPedal->setDecor ( PedalWidget::Lines );
+    pOdPedal->setPowerOn ( pClient->GetOverdriveEnabled() );
+    QWidget*     pOdRow = new QWidget ( pOdPedal );
+    QHBoxLayout* pOdLay = new QHBoxLayout ( pOdRow );
+    pOdLay->setContentsMargins ( 0, 0, 0, 0 );
+    pOdLay->setSpacing ( 8 );
+    auto addOdKnob = [&] ( const QString& label, int value, int defVal, void ( CClientDlg::*slot )( int ) ) {
+        JamonyKnob* k = new JamonyKnob ( pOdRow );
+        k->setRange ( 0, AUD_OVERDRIVE_MAX );
+        k->setValue ( value );
+        k->setDefaultValue ( defVal );
+        k->setLabel ( label );
+        k->setAccent ( QColor ( "#4c6eff" ) );
+        k->setDisplay ( [] ( int v ) { return QString::number ( v ); } );
+        pOdLay->addWidget ( k );
+        connect ( k, &JamonyKnob::valueChanged, this, slot );
+    };
+    addOdKnob ( tr ( "Drive" ), pClient->GetOverdriveDrive(), 0, &CClientDlg::OnOverdriveDriveChanged );
+    addOdKnob ( tr ( "Tone" ), pClient->GetOverdriveTone(), AUD_OVERDRIVE_MAX / 2, &CClientDlg::OnOverdriveToneChanged );
+    addOdKnob ( tr ( "Level" ), pClient->GetOverdriveLevel(), AUD_OVERDRIVE_MAX, &CClientDlg::OnOverdriveLevelChanged );
+    pOdPedal->bodyLayout()->addWidget ( pOdRow );
+    verticalLayout_3->insertWidget ( iOdIdx, pOdPedal );
+
+    // jamony: Distortion 接入 PedalWidget (3 旋钮 Dis/Tone/Level, 全 0-100)
+    frameDistortion->setVisible ( false );
+    const int iDistIdx = verticalLayout_3->indexOf ( frameDistortion );
+    PedalWidget* pDistPedal = new PedalWidget ( this );
+    pDistPedal->setName ( QStringLiteral ( "Distortion" ) );
+    pDistPedal->setAccent ( QColor ( "#ff2d55" ) );
+    pDistPedal->setDecor ( PedalWidget::Drips );
+    pDistPedal->setPowerOn ( pClient->GetDistortionEnabled() );
+    QWidget*     pDistRow = new QWidget ( pDistPedal );
+    QHBoxLayout* pDistLay = new QHBoxLayout ( pDistRow );
+    pDistLay->setContentsMargins ( 0, 0, 0, 0 );
+    pDistLay->setSpacing ( 8 );
+    auto addDistKnob = [&] ( const QString& label, int value, int defVal, void ( CClientDlg::*slot )( int ) ) {
+        JamonyKnob* k = new JamonyKnob ( pDistRow );
+        k->setRange ( 0, AUD_DISTORTION_MAX );
+        k->setValue ( value );
+        k->setDefaultValue ( defVal );
+        k->setLabel ( label );
+        k->setAccent ( QColor ( "#ff2d55" ) );
+        k->setDisplay ( [] ( int v ) { return QString::number ( v ); } );
+        pDistLay->addWidget ( k );
+        connect ( k, &JamonyKnob::valueChanged, this, slot );
+    };
+    addDistKnob ( tr ( "Dis" ), pClient->GetDistortionDrive(), 0, &CClientDlg::OnDistortionDriveChanged );
+    addDistKnob ( tr ( "Tone" ), pClient->GetDistortionTone(), AUD_DISTORTION_MAX / 2, &CClientDlg::OnDistortionToneChanged );
+    addDistKnob ( tr ( "Level" ), pClient->GetDistortionLevel(), AUD_DISTORTION_MAX, &CClientDlg::OnDistortionLevelChanged );
+    pDistPedal->bodyLayout()->addWidget ( pDistRow );
+    verticalLayout_3->insertWidget ( iDistIdx, pDistPedal );
+
+    // jamony: EQ 接入 PedalWidget (9 垂直推子: 7 频段 + IN/OUT, ±dB 显示)
+    frameEq->setVisible ( false );
+    const int iEqIdx = verticalLayout_3->indexOf ( frameEq );
+    PedalWidget* pEqPedal = new PedalWidget ( this );
+    pEqPedal->setName ( QStringLiteral ( "Equalizer" ) );
+    pEqPedal->setAccent ( QColor ( "#cc33d4" ) );
+    pEqPedal->setDecor ( PedalWidget::Grid );
+    pEqPedal->setPowerOn ( pClient->GetEqEnabled() );
+    QWidget*     pEqRow = new QWidget ( pEqPedal );
+    QHBoxLayout* pEqLay = new QHBoxLayout ( pEqRow );
+    pEqLay->setContentsMargins ( 0, 0, 0, 0 );
+    // 7 段用 stretch 均匀填满左侧, IN/OUT 紧靠右, 不设固定 spacing
+    auto eqDbDisplay = [] ( int v ) {
+        const qreal db = ( v - 50 ) * 0.24; // 中 50=0dB, ±12dB
+        if ( db >= 0 ) { return QStringLiteral ( "+%1" ).arg ( db, 0, 'f', 1 ); }
+        return QString::number ( db, 'f', 1 );
+    };
+    static const char* eqBands[] = { "50", "120", "250", "500", "1.2k", "3k", "6k" };
+    for ( int i = 0; i < 7; i++ )
+    {
+        JamonyFader* f = new JamonyFader ( Qt::Vertical, pEqRow );
+        f->setRange ( 0, AUD_EQ_MAX );
+        f->setValue ( pClient->GetEqBand ( i ) );
+        f->setLabel ( QString::fromLatin1 ( eqBands[i] ) );
+        f->setAccent ( QColor ( "#cc33d4" ) );
+        f->setDisplay ( eqDbDisplay );
+        f->setGrooveLength ( 96 );
+        pEqLay->addWidget ( f );
+        const int bandIdx = i;
+        connect ( f, &JamonyFader::valueChanged, this, [this, bandIdx] ( int v ) { pClient->SetEqBand ( bandIdx, v ); } );
+        if ( i < 6 ) { pEqLay->addStretch ( 2 ); } // 段间均匀
+    }
+    pEqLay->addStretch ( 3 ); // 7 段与 IN 之间明显间隔 (1.5 倍段间距)
+    auto addEqIo = [&] ( const QString& label, int value, void ( CClient::*setter )( int ) ) {
+        JamonyFader* f = new JamonyFader ( Qt::Vertical, pEqRow );
+        f->setRange ( 0, AUD_EQ_MAX );
+        f->setValue ( value );
+        f->setLabel ( label );
+        f->setAccent ( QColor ( "#cc33d4" ) );
+        f->setDisplay ( eqDbDisplay );
+        f->setGrooveLength ( 96 );
+        pEqLay->addWidget ( f );
+        connect ( f, &JamonyFader::valueChanged, this, [this, setter] ( int v ) { ( pClient->*setter )( v ); } );
+    };
+    addEqIo ( tr ( "IN" ), pClient->GetEqIn(), &CClient::SetEqIn );
+    pEqLay->addStretch ( 1 ); // IN-OUT 间小间距
+    addEqIo ( tr ( "OUT" ), pClient->GetEqOut(), &CClient::SetEqOut );
+    pEqPedal->bodyLayout()->addWidget ( pEqRow );
+    connect ( pEqPedal, &PedalWidget::powerToggled, this, &CClientDlg::OnEqOnOffToggled );
+    verticalLayout_3->insertWidget ( iEqIdx, pEqPedal );
+
+    // jamony: Chorus 接入 PedalWidget (3 旋钮 Rate[Hz]/Depth[ms]/Mix[0-100])
+    frameChorus->setVisible ( false );
+    const int iChIdx = verticalLayout_3->indexOf ( frameChorus );
+    PedalWidget* pChPedal = new PedalWidget ( this );
+    pChPedal->setName ( QStringLiteral ( "Chorus" ) );
+    pChPedal->setAccent ( QColor ( "#ff33aa" ) );
+    pChPedal->setDecor ( PedalWidget::Wave );
+    pChPedal->setPowerOn ( pClient->GetChorusEnabled() );
+    QWidget*     pChRow = new QWidget ( pChPedal );
+    QHBoxLayout* pChLay = new QHBoxLayout ( pChRow );
+    pChLay->setContentsMargins ( 0, 0, 0, 0 );
+    pChLay->setSpacing ( 8 );
+    auto addChKnob = [&] ( const QString& label, int value, int defVal,
+                           std::function<QString ( int )> display,
+                           void ( CClientDlg::*slot )( int ) ) {
+        JamonyKnob* k = new JamonyKnob ( pChRow );
+        k->setRange ( 0, AUD_CHORUS_MAX );
+        k->setValue ( value );
+        k->setDefaultValue ( defVal );
+        k->setLabel ( label );
+        k->setAccent ( QColor ( "#ff33aa" ) );
+        k->setDisplay ( display );
+        pChLay->addWidget ( k );
+        connect ( k, &JamonyKnob::valueChanged, this, slot );
+    };
+    addChKnob ( tr ( "Rate" ), pClient->GetChorusRate(), 40,
+                [] ( int v ) { return QString::number ( 0.1 + v * 0.019, 'f', 2 ) + "Hz"; },
+                &CClientDlg::OnChorusRateChanged );
+    addChKnob ( tr ( "Depth" ), pClient->GetChorusDepth(), 50,
+                [] ( int v ) { return QString::number ( v * 0.05, 'f', 1 ) + "ms"; },
+                &CClientDlg::OnChorusDepthChanged );
+    addChKnob ( tr ( "Mix" ), pClient->GetChorusMix(), 50,
+                [] ( int v ) { return QString::number ( v ); },
+                &CClientDlg::OnChorusMixChanged );
+    pChPedal->bodyLayout()->addWidget ( pChRow );
+    verticalLayout_3->insertWidget ( iChIdx, pChPedal );
+
+    // jamony: Delay 接入 PedalWidget (3 旋钮 Time[ms]/Feedback[0-100]/Level[0-100])
+    frameDelay->setVisible ( false );
+    const int iDelayIdx = verticalLayout_3->indexOf ( frameDelay );
+    PedalWidget* pDelayPedal = new PedalWidget ( this );
+    pDelayPedal->setName ( QStringLiteral ( "Delay" ) );
+    pDelayPedal->setAccent ( QColor ( "#dd9055" ) );
+    pDelayPedal->setDecor ( PedalWidget::Dots );
+    pDelayPedal->setPowerOn ( pClient->GetDelayEnabled() );
+    QWidget*     pDelayRow = new QWidget ( pDelayPedal );
+    QHBoxLayout* pDelayLay = new QHBoxLayout ( pDelayRow );
+    pDelayLay->setContentsMargins ( 0, 0, 0, 0 );
+    pDelayLay->setSpacing ( 8 );
+    auto addDelayKnob = [&] ( const QString& label, int value, int defVal,
+                              std::function<QString ( int )> display,
+                              void ( CClientDlg::*slot )( int ) ) {
+        JamonyKnob* k = new JamonyKnob ( pDelayRow );
+        k->setRange ( 0, AUD_DELAY_MAX );
+        k->setValue ( value );
+        k->setDefaultValue ( defVal );
+        k->setLabel ( label );
+        k->setAccent ( QColor ( "#dd9055" ) );
+        k->setDisplay ( display );
+        pDelayLay->addWidget ( k );
+        connect ( k, &JamonyKnob::valueChanged, this, slot );
+    };
+    addDelayKnob ( tr ( "Time" ), pClient->GetDelayTime(), 35,
+                   [] ( int v ) { return QString::number ( 50 + v * 550 / 100 ) + "ms"; },
+                   &CClientDlg::OnDelayTimeChanged );
+    addDelayKnob ( tr ( "Feedback" ), pClient->GetDelayFeedback(), 40,
+                   [] ( int v ) { return QString::number ( v ); },
+                   &CClientDlg::OnDelayFeedbackChanged );
+    addDelayKnob ( tr ( "Level" ), pClient->GetDelayLevel(), 50,
+                   [] ( int v ) { return QString::number ( v ); },
+                   &CClientDlg::OnDelayLevelChanged );
+    pDelayPedal->bodyLayout()->addWidget ( pDelayRow );
+    verticalLayout_3->insertWidget ( iDelayIdx, pDelayPedal );
+
+    // jamony: Reverb 接入 PedalWidget (3 旋钮 Pre[ms]/Decay[s]/Damp + Mix 推子 + L/R)
+    // Reverb 在效果器链最后 → 插在 Delay Pedal 之后(不 addWidget 末尾, 避免排到 A 栏 jamulus 其他控件后)
+    frameReverb->setVisible ( false );
+    const int iReverbIdx = verticalLayout_3->indexOf ( pDelayPedal ) + 1;
+    PedalWidget* pReverbPedal = new PedalWidget ( this );
+    pReverbPedal->setName ( QStringLiteral ( "Reverb" ) );
+    pReverbPedal->setAccent ( QColor ( "#bbee00" ) );
+    pReverbPedal->setDecor ( PedalWidget::Arc );
+    pReverbPedal->setPowerOn ( pClient->GetReverbEnabled() );
+    QWidget*     pReverbKnobRow = new QWidget ( pReverbPedal );
+    QHBoxLayout* pReverbKnobLay = new QHBoxLayout ( pReverbKnobRow );
+    pReverbKnobLay->setContentsMargins ( 0, 0, 0, 0 );
+    pReverbKnobLay->setSpacing ( 8 );
+    auto addReverbKnob = [&] ( const QString& label, int value, int defVal, int maxVal,
+                               std::function<QString ( int )> display,
+                               void ( CClientDlg::*slot )( int ) ) {
+        JamonyKnob* k = new JamonyKnob ( pReverbKnobRow );
+        k->setRange ( 0, maxVal );
+        k->setValue ( value );
+        k->setDefaultValue ( defVal );
+        k->setLabel ( label );
+        k->setAccent ( QColor ( "#bbee00" ) );
+        k->setDisplay ( display );
+        pReverbKnobLay->addWidget ( k );
+        connect ( k, &JamonyKnob::valueChanged, this, slot );
+    };
+    addReverbKnob ( tr ( "Pre" ), pClient->GetReverbPreDelay(), 0, AUD_REVERB_PREDELAY_MAX,
+                    [] ( int v ) { return QString::number ( v * 150 / 100 ) + "ms"; },
+                    &CClientDlg::OnReverbPreDelayChanged );
+    addReverbKnob ( tr ( "Decay" ), pClient->GetReverbDecay(), 14, AUD_REVERB_DECAY_MAX,
+                    [] ( int v ) { return QString::number ( 0.3 + v * 5.7 / 100, 'f', 1 ) + "s"; },
+                    &CClientDlg::OnReverbDecayChanged );
+    addReverbKnob ( tr ( "Damp" ), pClient->GetReverbDamping(), 24, AUD_REVERB_DAMPING_MAX,
+                    [] ( int v ) { return QString::number ( v ); },
+                    &CClientDlg::OnReverbDampingChanged );
+    pReverbPedal->bodyLayout()->addWidget ( pReverbKnobRow );
+    // Mix 推子 + L/R 单选 行
+    QWidget*     pReverbMixRow = new QWidget ( pReverbPedal );
+    QHBoxLayout* pReverbMixLay = new QHBoxLayout ( pReverbMixRow );
+    pReverbMixLay->setContentsMargins ( 0, 0, 0, 0 );
+    pReverbMixLay->setSpacing ( 12 );
+    JamonyFader* pReverbMix = new JamonyFader ( Qt::Horizontal, pReverbMixRow );
+    pReverbMix->setRange ( 0, AUD_REVERB_MAX );
+    pReverbMix->setValue ( pClient->GetReverbLevel() );
+    pReverbMix->setLabel ( tr ( "Mix" ) );
+    pReverbMix->setAccent ( QColor ( "#bbee00" ) );
+    pReverbMix->setDisplay ( [] ( int v ) { return QString::number ( v ); } );
+    pReverbMixLay->addWidget ( pReverbMix );
+    LrSelect* pReverbLr = new LrSelect ( pReverbMixRow );
+    pReverbLr->setAccent ( QColor ( "#bbee00" ) );
+    pReverbLr->setValue ( pClient->IsReverbOnLeftChan() );
+    pReverbMixLay->addWidget ( pReverbLr );
+    connect ( pReverbMix, &JamonyFader::valueChanged, this, &CClientDlg::OnAudioReverbValueChanged );
+    connect ( pReverbLr, &LrSelect::valueChanged, this, [this] ( bool left ) { pClient->SetReverbOnLeftChan ( left ); } );
+    pReverbPedal->bodyLayout()->addWidget ( pReverbMixRow );
+    connect ( pReverbPedal, &PedalWidget::powerToggled, this, &CClientDlg::OnReverbOnOffToggled );
+    verticalLayout_3->insertWidget ( iReverbIdx, pReverbPedal ); // frameReverb 原位
 
     // jamony: 窗口跟随 IPC (stdin 监听 jamony focus 指令, 跟随前置不抢焦点)
     m_pIpc = new JamsoulIpc ( this );
@@ -289,6 +561,20 @@ CClientDlg::CClientDlg ( CClient*         pNCliP,
     const int iCurAudReverb = pClient->GetReverbLevel();
     sldAudioReverb->setValue ( iCurAudReverb );
     sldAudioReverb->setTickInterval ( AUD_REVERB_MAX / 5 );
+
+    // jamony: reverb 扩展旋钮 (Decay/PreDelay/Damping)
+    knobReverbDecay->setRange ( 0, AUD_REVERB_DECAY_MAX );
+    knobReverbDecay->setValue ( pClient->GetReverbDecay() );
+    knobReverbDecay->setDefaultValue ( 14 ); // -> 1.1s (保持原听感, 0-100 下 14≈1.1s)
+    knobReverbDecay->setLabel ( tr ( "Decay" ) );
+    knobReverbPreDelay->setRange ( 0, AUD_REVERB_PREDELAY_MAX );
+    knobReverbPreDelay->setValue ( pClient->GetReverbPreDelay() );
+    knobReverbPreDelay->setDefaultValue ( 0 );
+    knobReverbPreDelay->setLabel ( tr ( "Pre" ) );
+    knobReverbDamping->setRange ( 0, AUD_REVERB_DAMPING_MAX );
+    knobReverbDamping->setValue ( pClient->GetReverbDamping() );
+    knobReverbDamping->setDefaultValue ( 24 ); // -> pole≈0.2 (保持原听感)
+    knobReverbDamping->setLabel ( tr ( "Damp" ) );
 
     // init audio boost
     sldAudioBoost->setRange ( 0, AUD_BOOST_MAX );
@@ -605,6 +891,11 @@ CClientDlg::CClientDlg ( CClient*         pNCliP,
     QObject::connect ( &TimerDetectFeedback, &QTimer::timeout, this, &CClientDlg::OnTimerDetectFeedback );
 
     QObject::connect ( sldAudioReverb, &QSlider::valueChanged, this, &CClientDlg::OnAudioReverbValueChanged );
+
+    // jamony: reverb 扩展旋钮 (Decay/PreDelay/Damping)
+    QObject::connect ( knobReverbDecay,    &JamonyKnob::valueChanged, this, &CClientDlg::OnReverbDecayChanged );
+    QObject::connect ( knobReverbPreDelay, &JamonyKnob::valueChanged, this, &CClientDlg::OnReverbPreDelayChanged );
+    QObject::connect ( knobReverbDamping,  &JamonyKnob::valueChanged, this, &CClientDlg::OnReverbDampingChanged );
 
     QObject::connect ( sldAudioBoost, &QSlider::valueChanged, this, &CClientDlg::OnAudioBoostValueChanged );
 

@@ -77,6 +77,9 @@ CClient::CClient ( const quint16  iPortNumber,
     iAudioInFader ( AUD_FADER_IN_MIDDLE ),
     bReverbOnLeftChan ( false ),
     iReverbLevel ( 0 ),
+    iReverbDecay ( 14 ),     // jamony: 默认 -> 1.1s T60 (保持原混响听感, 0-100 下 14≈1.1s)
+    iReverbPreDelay ( 0 ),   // jamony: 默认无 pre-delay
+    iReverbDamping ( 24 ),   // jamony: 默认 -> pole≈0.2 (保持原混响听感)
     bReverbEnabled ( false ),
     iBoostLevel ( 0 ),
     bBoostEnabled ( true ),
@@ -1377,6 +1380,10 @@ void CClient::Init()
 
     // init reverberation
     AudioReverb.Init ( eAudioChannelConf, iStereoBlockSizeSam, SYSTEM_SAMPLE_RATE_HZ );
+    // jamony: 同步用户存的扩展参数 (settings 加载早于 Init, 此时才真正生效到 DSP)
+    AudioReverb.SetDecay    ( ReverbDecayToT60    ( iReverbDecay ) );
+    AudioReverb.SetPreDelay ( ReverbPreDelayToMs  ( iReverbPreDelay ) );
+    AudioReverb.SetDamping  ( ReverbDampingToPole ( iReverbDamping ) );
 
     // init boost effect (GUI client only — headless looper never loads effects)
 #ifndef HEADLESS

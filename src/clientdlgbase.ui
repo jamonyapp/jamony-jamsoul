@@ -148,6 +148,21 @@
                     </widget>
                    </item>
                    <item>
+                    <widget class="JamonyKnob" name="knobReverbDecay" native="true">
+                     <property name="minimumSize"><size><width>54</width><height>54</height></size></property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="JamonyKnob" name="knobReverbPreDelay" native="true">
+                     <property name="minimumSize"><size><width>54</width><height>54</height></size></property>
+                    </widget>
+                   </item>
+                   <item>
+                    <widget class="JamonyKnob" name="knobReverbDamping" native="true">
+                     <property name="minimumSize"><size><width>54</width><height>54</height></size></property>
+                    </widget>
+                   </item>
+                   <item>
                     <widget class="QSlider" name="sldAudioReverb">
                      <property name="sizePolicy">
                       <sizepolicy hsizetype="Expanding" vsizetype="Fixed">

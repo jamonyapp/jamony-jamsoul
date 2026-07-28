@@ -102,6 +102,11 @@
 // audio reverberation range
 #define AUD_REVERB_MAX 100
 
+// jamony: reverb extended params (旋钮值 0..100 统一, 映射见 ReverbDecayToT60 等)
+#define AUD_REVERB_DECAY_MAX    100  // -> 0.3..6.0s T60 (默认 14 ≈ 1.1s)
+#define AUD_REVERB_PREDELAY_MAX 100  // -> 0..150ms
+#define AUD_REVERB_DAMPING_MAX  100  // -> 0..0.85 damping pole
+
 // audio boost range (0..100 maps to 0..+18 dB)
 #define AUD_BOOST_MAX 100
 
@@ -205,6 +210,17 @@ public:
 
     int  GetReverbLevel() const { return iReverbLevel; }
     void SetReverbLevel ( const int iNL ) { iReverbLevel = iNL; }
+
+    // jamony: reverb 扩展参数 (Decay/PreDelay/Damping)。映射 helper 保证旋钮值与物理量一致
+    static float ReverbDecayToT60    ( const int iV ) { return 0.3f + static_cast<float> ( iV ) / AUD_REVERB_DECAY_MAX    * 5.7f; }
+    static float ReverbPreDelayToMs  ( const int iV ) { return static_cast<float> ( iV ) / AUD_REVERB_PREDELAY_MAX * 150.0f; }
+    static float ReverbDampingToPole ( const int iV ) { return static_cast<float> ( iV ) / AUD_REVERB_DAMPING_MAX  * 0.85f; }
+    int  GetReverbDecay() const { return iReverbDecay; }
+    void SetReverbDecay    ( const int iNV ) { iReverbDecay    = iNV; AudioReverb.SetDecay    ( ReverbDecayToT60    ( iNV ) ); }
+    int  GetReverbPreDelay() const { return iReverbPreDelay; }
+    void SetReverbPreDelay ( const int iNV ) { iReverbPreDelay = iNV; AudioReverb.SetPreDelay ( ReverbPreDelayToMs  ( iNV ) ); }
+    int  GetReverbDamping() const { return iReverbDamping; }
+    void SetReverbDamping  ( const int iNV ) { iReverbDamping  = iNV; AudioReverb.SetDamping  ( ReverbDampingToPole ( iNV ) ); }
 
     int  GetBoostLevel() const { return iBoostLevel; }
     void SetBoostLevel ( const int iNL ) { iBoostLevel = iNL; }
@@ -471,6 +487,9 @@ protected:
     int          iAudioInFader;
     bool         bReverbOnLeftChan;
     int          iReverbLevel;
+    int          iReverbDecay;     // jamony: T60 旋钮值 0..100
+    int          iReverbPreDelay;  // jamony: pre-delay 旋钮值 0..100
+    int          iReverbDamping;   // jamony: damping 旋钮值 0..100
     bool         bReverbEnabled;
     CAudioReverb AudioReverb;
     int          iBoostLevel;

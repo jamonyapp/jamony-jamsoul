@@ -272,6 +272,11 @@ public slots:
         ledReverb->SetLight ( on ? CMultiColorLED::RL_GREEN : CMultiColorLED::RL_GREY );
     }
 
+    // jamony: reverb 扩展参数 (Decay/PreDelay/Damping)
+    void OnReverbDecayChanged    ( int value ) { pClient->SetReverbDecay    ( value ); }
+    void OnReverbPreDelayChanged ( int value ) { pClient->SetReverbPreDelay ( value ); }
+    void OnReverbDampingChanged  ( int value ) { pClient->SetReverbDamping  ( value ); }
+
     void OnReverbSelLClicked() { pClient->SetReverbOnLeftChan ( true ); }
 
     void OnReverbSelRClicked() { pClient->SetReverbOnLeftChan ( false ); }

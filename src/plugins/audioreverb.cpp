@@ -21,6 +21,7 @@ void CAudioReverb::Init ( const EAudChanConf eNAudioChannelConf, const int iNSte
     // store parameters
     eAudioChannelConf   = eNAudioChannelConf;
     iStereoBlockSizeSam = iNStereoBlockSizeSam;
+    iReverbSampleRate   = iSampleRate; // jamony: 存采样率供运行时 setter 用
 
     // delay lengths for 44100 Hz sample rate
     int         lengths[9] = { 1116, 1356, 1422, 1617, 225, 341, 441, 211, 179 };
@@ -54,13 +55,25 @@ void CAudioReverb::Init ( const EAudChanConf eNAudioChannelConf, const int iNSte
     for ( int i = 0; i < 4; i++ )
     {
         combDelays[i].Init ( lengths[i] );
-        combFilters[i].setPole ( 0.2f );
+        combFilters[i].setPole ( fDampingPole ); // jamony: 可调阻尼 (默认 0.2)
     }
 
     setT60 ( fT60, iSampleRate );
     outLeftDelay.Init ( lengths[7] );
     outRightDelay.Init ( lengths[8] );
     allpassCoefficient = 0.7f;
+
+    // jamony: pre-delay 环形缓冲 (容量固定 200ms, 调参只改读偏移, 不清空缓冲 → 无 click)
+    iPreDelayMaxSamples = static_cast<int> ( 0.2f * iSampleRate );
+    if ( iPreDelayMaxSamples < 1 ) iPreDelayMaxSamples = 1;
+    preDelayBuf.Init ( iPreDelayMaxSamples, 0.0f );
+    iPreDelayWriteIdx = 0;
+    // 当前延迟样本数按成员 fPreDelayMs 算 (SetPreDelay 预设过则生效, 否则 0)
+    int iPreDelaySamples = static_cast<int> ( fPreDelayMs * iSampleRate / 1000.0f );
+    if ( iPreDelaySamples > iPreDelayMaxSamples ) iPreDelaySamples = iPreDelayMaxSamples;
+    if ( iPreDelaySamples < 0 ) iPreDelaySamples = 0;
+    iPreDelayCurSamples = iPreDelaySamples;
+
     Clear();
 }
 
@@ -109,6 +122,10 @@ void CAudioReverb::Clear()
     combFilters[3].Reset();
     outRightDelay.Reset ( 0 );
     outLeftDelay.Reset ( 0 );
+
+    // jamony: 清 pre-delay 缓冲
+    for ( int i = 0; i < iPreDelayMaxSamples; i++ ) { preDelayBuf[i] = 0.0f; }
+    iPreDelayWriteIdx = 0;
 }
 
 void CAudioReverb::setT60 ( const float fT60, const int iSampleRate )
@@ -117,6 +134,35 @@ void CAudioReverb::setT60 ( const float fT60, const int iSampleRate )
     for ( int i = 0; i < 4; i++ )
     {
         combCoefficient[i] = powf ( 10.0f, static_cast<float> ( -3.0f * combDelays[i].Size() / ( fT60 * iSampleRate ) ) );
+    }
+}
+
+// jamony: 运行时可调参数 setter (未 Init 时仅存值, Init 时/后生效)
+void CAudioReverb::SetDecay ( const float fT60Sec )
+{
+    fT60 = fT60Sec;
+    if ( iReverbSampleRate > 0 ) { setT60 ( fT60, iReverbSampleRate ); }
+}
+
+void CAudioReverb::SetPreDelay ( const float fMs )
+{
+    fPreDelayMs = fMs;
+    if ( iReverbSampleRate > 0 )
+    {
+        // 只改读偏移, 不动缓冲 → 调参平滑无 click
+        int iSamples = static_cast<int> ( fMs * iReverbSampleRate / 1000.0f );
+        if ( iSamples > iPreDelayMaxSamples ) iSamples = iPreDelayMaxSamples;
+        if ( iSamples < 0 ) iSamples = 0;
+        iPreDelayCurSamples = iSamples;
+    }
+}
+
+void CAudioReverb::SetDamping ( const float fPole )
+{
+    fDampingPole = fPole;
+    if ( iReverbSampleRate > 0 )
+    {
+        for ( int i = 0; i < 4; i++ ) { combFilters[i].setPole ( fDampingPole ); }
     }
 }
 
@@ -157,6 +203,16 @@ void CAudioReverb::Process ( CVector<int16_t>& vecsStereoInOut, const bool bReve
             {
                 fMixedInput = vecsStereoInOut[i + 1];
             }
+        }
+
+        // jamony: pre-delay — 延迟混响引擎输入 (干声直通, 湿声整体延后, 提升清晰度)
+        if ( iPreDelayCurSamples > 0 )
+        {
+            preDelayBuf[iPreDelayWriteIdx] = fMixedInput;
+            const int iReadIdx = ( iPreDelayWriteIdx - iPreDelayCurSamples + iPreDelayMaxSamples ) % iPreDelayMaxSamples;
+            fMixedInput = preDelayBuf[iReadIdx];
+            iPreDelayWriteIdx++;
+            if ( iPreDelayWriteIdx >= iPreDelayMaxSamples ) iPreDelayWriteIdx = 0;
         }
 
         temp  = allpassDelays[0].Get();

@@ -438,7 +438,11 @@ HEADERS_GUI = src/serverdlg.h
         src/levelmeter.h \
         src/analyzerconsole.h \
         src/jamonyknob.h \
-        src/multicolorled.h
+        src/multicolorled.h \
+        src/jamonyfader.h \
+        src/jamonyrackwidgets.h \
+        src/jamonypedal.h \
+        src/jamonyfxheader.h
 }
 
 HEADERS_OPUS = libs/opus/celt/arch.h \
@@ -552,7 +556,11 @@ SOURCES_GUI = src/serverdlg.cpp
         src/multicolorled.cpp \
         src/levelmeter.cpp \
         src/jamonyknob.cpp \
-        src/analyzerconsole.cpp
+        src/analyzerconsole.cpp \
+        src/jamonyfader.cpp \
+        src/jamonyrackwidgets.cpp \
+        src/jamonypedal.cpp \
+        src/jamonyfxheader.cpp
 }
 
 SOURCES_OPUS = libs/opus/celt/bands.c \
