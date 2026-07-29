@@ -102,7 +102,7 @@ void CMultiColorLED::SetColor ( const ELightColor eNewColorFlag )
     case RL_RED:
         if ( eColorFlag != RL_RED )
         {
-            setStyleSheet ( "background-color: #FF3366; border-radius: 7px; border: none;" );
+            setStyleSheet ( "background-color: #FF3366; border-radius: 5px; border: none;" );
             setAccessibleDescription ( tr ( "Red" ) );
             eColorFlag = RL_RED;
         }
@@ -111,7 +111,7 @@ void CMultiColorLED::SetColor ( const ELightColor eNewColorFlag )
     case RL_YELLOW:
         if ( eColorFlag != RL_YELLOW )
         {
-            setStyleSheet ( "background-color: #FFCC00; border-radius: 7px; border: none;" );
+            setStyleSheet ( "background-color: #FFCC00; border-radius: 5px; border: none;" );
             setAccessibleDescription ( tr ( "Yellow" ) );
             eColorFlag = RL_YELLOW;
         }
@@ -120,7 +120,7 @@ void CMultiColorLED::SetColor ( const ELightColor eNewColorFlag )
     case RL_GREEN:
         if ( eColorFlag != RL_GREEN )
         {
-            setStyleSheet ( "background-color: #BBEE00; border-radius: 7px; border: none;" );
+            setStyleSheet ( "background-color: #BBEE00; border-radius: 5px; border: none;" );
             setAccessibleDescription ( tr ( "Green" ) );
             eColorFlag = RL_GREEN;
         }
@@ -129,7 +129,7 @@ void CMultiColorLED::SetColor ( const ELightColor eNewColorFlag )
     default:
         if ( eColorFlag != RL_GREY )
         {
-            setStyleSheet ( "background-color: #333333; border-radius: 7px; border: none;" );
+            setStyleSheet ( "background-color: #333333; border-radius: 5px; border: none;" );
             eColorFlag = RL_GREY;
         }
         break;

@@ -105,6 +105,7 @@ CClientDlg::CClientDlg ( CClient*         pNCliP,
     m_pRackLayout->setContentsMargins ( 0, 0, 0, 0 );
     m_pRackLayout->setSpacing ( 6 );
     m_pRackScroll->setWidget ( pRackContent );
+    m_pRackScroll->setMaximumHeight ( 634 ); // 下沿 720 = B 栏 L/R 文案底(对齐)
 
     // 机架标题卡 (固定, 不滚动)
     JamonyFxHeader* pFxHeader = new JamonyFxHeader ( this );
@@ -118,34 +119,47 @@ CClientDlg::CClientDlg ( CClient*         pNCliP,
         if ( it && it->spacerItem() ) { delete verticalLayout_3->takeAt ( i ); }
     }
 
-    // B 步: ping+autoadjust 整体背景框 (参考标题卡样式: 圆角 panel + 边框)
-    QFrame* pStatusPanel = new QFrame ( this );
-    pStatusPanel->setObjectName ( "statusPanel" );
-    pStatusPanel->setStyleSheet ( "QFrame#statusPanel { background: #0d0d0d; border: 1px solid rgba(255,255,255,26); border-radius: 6px; }" );
-    QVBoxLayout* pStatusLay = new QVBoxLayout ( pStatusPanel );
-    pStatusLay->setContentsMargins ( 10, 6, 10, 6 );
-    pStatusLay->setSpacing ( 4 );
-    const int iPingIdx = verticalLayout_3->indexOf ( horizontalLayoutPingWrap );
-    if ( iPingIdx >= 0 )
-    {
-        QLayoutItem* pPing = verticalLayout_3->takeAt ( iPingIdx );
-        if ( QLayout* pPL = pPing->layout() )
-        {
-            // 递归 reparent pingWrap 所有子 widget 到 panel (layout 跨容器移动需手动 reparent)
-            std::function<void ( QLayout*, QWidget* )> reparentAll = [&] ( QLayout* l, QWidget* np ) {
-                for ( int i = 0; i < l->count(); ++i )
-                {
-                    QLayoutItem* it = l->itemAt ( i );
-                    if ( it->widget() ) { it->widget()->setParent ( np ); }
-                    else if ( it->layout() ) { reparentAll ( it->layout(), np ); }
-                }
-            };
-            reparentAll ( pPL, pStatusPanel );
-        }
-        pStatusLay->addItem ( pPing );
-    }
-    pStatusLay->addWidget ( butAutoAdjust );
-    verticalLayout_3->insertWidget ( 1, pStatusPanel ); // chbSettings(0) 后
+    // ping 1 行 + 边框, 移 A 栏最下 (参考标题卡样式; ping 控件 reparent 从 horizontalLayoutPingWrap)
+    QFrame* pPingPanel = new QFrame ( this );
+    pPingPanel->setObjectName ( "pingPanel" );
+    pPingPanel->setStyleSheet ( "QFrame#pingPanel { background: #0d0d0d; border: 1px solid rgba(255,255,255,26); border-radius: 6px; }" );
+    QHBoxLayout* pPingLay = new QHBoxLayout ( pPingPanel );
+    pPingLay->setContentsMargins ( 8, 2, 8, 2 ); // 上下 2: 卡片高 22 = M 按钮高, 内部 16 一致
+    pPingLay->setSpacing ( 4 );
+    // LED 调小 (参考栏头 LED 10x10)
+    ledDelay->setFixedSize ( 10, 10 );
+    ledBuffers->setFixedSize ( 10, 10 );
+    // 三组数据平均分布 (addStretch 首中尾)
+    pPingLay->addStretch ( 1 );
+    lblPing->setText ( "Ping:" );
+    pPingLay->addWidget ( lblPing );
+    pPingLay->addWidget ( lblPingVal );
+    pPingLay->addWidget ( lblPingUnit );
+    pPingLay->addStretch ( 1 );
+    QLabel* pSep1 = new QLabel ( "│", pPingPanel ); pSep1->setStyleSheet ( "color: #444;" );
+    pPingLay->addWidget ( pSep1 );
+    pPingLay->addStretch ( 1 );
+    lblDelay->setText ( "延迟:" );
+    pPingLay->addWidget ( lblDelay );
+    pPingLay->addWidget ( lblDelayVal );
+    pPingLay->addWidget ( lblDelayUnit );
+    pPingLay->addWidget ( ledDelay );
+    pPingLay->addStretch ( 1 );
+    QLabel* pSep2 = new QLabel ( "│", pPingPanel ); pSep2->setStyleSheet ( "color: #444;" );
+    pPingLay->addWidget ( pSep2 );
+    pPingLay->addStretch ( 1 );
+    lblBuffers->setText ( "抖动:" ); // 原 "Jitter", 改中文; reparent 从 horizontalLayoutPingWrap
+    pPingLay->addWidget ( lblBuffers );
+    pPingLay->addWidget ( ledBuffers );
+    pPingLay->addStretch ( 1 );
+    verticalLayout_3->addWidget ( pPingPanel ); // A 栏末尾
+    // 清空 gridLayout 的 spacer (减 horizontalLayoutPingWrap 高 20→0; 保留 gridLayout 对象给 line ~2164)
+    while ( gridLayout->count() > 0 ) { QLayoutItem* it = gridLayout->takeAt ( 0 ); if ( it ) { delete it; } }
+    // 删两条水平分割线
+    lineUpperLowerLeft->setVisible ( false );
+    lineUpperLowerLeft_2->setVisible ( false );
+    // butAutoAdjust 移到 C 区顶部 (与 A 栏 chbSettings 水平对齐 y=12; C 区 verticalLayout item 0)
+    verticalLayout->insertWidget ( 0, butAutoAdjust, 0, Qt::AlignLeft );
 
     // jamony: Boost 接入 PedalWidget (首个效果器, 全链路验证)
     frameBoost->setVisible ( false );
@@ -725,7 +739,8 @@ CClientDlg::CClientDlg ( CClient*         pNCliP,
     iClients = 0;
 
     // prepare Mute Myself info label (invisible by default)
-    lblGlobalInfoLabel->setStyleSheet ( ".QLabel { background: #FF3366; color: white; }" );
+    lblGlobalInfoLabel->setStyleSheet ( ".QLabel { color: #FF3366; font: bold 13px; }" ); // 取消背景框, 红字直接显示
+    lblGlobalInfoLabel->setAlignment ( Qt::AlignLeft | Qt::AlignVCenter ); // 和 C 区左对齐(butAutoAdjust 一致)
     lblGlobalInfoLabel->hide();
 
     // prepare update check info label (invisible by default)
@@ -2078,9 +2093,10 @@ void CClientDlg::SetGUIDesign ( const EGUIDesign eNewDesign )
 
     // jamony: butAutoAdjust padding 0 + 紧凑边框, 视觉底框 = geometry 底(对齐 frameLocalMute)
     butAutoAdjust->setStyleSheet (
-        "QPushButton { color: rgb(255,255,255); font: bold 13px; padding: 2px 8px;"
+        "QPushButton { color: rgb(255,255,255); font: bold 13px; padding: 2px 4px;"
         "              border: 1px solid #444; border-radius: 3px; background: #1a1a1a; }"
         "QPushButton:hover { border: 1px solid #888; }" );
+    butAutoAdjust->setSizePolicy ( QSizePolicy::Fixed, QSizePolicy::Fixed ); // 宽度自适应文案+padding, 不被 C 区拉伸
 
     // jamony: 混响效果器机架UI(横向前置)
     frameReverb->setStyleSheet ( "QFrame#frameReverb { border: 1px solid #333; border-radius: 4px; background: #0f0f0f; }" );

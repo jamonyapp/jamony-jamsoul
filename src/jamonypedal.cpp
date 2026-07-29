@@ -30,7 +30,7 @@ PedalWidget::PedalWidget ( QWidget* parent ) : QWidget ( parent )
     m_pHeader = new QWidget;
     m_pHeader->setFixedHeight ( 28 );
     auto* pHdr = new QHBoxLayout ( m_pHeader );
-    pHdr->setContentsMargins ( 10, 0, 8, 0 );
+    pHdr->setContentsMargins ( 10, 0, 23, 0 ); // right 23: 为滚动条预留 15px, 名字+折叠按钮左移
     pHdr->setSpacing ( 6 );
 
     m_pLed = new LedWidget;

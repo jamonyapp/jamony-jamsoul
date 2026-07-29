@@ -143,7 +143,7 @@ void LrSelect::paintEvent ( QPaintEvent* )
         f.setPointSize ( 7 );
         f.setFamily ( "Menlo" );
         p.setFont ( f );
-        p.drawText ( QRectF ( c.x() + 7, 0, 16, height() ), Qt::AlignLeft | Qt::AlignVCenter, txt );
+        p.drawText ( QRectF ( c.x() + 12, 1, 20, height() ), Qt::AlignLeft | Qt::AlignVCenter, txt );
     }
 }
 
