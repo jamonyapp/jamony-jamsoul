@@ -115,6 +115,7 @@ void PedalWidget::onPowerToggled ( bool on )
     const auto lrs = m_pBody->findChildren<LrSelect*>();
     for ( auto* lr : lrs ) { lr->setActive ( on ); }
     update();
+    emit powerToggled ( on ); // ⚠️ 必须 emit, 否则外部 OnXxxOnOffToggled 不触发, bXxxEnabled 不更新
 }
 
 void PedalWidget::showEvent ( QShowEvent* )

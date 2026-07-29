@@ -208,6 +208,7 @@ CClientDlg::CClientDlg ( CClient*         pNCliP,
     addOdKnob ( tr ( "Tone" ), pClient->GetOverdriveTone(), AUD_OVERDRIVE_MAX / 2, &CClientDlg::OnOverdriveToneChanged );
     addOdKnob ( tr ( "Level" ), pClient->GetOverdriveLevel(), AUD_OVERDRIVE_MAX, &CClientDlg::OnOverdriveLevelChanged );
     pOdPedal->bodyLayout()->addWidget ( pOdRow );
+    connect ( pOdPedal, &PedalWidget::powerToggled, this, &CClientDlg::OnOverdriveOnOffToggled );
     m_pRackLayout->addWidget ( pOdPedal );
 
     // jamony: Distortion 接入 PedalWidget (3 旋钮 Dis/Tone/Level, 全 0-100)
@@ -236,6 +237,7 @@ CClientDlg::CClientDlg ( CClient*         pNCliP,
     addDistKnob ( tr ( "Tone" ), pClient->GetDistortionTone(), AUD_DISTORTION_MAX / 2, &CClientDlg::OnDistortionToneChanged );
     addDistKnob ( tr ( "Level" ), pClient->GetDistortionLevel(), AUD_DISTORTION_MAX, &CClientDlg::OnDistortionLevelChanged );
     pDistPedal->bodyLayout()->addWidget ( pDistRow );
+    connect ( pDistPedal, &PedalWidget::powerToggled, this, &CClientDlg::OnDistortionOnOffToggled );
     m_pRackLayout->addWidget ( pDistPedal );
 
     // jamony: EQ 接入 PedalWidget (9 垂直推子: 7 频段 + IN/OUT, ±dB 显示)
@@ -322,6 +324,7 @@ CClientDlg::CClientDlg ( CClient*         pNCliP,
                 [] ( int v ) { return QString::number ( v ); },
                 &CClientDlg::OnChorusMixChanged );
     pChPedal->bodyLayout()->addWidget ( pChRow );
+    connect ( pChPedal, &PedalWidget::powerToggled, this, &CClientDlg::OnChorusOnOffToggled );
     m_pRackLayout->addWidget ( pChPedal );
 
     // jamony: Delay 接入 PedalWidget (3 旋钮 Time[ms]/Feedback[0-100]/Level[0-100])
@@ -358,6 +361,7 @@ CClientDlg::CClientDlg ( CClient*         pNCliP,
                    [] ( int v ) { return QString::number ( v ); },
                    &CClientDlg::OnDelayLevelChanged );
     pDelayPedal->bodyLayout()->addWidget ( pDelayRow );
+    connect ( pDelayPedal, &PedalWidget::powerToggled, this, &CClientDlg::OnDelayOnOffToggled );
     m_pRackLayout->addWidget ( pDelayPedal );
 
     // jamony: Reverb 接入 PedalWidget (3 旋钮 Pre[ms]/Decay[s]/Damp + Mix 推子 + L/R)
