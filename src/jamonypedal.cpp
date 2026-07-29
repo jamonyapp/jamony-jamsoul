@@ -107,12 +107,21 @@ void PedalWidget::onPowerToggled ( bool on )
     m_bPowerOn = on;
     m_pLed->setOn ( on );
     m_pNameLabel->setStyleSheet ( QString ( "color: %1;" ).arg ( on ? m_accent.name() : "#8f9096" ) );
-    // body 内旋钮/推子跟随 active (off 时变暗不变灰)
+    // body 内旋钮/推子/L-R 跟随 active (off 时变暗不变灰)
     const auto knobs = m_pBody->findChildren<JamonyKnob*>();
     for ( auto* k : knobs ) { k->setActive ( on ); }
     const auto faders = m_pBody->findChildren<JamonyFader*>();
     for ( auto* f : faders ) { f->setActive ( on ); }
+    const auto lrs = m_pBody->findChildren<LrSelect*>();
+    for ( auto* lr : lrs ) { lr->setActive ( on ); }
     update();
+}
+
+void PedalWidget::showEvent ( QShowEvent* )
+{
+    // 构造时 setPowerOn 调 onPowerToggled, 但 body 空 findChildren 找不到控件;
+    // showEvent 时控件已 addWidget, 重新同步 active(关闭的效果器控件不点亮)
+    onPowerToggled ( m_bPowerOn );
 }
 
 void PedalWidget::onFoldClicked()

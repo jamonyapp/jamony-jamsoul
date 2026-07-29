@@ -16,7 +16,7 @@ JamonyFxHeader::JamonyFxHeader ( QWidget* parent ) : QWidget ( parent )
     m_logo.load ( ":/png/main/res/fronticon.png" );
     if ( !m_logo.isNull() )
     {
-        m_logo = m_logo.scaledToHeight ( 22, Qt::SmoothTransformation );
+        m_logo = m_logo.scaledToHeight ( 32, Qt::SmoothTransformation );
     }
 }
 
@@ -28,7 +28,7 @@ void JamonyFxHeader::paintEvent ( QPaintEvent* )
 
     // panel 背景
     p.setPen ( QPen ( QColor ( 255, 255, 255, 26 ), 1 ) );
-    p.setBrush ( QColor ( "#0d0d0d" ) );
+    p.setBrush ( QColor ( "#000000" ) ); // 纯黑(避免 logo 黑色背景显示)
     p.drawRoundedRect ( r, 6, 6 );
 
     // 顶部 inset 高光
@@ -46,11 +46,11 @@ void JamonyFxHeader::paintEvent ( QPaintEvent* )
     // 文字 "jamony FX RACK"
     QFont f = p.font();
     f.setBold ( true );
-    f.setPointSize ( 10 );
-    f.setLetterSpacing ( QFont::AbsoluteSpacing, 2.4 );
+    f.setPointSize ( 13 );
+    f.setLetterSpacing ( QFont::AbsoluteSpacing, 1.6 );
     p.setFont ( f );
     p.setPen ( QColor ( "#ffffff" ) );
-    p.drawText ( QRectF ( x, r.top(), 190, r.height() ), Qt::AlignLeft | Qt::AlignVCenter, QStringLiteral ( "jamony FX RACK" ) );
+    p.drawText ( QRectF ( x, r.top(), 220, r.height() ), Qt::AlignLeft | Qt::AlignVCenter, QStringLiteral ( "jamony FX RACK" ) );
 
     // 8 段品牌渐变彩条
     static const char* colors[] = {

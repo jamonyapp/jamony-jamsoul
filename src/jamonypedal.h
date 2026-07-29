@@ -41,6 +41,7 @@ signals:
 
 protected:
     void paintEvent ( QPaintEvent* ) override;
+    void showEvent ( QShowEvent* ) override; // 显示时同步 body 控件 active(构造时 body 空未同步)
 
 private slots:
     void onFoldClicked();
