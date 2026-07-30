@@ -1334,7 +1334,8 @@ void CAudioMixerBoard::ChangeFaderOrder ( const EChSortType eChSortType )
     const int iMaxVisible = qMin ( iNumVisibleFaders, 4 );
     const int iMixerWidth = iMaxVisible * 76 + ( iMaxVisible > 0 ? ( iMaxVisible - 1 ) * 6 : 0 ) + 30; // jamony: fader + 间距 + 边距(pMixerWidget margins24 + QScrollArea margin6)
     setFixedWidth ( iMixerWidth );
-    if ( QWidget* pw = window() ) pw->resize ( pw->sizeHint().width(), pw->height() );
+    // jamony: 窗口宽度 = A栏固定261 + B栏53 + C区iMixerWidth + 边距57 = 371 + iMixerWidth
+    if ( QWidget* pw = window() ) pw->resize ( 371 + iMixerWidth, pw->height() );
 }
 
 void CAudioMixerBoard::UpdateTitle()

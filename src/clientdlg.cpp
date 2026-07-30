@@ -1376,8 +1376,8 @@ void CClientDlg::UpdateRevSelection()
         }
     }
 
-    // jamony: 隐藏Pan旋钮(不需要)
-    MainMixerBoard->SetDisplayPans ( false );
+    // jamony: 显示Pan旋钮(控制该分轨本地播放的左右声像)
+    MainMixerBoard->SetDisplayPans ( true );
 }
 
 void CClientDlg::OnConnectDlgAccepted()
@@ -1747,15 +1747,8 @@ void CClientDlg::OnLocalMuteStateChanged ( int value )
 {
     pClient->SetMuteOutStream ( value == Qt::Checked );
 
-    // show/hide info label
-    if ( value == Qt::Checked )
-    {
-        lblGlobalInfoLabel->show();
-    }
-    else
-    {
-        lblGlobalInfoLabel->hide();
-    }
+    // jamony: 隐藏"已静音"文案(M按钮悬停已有 tooltip 说明, C 区不再显示)
+    lblGlobalInfoLabel->hide();
 }
 
 void CClientDlg::OnTimerSigMet()

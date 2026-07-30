@@ -1007,8 +1007,7 @@ int main ( int argc, char** argv )
                     int jx, jy, jh;
                     if ( sscanf ( jamonyBounds.constData(), "%d,%d,%d", &jx, &jy, &jh ) == 3 )
                     {
-                        ClientDlg.move ( jx, jy );  // 位置：贴 jamony 右边框 + 上边框对齐
-                        // Qt resize 设内容区域，外框 = 内容 + 标题栏。测量标题栏高度，内容 = jh - 标题栏，外框 = jh
+                        ClientDlg.move ( jx, jy );
                         const int iTitleBarH = ClientDlg.frameGeometry().height() - ClientDlg.geometry().height();
                         ClientDlg.resize ( ClientDlg.width(), jh - iTitleBarH );
                     }
