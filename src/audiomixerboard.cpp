@@ -342,7 +342,7 @@ void CChannelFader::SetGUIDesign ( const EGUIDesign eNewDesign )
         pPanLabel->setText ( "Pan" ); // jamony: 英文(原 tr("PAN") 大写漏改, 翻译成"声像")
         pcbMute->setText ( tr ( "M" ) );
         pcbSolo->setText ( tr ( "S" ) );
-        strGroupBaseText  = tr ( "分组" );
+        strGroupBaseText  = "Grp"; // jamony: 英文(原 tr("分组")), 显示 Grp / Grp1-8
         pcbGroup->setFixedWidth ( 48 ); // jamony: 分组按钮宽≈M+S总宽
         // jamony: MS按钮 删LED + 试听混音器颜色(Mute红#FF3366/Solo绿#BBEE00/Group紫#9933FF)
         pcbMute->setStyleSheet (
@@ -372,7 +372,7 @@ void CChannelFader::SetGUIDesign ( const EGUIDesign eNewDesign )
         pPanLabel->setText ( "Pan" ); // jamony: 英文
         pcbMute->setText ( tr ( "M" ) );
         pcbSolo->setText ( tr ( "S" ) );
-        strGroupBaseText  = tr ( "分组" );
+        strGroupBaseText  = "Grp"; // jamony: 英文(原 tr("分组")), 显示 Grp / Grp1-8
         pcbGroup->setFixedWidth ( 48 ); // jamony: 分组按钮宽≈M+S总宽
         // jamony: MS按钮 删LED + 试听混音器颜色(Mute红#FF3366/Solo绿#BBEE00/Group紫#9933FF)
         pcbMute->setStyleSheet (
@@ -403,7 +403,7 @@ void CChannelFader::SetGUIDesign ( const EGUIDesign eNewDesign )
         pPanLabel->setText ( "Pan" ); // jamony: 英文
         pcbMute->setText ( tr ( "Mute" ) );
         pcbSolo->setText ( tr ( "Solo" ) );
-        strGroupBaseText  = tr ( "Grp" );
+        strGroupBaseText  = "Grp"; // jamony: 英文(去 tr 避免翻译成"分组")
         iInstrPicMaxWidth = INVALID_INDEX; // no instrument picture scaling
         break;
     }
