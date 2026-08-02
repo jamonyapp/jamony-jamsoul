@@ -1142,6 +1142,7 @@ void dumpWidget ( QTextStream& s, QWidget* pWidget, int depth, QWidget* pRoot )
     const QSize        mn ( pWidget->minimumSize() );
     const QSize        mx ( pWidget->maximumSize() );
     const QSizePolicy  sp ( pWidget->sizePolicy() );
+    const QColor       winCol ( pWidget->palette().color ( pWidget->backgroundRole() ) ); // jamony: dump 诊断背景色
 
     dumpIndent ( s, depth );
     s << "[W] " << pWidget->metaObject()->className()
@@ -1155,6 +1156,10 @@ void dumpWidget ( QTextStream& s, QWidget* pWidget, int depth, QWidget* pRoot )
       << " vpol=" << static_cast<int> ( sp.verticalPolicy() )
       << " hstr=" << sp.horizontalStretch() << " vstr=" << sp.verticalStretch() << ")"
       << " visible=" << pWidget->isVisible() << " hidden=" << pWidget->isHidden()
+      << " autoFillBg=" << pWidget->autoFillBackground()
+      << " styledBg=" << pWidget->testAttribute ( Qt::WA_StyledBackground )
+      << " winRgb=" << winCol.red() << "," << winCol.green() << "," << winCol.blue()
+      << " ownSS=" << ( pWidget->styleSheet().isEmpty() ? 0 : 1 )
       << "\n";
 
     if ( pWidget->layout() )
@@ -2267,7 +2272,7 @@ void CClientDlg::SetMixerBoardDeco ( const ERecorderState newRecorderState, cons
         }
     }
 
-    MainMixerBoard->setStyleSheet ( sTitleStyle );
+    MainMixerBoard->setStyleSheet ( sTitleStyle + " QGroupBox { border: none; background: #000000; }" );
 }
 
 void CClientDlg::SetPingTime ( const int iPingTime, const int iOverallDelayMs, const CMultiColorLED::ELightColor eOverallDelayLEDColor )
