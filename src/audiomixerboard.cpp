@@ -339,7 +339,7 @@ void CChannelFader::SetGUIDesign ( const EGUIDesign eNewDesign )
         pLabelGrid->addWidget ( plblLabel, 0, Qt::AlignVCenter ); // label next to icons
         pLabelInstBox->setMinimumHeight ( 52 );                   // maximum height of the instrument+flag pictures
         pPan->setFixedSize ( 50, 50 );
-        pPanLabel->setText ( tr ( "PAN" ) );
+        pPanLabel->setText ( "Pan" ); // jamony: 英文(原 tr("PAN") 大写漏改, 翻译成"声像")
         pcbMute->setText ( tr ( "M" ) );
         pcbSolo->setText ( tr ( "S" ) );
         strGroupBaseText  = tr ( "分组" );
