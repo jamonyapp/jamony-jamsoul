@@ -123,6 +123,7 @@ CClientDlg::CClientDlg ( CClient*         pNCliP,
     QFrame* pPingPanel = new QFrame ( this );
     pPingPanel->setObjectName ( "pingPanel" );
     pPingPanel->setStyleSheet ( "QFrame#pingPanel { background: #0d0d0d; border: 1px solid rgba(255,255,255,26); border-radius: 6px; }" );
+    pPingPanel->setFixedHeight ( 22 ); // jamony: 卡片高=M按钮22, 底齐 frameLocalMute(底y=753)
     QHBoxLayout* pPingLay = new QHBoxLayout ( pPingPanel );
     pPingLay->setContentsMargins ( 8, 2, 8, 2 ); // 上下 2: 卡片高 22 = M 按钮高, 内部 16 一致
     pPingLay->setSpacing ( 4 );
@@ -152,7 +153,7 @@ CClientDlg::CClientDlg ( CClient*         pNCliP,
     pPingLay->addWidget ( lblBuffers );
     pPingLay->addWidget ( ledBuffers );
     pPingLay->addStretch ( 1 );
-    verticalLayout_3->addWidget ( pPingPanel ); // A 栏末尾
+    verticalLayout_3->addWidget ( pPingPanel, 0, Qt::AlignBottom ); // jamony: 贴底(底齐B栏M按钮753), 高22
     // 清空 gridLayout 的 spacer (减 horizontalLayoutPingWrap 高 20→0; 保留 gridLayout 对象给 line ~2164)
     while ( gridLayout->count() > 0 ) { QLayoutItem* it = gridLayout->takeAt ( 0 ); if ( it ) { delete it; } }
     // 删两条水平分割线
@@ -459,6 +460,8 @@ CClientDlg::CClientDlg ( CClient*         pNCliP,
     lblInputLEDMeter->setWhatsThis ( strInpLevH );
     lblLevelMeterLeft->setWhatsThis ( strInpLevH );
     lblLevelMeterRight->setWhatsThis ( strInpLevH );
+    lblLevelMeterLeft->setText ( "L" ); // jamony: 强制英文 L/R, 覆盖中文翻译(左/右)
+    lblLevelMeterRight->setText ( "R" );
     lbrInputLevelL->setWhatsThis ( strInpLevH );
     lbrInputLevelL->setAccessibleName ( strInpLevHAccText );
     lbrInputLevelL->setAccessibleDescription ( strInpLevHAccDescr );
