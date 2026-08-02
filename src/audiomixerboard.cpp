@@ -152,7 +152,7 @@ CChannelFader::CChannelFader ( QWidget* pNW ) :
     plbrChannelLevel = new CLevelMeter ( pLevelsBox );
     pFader           = new QSlider ( Qt::Vertical, pLevelsBox );
     pPan             = new QDial ( pLevelsBox );
-    pPanLabel        = new QLabel ( tr ( "Pan" ), pLevelsBox );
+    pPanLabel        = new QLabel ( "Pan", pLevelsBox ); // jamony: 英文(不tr), 覆盖翻译"声像"
     pInfoLabel       = new QLabel ( "", pLevelsBox );
 
     pMuteSoloBox = new QWidget ( pFrame );
@@ -369,7 +369,7 @@ void CChannelFader::SetGUIDesign ( const EGUIDesign eNewDesign )
         pPan->setFixedSize ( 28, 28 );
         pFader->setTickPosition ( QSlider::NoTicks );
         pFader->setStyleSheet ( "" );
-        pPanLabel->setText ( tr ( "Pan" ) );
+        pPanLabel->setText ( "Pan" ); // jamony: 英文
         pcbMute->setText ( tr ( "M" ) );
         pcbSolo->setText ( tr ( "S" ) );
         strGroupBaseText  = tr ( "分组" );
@@ -400,7 +400,7 @@ void CChannelFader::SetGUIDesign ( const EGUIDesign eNewDesign )
         pLabelGrid->addWidget ( plblLabel, 0, Qt::AlignVCenter ); // label next to icons
         pLabelInstBox->setMinimumHeight ( 52 );                   // maximum height of the instrument+flag pictures
         pPan->setFixedSize ( 50, 50 );
-        pPanLabel->setText ( tr ( "Pan" ) );
+        pPanLabel->setText ( "Pan" ); // jamony: 英文
         pcbMute->setText ( tr ( "Mute" ) );
         pcbSolo->setText ( tr ( "Solo" ) );
         strGroupBaseText  = tr ( "Grp" );
@@ -1062,6 +1062,7 @@ CAudioMixerBoard::CAudioMixerBoard ( QWidget* parent ) :
 
     // set margins of the layout to zero to get maximum space for the controls
     pGroupBoxLayout->setContentsMargins ( 0, 0, 0, 1 ); // note: to avoid problems at the bottom, use a small margin for that
+    pMainLayout->setContentsMargins ( 12, 4, 12, 12 ); // jamony: top 4(原12) 让 pPanLabel/pFrame 顶齐 A栏标题卡上沿(y=40)
 
     // add the group box to the scroll area
     pScrollArea->setMinimumWidth ( 0 ); // jamony: 宽度由 MainMixerBoard setFixedWidth 控制(跟随fader数), 不强制200

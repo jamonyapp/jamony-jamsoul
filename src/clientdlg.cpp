@@ -458,6 +458,8 @@ CClientDlg::CClientDlg ( CClient*         pNCliP,
     QString strInpLevHAccDescr = tr ( "Simulates an analog LED level meter." );
 
     lblInputLEDMeter->setWhatsThis ( strInpLevH );
+    lblInputLEDMeter->setText ( "Input" ); // jamony: 英文覆盖翻译(原"输入")
+    lblInputLEDMeter->setFixedHeight ( 22 ); // jamony: 高=A栏音频设置按钮(22), 视觉等高
     lblLevelMeterLeft->setWhatsThis ( strInpLevH );
     lblLevelMeterRight->setWhatsThis ( strInpLevH );
     lblLevelMeterLeft->setText ( "L" ); // jamony: 强制英文 L/R, 覆盖中文翻译(左/右)
