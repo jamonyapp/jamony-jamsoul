@@ -45,6 +45,7 @@
 \******************************************************************************/
 
 #include "audiomixerboard.h"
+#include <QScrollBar>
 #include <QStyleFactory>
 #include <chrono>
 #include <deque>
@@ -1067,6 +1068,14 @@ CAudioMixerBoard::CAudioMixerBoard ( QWidget* parent ) :
     pScrollArea->setWidget ( pMixerWidget );
     pScrollArea->setWidgetResizable ( true ); // make sure it fills the entire scroll area
     pScrollArea->setFrameShape ( QFrame::NoFrame );
+    pScrollArea->setHorizontalScrollBarPolicy ( Qt::ScrollBarAlwaysOff ); // jamony: 初始隐藏, ChangeFaderOrder 按分轨数动态切常驻
+    // jamony: 水平滚动条 styled 常驻(绕过 macOS overlay 自动隐藏), 深色配 jamsoul
+    pScrollArea->horizontalScrollBar()->setStyleSheet(
+        "QScrollBar:horizontal { background: transparent; height: 10px; border: none; margin: 0; }"
+        "QScrollBar::handle:horizontal { background: #555; min-width: 28px; border-radius: 3px; margin: 1px; }"
+        "QScrollBar::handle:horizontal:hover { background: #888; }"
+        "QScrollBar::add-line:horizontal, QScrollBar::sub-line:horizontal { width: 0; height: 0; }"
+        "QScrollBar::add-page:horizontal, QScrollBar::sub-page:horizontal { background: none; }" );
     pGroupBoxLayout->addWidget ( pScrollArea );
 
     // Connections -------------------------------------------------------------
@@ -1331,9 +1340,11 @@ void CAudioMixerBoard::ChangeFaderOrder ( const EChSortType eChSortType )
     }
 
     // jamony: group box 宽度跟随可见 fader 数（最多4列），窗口只缩宽度不缩高度（高度由 AppleScript 设 jamony 等高）
-    const int iMaxVisible = qMin ( iNumVisibleFaders, 4 );
+    const int iMaxVisible = qMin ( iNumVisibleFaders, 1 ); // jamony 临时: 强制1列出水平滚动条看位置, 看完恢复4
     const int iMixerWidth = iMaxVisible * 76 + ( iMaxVisible > 0 ? ( iMaxVisible - 1 ) * 6 : 0 ) + 30; // jamony: fader + 间距 + 边距(pMixerWidget margins24 + QScrollArea margin6)
     setFixedWidth ( iMixerWidth );
+    // jamony: 水平滚动条——分轨数超过封顶列数时常驻(AlwaysOn, 非macOS overlay 隐藏), 否则隐藏
+    pScrollArea->setHorizontalScrollBarPolicy ( iNumVisibleFaders > iMaxVisible ? Qt::ScrollBarAlwaysOn : Qt::ScrollBarAlwaysOff );
     // jamony: 窗口宽度 = A栏固定261 + B栏53 + C区iMixerWidth + 边距57 = 371 + iMixerWidth
     if ( QWidget* pw = window() ) pw->resize ( 371 + iMixerWidth, pw->height() );
 }
