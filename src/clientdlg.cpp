@@ -1287,11 +1287,11 @@ void CClientDlg::showEvent ( QShowEvent* Event )
 
 void CClientDlg::closeEvent ( QCloseEvent* Event )
 {
-    // jamony: 连接中时弹确认（防误关 jamsoul）
+    // jamony: 连接中时弹确认（防误关 jamsoul）；统一文案告知后果（唯一合奏者将解散，路由由前端判定）
     if ( pClient->IsRunning() )
     {
         QMessageBox::StandardButton reply = QMessageBox::question ( this, tr ( "退出 jamsoul" ),
-            tr ( "退出 jamsoul 将断开音频连接，确认退出？" ), QMessageBox::Yes | QMessageBox::No, QMessageBox::No );
+            tr ( "退出 jamsoul 将断开音频连接，若你是唯一合奏者将解散房间，确认退出？" ), QMessageBox::Yes | QMessageBox::No, QMessageBox::No );
         if ( reply != QMessageBox::Yes )
         {
             Event->ignore();
