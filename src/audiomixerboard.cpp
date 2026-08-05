@@ -156,6 +156,9 @@ CChannelFader::CChannelFader ( QWidget* pNW ) :
     pPan             = new JamonyPanBar ( pLevelsBox ); // jamony v0: Pan 横条（替 QDial 圆盘）
     pPanLabel        = new QLabel ( "Pan", pLevelsBox ); // jamony: 英文(不tr), 覆盖翻译"声像"
     pInfoLabel       = new QLabel ( "", pLevelsBox );
+    // jamony v0: pPanLabel(Pan文案)/pInfoLabel(静音icon) 舍弃显示，始终隐藏
+    pPanLabel->hide();
+    pInfoLabel->hide();
 
     pMuteSoloBox = new QWidget ( pFrame );
     pcbMute      = new QPushButton ( tr ( "Mute" ), pMuteSoloBox );
@@ -175,8 +178,6 @@ CChannelFader::CChannelFader ( QWidget* pNW ) :
     QVBoxLayout* pMuteSoloGrid = new QVBoxLayout ( pMuteSoloBox );
     pLabelGrid                 = new QHBoxLayout ( pLabelInstBox );
     pLabelPictGrid             = new QVBoxLayout();
-    QVBoxLayout* pPanGrid      = new QVBoxLayout();
-    QHBoxLayout* pPanInfoGrid  = new QHBoxLayout();
 
     // define the popup menu for the group checkbox
     pGroupPopupMenu = new QMenu ( "", pcbGroup );
@@ -190,22 +191,21 @@ CChannelFader::CChannelFader ( QWidget* pNW ) :
 #endif
 
     // setup channel level
-    plbrChannelLevel->setContentsMargins ( 0, 3, 2, 3 );
+    plbrChannelLevel->setContentsMargins ( 0, 0, 0, 0 ); // jamony v0: margin 全 0，电平条/消波灯占满 CLevelMeter
+    plbrChannelLevel->setFixedWidth ( 21 ); // jamony v0: 电平列 21 宽（= METER_WIDTH；pBarMeter sizeHint 20，强制 21 让消波灯/电平槽等宽 21）
 
     // setup slider
     pFader->setPageStep ( 1 );
     pFader->setRange ( 0, AUD_MIX_FADER_MAX );
     pFader->setTickInterval ( AUD_MIX_FADER_MAX / 9 );
+    pFader->setFixedWidth ( 40 ); // jamony v0: 推子列 40（groove x=9 + 刻度空间，G2 刻度）
 
     // setup panning control and info label
     pPan->setRange ( 0, AUD_MIX_PAN_MAX );
     pPan->setValue ( AUD_MIX_PAN_MAX / 2 );
     pInfoLabel->setMinimumHeight ( 14 ); // prevents jitter when muting/unmuting (#811)
     pInfoLabel->setAlignment ( Qt::AlignTop );
-    pPanInfoGrid->addWidget ( pPanLabel, 0, Qt::AlignLeft | Qt::AlignTop );
-    pPanInfoGrid->addWidget ( pInfoLabel, 0, Qt::AlignHCenter | Qt::AlignTop );
-    pPanGrid->addLayout ( pPanInfoGrid );
-    pPanGrid->addWidget ( pPan, 0, Qt::AlignHCenter );
+    // jamony v0: pPanLabel(Pan文案)/pInfoLabel(静音icon) 舍弃显示；pPan 移到 pMainGrid（电平推子下方）
 
     // setup fader tag label (black bold text which is centered)
     plblLabel->setTextFormat ( Qt::PlainText );
@@ -213,9 +213,6 @@ CChannelFader::CChannelFader ( QWidget* pNW ) :
 
     // set margins of the layouts to zero to get maximum space for the controls
     pMainGrid->setContentsMargins ( 0, 0, 0, 0 );
-
-    pPanGrid->setContentsMargins ( 0, 0, 0, 0 );
-    pPanGrid->setSpacing ( 0 ); // only minimal space
 
     pLevelsGrid->setContentsMargins ( 0, 0, 0, 0 );
     pLevelsGrid->setSpacing ( 0 ); // only minimal space
@@ -233,8 +230,10 @@ CChannelFader::CChannelFader ( QWidget* pNW ) :
     pLabelGrid->addLayout ( pLabelPictGrid );
     pLabelGrid->addWidget ( plblLabel, 0, Qt::AlignVCenter ); // note: just initial add, may be changed later
 
-    pLevelsGrid->addWidget ( plbrChannelLevel, 0, Qt::AlignRight );
-    pLevelsGrid->addWidget ( pFader, 0, Qt::AlignLeft );
+    // jamony v0: 电平列(21) + 推子列(40) justify-between（间距 15，左刻度线在间距里）
+    pLevelsGrid->addWidget ( plbrChannelLevel );
+    pLevelsGrid->addStretch ();
+    pLevelsGrid->addWidget ( pFader );
 
     pMuteSoloGrid->addWidget ( pcbGroup, 0, Qt::AlignHCenter );
     QHBoxLayout* pMSLayout = new QHBoxLayout();
@@ -244,8 +243,9 @@ CChannelFader::CChannelFader ( QWidget* pNW ) :
     pMSLayout->addWidget ( pcbSolo );
     pMuteSoloGrid->addLayout ( pMSLayout );
 
-    pMainGrid->addLayout ( pPanGrid );
-    pMainGrid->addWidget ( pLevelsBox, 0, Qt::AlignHCenter );
+    // jamony v0 段顺序：电平推子 → Pan 横条 → (Grp+M/S 暂合 pMuteSoloBox，F3 拆) → 用户名
+    pMainGrid->addWidget ( pLevelsBox ); // jamony v0: pLevelsBox 占满 pFrame 76 宽（电平+推子 justify-between）
+    pMainGrid->addWidget ( pPan, 0, Qt::AlignHCenter );
     pMainGrid->addWidget ( pMuteSoloBox, 0, Qt::AlignHCenter );
     pMainGrid->addWidget ( pLabelInstBox );
 
@@ -449,7 +449,7 @@ bool CChannelFader::GetDisplayChannelLevel() { return !plbrChannelLevel->isHidde
 
 void CChannelFader::SetDisplayPans ( const bool eNDP )
 {
-    pPanLabel->setHidden ( !eNDP );
+    // jamony v0: pPanLabel(Pan文案) 始终隐藏，只控制 pPan(PanBar) 显示
     pPan->setHidden ( !eNDP );
 }
 

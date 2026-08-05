@@ -187,10 +187,11 @@ void CLevelMeter::SetBarMeterStyleAndClipStatus ( const ELevelMeterType eNType, 
         break;
 
     default: /* MT_BAR_WIDE */
-        pBarMeter->setStyleSheet ( "QProgressBar        { margin:     1px;"
-                                   "                      padding:    1px;"
-                                   "                      width:      15px; }"
-                                   "QProgressBar::chunk { background: #BBEE00; }" );
+        // jamony v0: 电平槽背景 #141414 + 圆角2 (mixer-channel.tsx:151)，chunk 绿条占满
+        pBarMeter->setStyleSheet ( "QProgressBar        { background:    #141414;"
+                                   "                      border:        none;"
+                                   "                      border-radius: 2px; }"
+                                   "QProgressBar::chunk { background:    #BBEE00; }" );
         break;
     }
 
