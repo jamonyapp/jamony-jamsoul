@@ -24,8 +24,8 @@ void JamonyPanBar::setRange ( int iMin, int iMax )
 {
     m_iMin = iMin;
     m_iMax = iMax;
-    if ( m_iValue < m_iMin ) m_iValue = m_iMin;
-    if ( m_iValue > m_iMax ) m_iValue = m_iMax;
+    if ( m_dValue < m_iMin ) m_dValue = m_iMin;
+    if ( m_dValue > m_iMax ) m_dValue = m_iMax;
     update();
 }
 
@@ -33,47 +33,46 @@ void JamonyPanBar::setValue ( int iValue )
 {
     if ( iValue < m_iMin ) iValue = m_iMin;
     if ( iValue > m_iMax ) iValue = m_iMax;
-    if ( iValue != m_iValue )
+    if ( static_cast<int> ( std::lround ( m_dValue ) ) != iValue )
     {
-        m_iValue = iValue;
+        m_dValue = iValue;
+        m_iLastEmitted = iValue;
         update();
-    }
-}
-
-// v0 updatePanFromPointer (mixer-channel.tsx:93-99):
-//   frac = (clientX - rect.left) / rect.width; setPanValue(frac * 100)
-void JamonyPanBar::setFromPosX ( int x )
-{
-    const int w = width();
-    if ( w <= 0 ) return;
-    qreal frac = static_cast<qreal> ( x ) / w;
-    frac = qBound ( 0.0, frac, 1.0 );
-    const int iNewValue = m_iMin + static_cast<int> ( std::lround ( frac * ( m_iMax - m_iMin ) ) );
-    if ( iNewValue != m_iValue )
-    {
-        m_iValue = iNewValue;
-        update();
-        emit valueChanged ( m_iValue );
     }
 }
 
 void JamonyPanBar::mousePressEvent ( QMouseEvent* e )
 {
-    // v0 onPointerDown: 立即跳到点击位置（点击跳变）
+    // jamony: 点击不跳变（避免想微调时点击突然变位置），只记录拖拽起始
     if ( e->button() == Qt::LeftButton )
     {
+        m_iPressX = e->globalX();
+        m_dPressValue = m_dValue;
         m_bDragging = true;
-        setFromPosX ( e->pos().x() );
         e->accept();
     }
 }
 
 void JamonyPanBar::mouseMoveEvent ( QMouseEvent* e )
 {
-    // v0 pointermove: 拖拽跟随
+    // jamony: 相对拖拽（handle 从原位随拖动相对移，微调友好，像旋钮）
+    // m_dValue 用 double 连续变化 → panDev 显示取整步长 1（v0 panValue float 语义）
     if ( e->buttons() & Qt::LeftButton )
     {
-        setFromPosX ( e->pos().x() );
+        const int    iDeltaX = e->globalX() - m_iPressX;    // 水平向右为正
+        const qreal  fSensitivity = 400.0;                   // 拖 400px 改满 range
+        const double fRange = m_iMax - m_iMin;
+        double fNewValue = m_dPressValue + iDeltaX * fRange / fSensitivity;
+        if ( fNewValue < m_iMin ) fNewValue = m_iMin;
+        if ( fNewValue > m_iMax ) fNewValue = m_iMax;
+        m_dValue = fNewValue;
+        update();                                           // 重画（panDev 平滑/步长1）
+        const int iRound = static_cast<int> ( std::lround ( m_dValue ) );
+        if ( iRound != m_iLastEmitted )                     // 只在 int 值变化时上行
+        {
+            m_iLastEmitted = iRound;
+            emit valueChanged ( iRound );
+        }
         e->accept();
     }
 }
@@ -91,11 +90,12 @@ void JamonyPanBar::mouseDoubleClickEvent ( QMouseEvent* e )
 {
     // v0 onDoubleClick: 复位中点 (mixer-channel.tsx:278)
     const int iCenter = ( m_iMin + m_iMax ) / 2;
-    if ( m_iValue != iCenter )
+    if ( static_cast<int> ( std::lround ( m_dValue ) ) != iCenter )
     {
-        m_iValue = iCenter;
+        m_dValue = iCenter;
+        m_iLastEmitted = iCenter;
         update();
-        emit valueChanged ( m_iValue );
+        emit valueChanged ( iCenter );
     }
     e->accept();
 }
@@ -107,34 +107,33 @@ void JamonyPanBar::paintEvent ( QPaintEvent* )
 
     const QRectF r = rect();
 
-    // 1. 背景：圆角 3，#141414 (v0:280 backgroundColor #141414, rounded-[3px])
+    // 1. 背景：圆角 3，#141414 (v0:280)
     p.setPen ( Qt::NoPen );
     p.setBrush ( QColor ( "#141414" ) );
     p.drawRoundedRect ( r, 3, 3 );
 
-    // panDev = (value-50)*2 ∈ [-100,100] (v0:120-121)
-    const int iCenter = ( m_iMin + m_iMax ) / 2;                          // 50
-    const int iHalf = ( m_iMax - m_iMin ) / 2;                            // 50
-    const int panDev = iHalf > 0 ? ( m_iValue - iCenter ) * 100 / iHalf : 0; // -100..100
+    // panDev = (m_dValue-50)*2 ∈ [-100,100] (v0:120-121)，double 计算 → 取整显示步长 1
+    const double dCenter = ( m_iMin + m_iMax ) / 2.0;                          // 50
+    const double dHalf   = ( m_iMax - m_iMin ) / 2.0;                          // 50
+    const double panDevD = dHalf > 0 ? ( m_dValue - dCenter ) * 100.0 / dHalf : 0; // -100..100 double
+    const int    panDev = static_cast<int> ( std::lround ( panDevD ) );        // 显示取整（步长1）
 
-    const qreal cx = r.center().x();                                      // 50% 中点
+    const qreal cx = r.center().x();                                           // 50% 中点
     const qreal halfW = r.width() / 2.0;
 
-    // 2. 中心向偏移侧填充 rgba(187,238,0,0.22) (v0:283-294 PAN_FILL)
+    // 2. 中心向偏移侧填充 rgba(187,238,0,0.22) (v0:283-294 PAN_FILL)，用 panDevD 平滑
     QColor fill ( "#BBEE00" );
     fill.setAlphaF ( 0.22 );
     p.setBrush ( fill );
     p.setPen ( Qt::NoPen );
-    if ( panDev < 0 )
+    if ( panDevD < 0 )
     {
-        // 左：从中心向左生长，width = |panDev|/100 * halfW
-        const qreal w = ( static_cast<qreal> ( -panDev ) / 100.0 ) * halfW;
+        const qreal w = ( -panDevD / 100.0 ) * halfW;
         p.drawRect ( QRectF ( cx - w, r.top(), w, r.height() ) );
     }
-    else if ( panDev > 0 )
+    else if ( panDevD > 0 )
     {
-        // 右：从中心向右生长
-        const qreal w = ( static_cast<qreal> ( panDev ) / 100.0 ) * halfW;
+        const qreal w = ( panDevD / 100.0 ) * halfW;
         p.drawRect ( QRectF ( cx, r.top(), w, r.height() ) );
     }
 
@@ -142,7 +141,7 @@ void JamonyPanBar::paintEvent ( QPaintEvent* )
     p.setPen ( QPen ( QColor ( "#555555" ), 1 ) );
     p.drawLine ( QPointF ( cx, r.top() ), QPointF ( cx, r.bottom() ) );
 
-    // 4. 数值读数 C / L{n} / R{n} (v0:118-121, 301-311)
+    // 4. 数值读数 C / L{n} / R{n} (v0:118-121, 301-311)，panDev 取整步长 1
     QString text;
     if ( panDev == 0 )      text = "C";
     else if ( panDev < 0 )  text = QString ( "L%1" ).arg ( -panDev );
@@ -159,6 +158,5 @@ void JamonyPanBar::paintEvent ( QPaintEvent* )
     f.setPixelSize ( 13 );                 // v0: fontSize 13
     p.setFont ( f );
     p.setPen ( QColor ( "#ffffff" ) );     // v0: color #ffffff
-    // transform: translate(-50%,-50%) → 用 QRectF 居中绘制（宽 60 富余，垂直居中）
     p.drawText ( QRectF ( textX - 30, r.top(), 60, r.height() ), Qt::AlignCenter, text );
 }

@@ -55,6 +55,7 @@
 #include <QString>
 #include <QSlider>
 #include <QDial>
+#include "jamonypanbar.h"
 #include <QSizePolicy>
 #include <QHostAddress>
 #include <QListWidget>
@@ -125,7 +126,7 @@ protected:
     QWidget*     pMuteSoloBox;
     CLevelMeter* plbrChannelLevel;
     QSlider*     pFader;
-    QDial*       pPan;
+    JamonyPanBar* pPan;
     QLabel*      pPanLabel;
     QLabel*      pInfoLabel;
     QHBoxLayout* pLabelGrid;

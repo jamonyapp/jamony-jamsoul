@@ -46,6 +46,7 @@
 
 #include "audiomixerboard.h"
 #include "jamonychannelslider.h"
+#include "jamonypanbar.h"
 #include <QScrollBar>
 #include <QStyleFactory>
 #include <chrono>
@@ -152,7 +153,7 @@ CChannelFader::CChannelFader ( QWidget* pNW ) :
     pLevelsBox       = new QWidget ( pFrame );
     plbrChannelLevel = new CLevelMeter ( pLevelsBox );
     pFader           = new JamonyChannelSlider ( Qt::Vertical, pLevelsBox ); // jamony v0: 自绘推子 (paintEvent 1:1 v0, 保留 QSlider 值/信号槽)
-    pPan             = new QDial ( pLevelsBox );
+    pPan             = new JamonyPanBar ( pLevelsBox ); // jamony v0: Pan 横条（替 QDial 圆盘）
     pPanLabel        = new QLabel ( "Pan", pLevelsBox ); // jamony: 英文(不tr), 覆盖翻译"声像"
     pInfoLabel       = new QLabel ( "", pLevelsBox );
 
@@ -199,7 +200,6 @@ CChannelFader::CChannelFader ( QWidget* pNW ) :
     // setup panning control and info label
     pPan->setRange ( 0, AUD_MIX_PAN_MAX );
     pPan->setValue ( AUD_MIX_PAN_MAX / 2 );
-    pPan->setNotchesVisible ( true );
     pInfoLabel->setMinimumHeight ( 14 ); // prevents jitter when muting/unmuting (#811)
     pInfoLabel->setAlignment ( Qt::AlignTop );
     pPanInfoGrid->addWidget ( pPanLabel, 0, Qt::AlignLeft | Qt::AlignTop );
@@ -309,7 +309,7 @@ CChannelFader::CChannelFader ( QWidget* pNW ) :
     // Connections -------------------------------------------------------------
     QObject::connect ( pFader, &QSlider::valueChanged, this, &CChannelFader::OnLevelValueChanged );
 
-    QObject::connect ( pPan, &QDial::valueChanged, this, &CChannelFader::OnPanValueChanged );
+    QObject::connect ( pPan, &JamonyPanBar::valueChanged, this, &CChannelFader::OnPanValueChanged );
 
     QObject::connect ( pcbMute, &QPushButton::toggled, this, [this](bool c){ OnMuteStateChanged(c?Qt::Checked:0); } );
 
@@ -330,7 +330,6 @@ void CChannelFader::SetGUIDesign ( const EGUIDesign eNewDesign )
 
         pLabelGrid->addWidget ( plblLabel, 0, Qt::AlignVCenter ); // label next to icons
         pLabelInstBox->setMinimumHeight ( 52 );                   // maximum height of the instrument+flag pictures
-        pPan->setFixedSize ( 50, 50 );
         pPanLabel->setText ( "Pan" ); // jamony: 英文(原 tr("PAN") 大写漏改, 翻译成"声像")
         pcbMute->setText ( tr ( "M" ) );
         pcbSolo->setText ( tr ( "S" ) );
@@ -358,7 +357,6 @@ void CChannelFader::SetGUIDesign ( const EGUIDesign eNewDesign )
     case GD_SLIMFADER:
         pLabelPictGrid->addWidget ( plblLabel, 0, Qt::AlignHCenter ); // label below icons
         pLabelInstBox->setMinimumHeight ( 130 );                      // maximum height of the instrument+flag+label
-        pPan->setFixedSize ( 28, 28 );
         pFader->setTickPosition ( QSlider::NoTicks );
         pFader->setStyleSheet ( "" );
         pPanLabel->setText ( "Pan" ); // jamony: 英文
@@ -391,7 +389,6 @@ void CChannelFader::SetGUIDesign ( const EGUIDesign eNewDesign )
         pFader->setStyleSheet ( "" );
         pLabelGrid->addWidget ( plblLabel, 0, Qt::AlignVCenter ); // label next to icons
         pLabelInstBox->setMinimumHeight ( 52 );                   // maximum height of the instrument+flag pictures
-        pPan->setFixedSize ( 50, 50 );
         pPanLabel->setText ( "Pan" ); // jamony: 英文
         pcbMute->setText ( tr ( "Mute" ) );
         pcbSolo->setText ( tr ( "Solo" ) );
