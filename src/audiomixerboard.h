@@ -129,6 +129,8 @@ protected:
     JamonyPanBar* pPan;
     QLabel*      pPanLabel;
     QLabel*      pInfoLabel;
+    QLabel*      plblInTag = nullptr;   // jamony v0: IN 标签（绝对定位）
+    QLabel*      plblOutTag = nullptr;  // jamony v0: OUT 标签（绝对定位）
     QHBoxLayout* pLabelGrid;
     QVBoxLayout* pLabelPictGrid;
 

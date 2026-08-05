@@ -156,6 +156,15 @@ CChannelFader::CChannelFader ( QWidget* pNW ) :
     pPan             = new JamonyPanBar ( pLevelsBox ); // jamony v0: Pan 横条（替 QDial 圆盘）
     pPanLabel        = new QLabel ( "Pan", pLevelsBox ); // jamony: 英文(不tr), 覆盖翻译"声像"
     pInfoLabel       = new QLabel ( "", pLevelsBox );
+    // jamony v0: IN/OUT 标签（绝对定位 pFrame，不进 pMainGrid，对照 mixer-channel.tsx:130-178）
+    plblInTag  = new QLabel ( "IN", pFrame );
+    plblOutTag = new QLabel ( "OUT", pFrame );
+    plblInTag->setStyleSheet  ( "QLabel { color: #8f9096; font: bold 13px; }" );
+    plblOutTag->setStyleSheet ( "QLabel { color: #8f9096; font: bold 13px; }" );
+    plblInTag->setAlignment  ( Qt::AlignCenter );
+    plblOutTag->setAlignment ( Qt::AlignCenter );
+    plblInTag->setGeometry  ( 0, 0, 21, 13 );   // IN 居中电平列(0-21)，中心 10.5
+    plblOutTag->setGeometry ( 30, 0, 30, 13 );  // OUT 中心对齐 groove(45)
     // jamony v0: pPanLabel(Pan文案)/pInfoLabel(静音icon) 舍弃显示，始终隐藏
     pPanLabel->hide();
     pInfoLabel->hide();
@@ -244,6 +253,7 @@ CChannelFader::CChannelFader ( QWidget* pNW ) :
     pMuteSoloGrid->addLayout ( pMSLayout );
 
     // jamony v0 段顺序：电平推子 → Pan 横条 → (Grp+M/S 暂合 pMuteSoloBox，F3 拆) → 用户名
+    pMainGrid->addSpacing ( 17 ); // jamony v0: IN/OUT 标签空间（标签 13 + 间距 4；IN/OUT absolute 在 pFrame 顶 y=0-13，标签底距电平推子区顶 4px）
     pMainGrid->addWidget ( pLevelsBox ); // jamony v0: pLevelsBox 占满 pFrame 76 宽（电平+推子 justify-between）
     pMainGrid->addWidget ( pPan, 0, Qt::AlignHCenter );
     pMainGrid->addWidget ( pMuteSoloBox, 0, Qt::AlignHCenter );
