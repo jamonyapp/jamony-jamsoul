@@ -438,6 +438,9 @@ HEADERS_GUI = src/serverdlg.h
         src/levelmeter.h \
         src/analyzerconsole.h \
         src/jamonyknob.h \
+        src/jamonypanbar.h \
+        src/jamonyclipled.h \
+        src/jamonychannelslider.h \
         src/multicolorled.h \
         src/jamonyfader.h \
         src/jamonyrackwidgets.h \
@@ -556,6 +559,9 @@ SOURCES_GUI = src/serverdlg.cpp
         src/multicolorled.cpp \
         src/levelmeter.cpp \
         src/jamonyknob.cpp \
+        src/jamonypanbar.cpp \
+        src/jamonyclipled.cpp \
+        src/jamonychannelslider.cpp \
         src/analyzerconsole.cpp \
         src/jamonyfader.cpp \
         src/jamonyrackwidgets.cpp \

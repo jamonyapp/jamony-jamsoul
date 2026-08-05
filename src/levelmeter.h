@@ -53,6 +53,7 @@
 #include <QProgressBar>
 #include "util.h"
 #include "global.h"
+#include "jamonyclipled.h"
 
 /* Definitions ****************************************************************/
 #define NUM_LEDS_INCL_CLIP_LED ( NUM_STEPS_LED_BAR + 1 )
@@ -78,6 +79,9 @@ public:
 
     void SetValue ( const double dValue );
     void SetLevelMeterType ( const ELevelMeterType eNType );
+
+    // jamony: 暴露 clip 状态（消波由顶部 pClipLed 显示）
+    bool IsClip() const { return bClip; }
 
 protected:
     class cLED
@@ -132,6 +136,8 @@ protected:
     ELevelMeterType        eLevelMeterType;
     CVector<cLED*>         vecpLEDs;
     QProgressBar*          pBarMeter;
+    JamonyClipLed*         pClipLed = nullptr;          // jamony: 顶部消波灯
+    bool                   bClip = false;               // jamony: clip 状态
 
     QTimer TimerClip;
 

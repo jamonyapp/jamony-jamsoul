@@ -52,6 +52,20 @@
 /* Implementation *************************************************************/
 CLevelMeter::CLevelMeter ( QWidget* parent ) : QWidget ( parent ), eLevelMeterType ( MT_BAR_WIDE )
 {
+    // jamony v0: 顶部消波灯 + 电平槽（左列结构 mixer-channel.tsx:128-161）
+    QVBoxLayout* pOuterLayout = new QVBoxLayout ( this );
+    pOuterLayout->setContentsMargins ( 0, 0, 0, 0 );
+    pOuterLayout->setSpacing ( 0 );
+
+    pClipLed = new JamonyClipLed ( this );
+    pClipLed->setFixedHeight ( 6 );                       // v0 CLIP_LED_HEIGHT
+    pOuterLayout->addWidget ( pClipLed );
+
+    pOuterLayout->addSpacing ( 4 );                       // v0 gap-1（消波灯↔电平槽）
+
+    QWidget* pMeterBox = new QWidget ( this );            // 电平槽容器
+    pOuterLayout->addWidget ( pMeterBox, 1 );             // stretch=1 占剩余
+
     // initialize LED meter
     QWidget*     pLEDMeter  = new QWidget();
     QVBoxLayout* pLEDLayout = new QVBoxLayout ( pLEDMeter );
@@ -82,8 +96,8 @@ CLevelMeter::CLevelMeter ( QWidget* parent ) : QWidget ( parent ), eLevelMeterTy
     pBarMeter->setRange ( 0, 100 * NUM_STEPS_LED_BAR ); // use factor 100 to reduce quantization (bar is continuous)
     pBarMeter->setFormat ( "" );                        // suppress percent numbers
 
-    // setup stacked layout for meter type switching mechanism
-    pMinStackedLayout = new CMinimumStackedLayout ( this );
+    // setup stacked layout for meter type switching mechanism（jamony: 挂 pMeterBox 下）
+    pMinStackedLayout = new CMinimumStackedLayout ( pMeterBox );
     pMinStackedLayout->addWidget ( pLEDMeter );
     pMinStackedLayout->addWidget ( pBarMeter );
 
@@ -102,6 +116,9 @@ CLevelMeter::CLevelMeter ( QWidget* parent ) : QWidget ( parent ), eLevelMeterTy
 
     // Connections -------------------------------------------------------------
     QObject::connect ( &TimerClip, &QTimer::timeout, this, &CLevelMeter::ClipReset );
+
+    // jamony: 点消波灯 → ClipReset（统一停 timer + 清 bClip + 灯灭）
+    connect ( pClipLed, &JamonyClipLed::clicked, this, &CLevelMeter::ClipReset );
 }
 
 CLevelMeter::~CLevelMeter()
@@ -161,44 +178,25 @@ void CLevelMeter::SetBarMeterStyleAndClipStatus ( const ELevelMeterType eNType, 
     switch ( eNType )
     {
     case MT_BAR_NARROW:
-        if ( bIsClip )
-        {
-            pBarMeter->setStyleSheet ( "QProgressBar        { border:     0px solid red;"
-                                       "                      margin:     0px;"
-                                       "                      padding:    0px;"
-                                       "                      width:      4px;"
-                                       "                      background: red; }"
-                                       "QProgressBar::chunk { background: #BBEE00; }" );
-        }
-        else
-        {
-            pBarMeter->setStyleSheet ( "QProgressBar        { border:     0px;"
-                                       "                      margin:     0px;"
-                                       "                      padding:    0px;"
-                                       "                      width:      4px; }"
-                                       "QProgressBar::chunk { background: #BBEE00; }" );
-        }
+        // jamony: 电平槽永远无框（消波由顶部 pClipLed 独立显示）
+        pBarMeter->setStyleSheet ( "QProgressBar        { border:     0px;"
+                                   "                      margin:     0px;"
+                                   "                      padding:    0px;"
+                                   "                      width:      4px; }"
+                                   "QProgressBar::chunk { background: #BBEE00; }" );
         break;
 
     default: /* MT_BAR_WIDE */
-        if ( bIsClip )
-        {
-            pBarMeter->setStyleSheet ( "QProgressBar        { border:     2px solid red;"
-                                       "                      margin:     1px;"
-                                       "                      padding:    1px;"
-                                       "                      width:      15px;"
-                                       "                      background: transparent; }"
-                                       "QProgressBar::chunk { background: #BBEE00; }" );
-        }
-        else
-        {
-            pBarMeter->setStyleSheet ( "QProgressBar        { margin:     1px;"
-                                       "                      padding:    1px;"
-                                       "                      width:      15px; }"
-                                       "QProgressBar::chunk { background: #BBEE00; }" );
-        }
+        pBarMeter->setStyleSheet ( "QProgressBar        { margin:     1px;"
+                                   "                      padding:    1px;"
+                                   "                      width:      15px; }"
+                                   "QProgressBar::chunk { background: #BBEE00; }" );
         break;
     }
+
+    // jamony: clip 视觉统一走顶部 pClipLed（替原红框 QSS）
+    bClip = bIsClip;
+    if ( pClipLed ) pClipLed->setOn ( bIsClip );
 }
 
 void CLevelMeter::SetValue ( const double dValue )

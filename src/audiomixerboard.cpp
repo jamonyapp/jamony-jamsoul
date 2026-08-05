@@ -45,6 +45,7 @@
 \******************************************************************************/
 
 #include "audiomixerboard.h"
+#include "jamonychannelslider.h"
 #include <QScrollBar>
 #include <QStyleFactory>
 #include <chrono>
@@ -150,7 +151,7 @@ CChannelFader::CChannelFader ( QWidget* pNW ) :
 
     pLevelsBox       = new QWidget ( pFrame );
     plbrChannelLevel = new CLevelMeter ( pLevelsBox );
-    pFader           = new QSlider ( Qt::Vertical, pLevelsBox );
+    pFader           = new JamonyChannelSlider ( Qt::Vertical, pLevelsBox ); // jamony v0: 自绘推子 (paintEvent 1:1 v0, 保留 QSlider 值/信号槽)
     pPan             = new QDial ( pLevelsBox );
     pPanLabel        = new QLabel ( "Pan", pLevelsBox ); // jamony: 英文(不tr), 覆盖翻译"声像"
     pInfoLabel       = new QLabel ( "", pLevelsBox );
@@ -324,17 +325,8 @@ void CChannelFader::SetGUIDesign ( const EGUIDesign eNewDesign )
     switch ( eNewDesign )
     {
     case GD_ORIGINAL:
-        pFader->setStyleSheet ( "QSlider { width:         45px;"
-                                "          border-image:  url(:/png/fader/res/faderbackground.png) repeat;"
-                                "          border-top:    10px transparent;"
-                                "          border-bottom: 10px transparent;"
-                                "          border-left:   20px transparent;"
-                                "          border-right:  -25px transparent; }"
-                                "QSlider::groove { image:          url(:/png/fader/res/transparent1x1.png);"
-                                "                  padding-left:   -34px;"
-                                "                  padding-top:    -10px;"
-                                "                  padding-bottom: -15px; }"
-                                "QSlider::handle { image: url(:/png/fader/res/faderhandle.png); }" );
+        // jamony v0: 推子由 JamonyChannelSlider::paintEvent 自绘（不用 QSS/PNG skin）
+        pFader->setStyleSheet ( "" );
 
         pLabelGrid->addWidget ( plblLabel, 0, Qt::AlignVCenter ); // label next to icons
         pLabelInstBox->setMinimumHeight ( 52 );                   // maximum height of the instrument+flag pictures
@@ -349,7 +341,7 @@ void CChannelFader::SetGUIDesign ( const EGUIDesign eNewDesign )
             "QPushButton { font: bold 13px; color: #999999; background: #262626;"
             "            border-radius: 3px; padding: 1px 4px; text-align: center; }"
             "QPushButton::indicator { width: 0px; height: 0px; }"
-            "QPushButton:checked { background: #FF3366; color: #ffffff; }" );
+            "QPushButton:checked { background: #FF33AA; color: #ffffff; }" );
         pcbSolo->setStyleSheet (
             "QPushButton { font: bold 13px; color: #999999; background: #262626;"
             "            border-radius: 3px; padding: 1px 4px; text-align: center; }"
@@ -379,7 +371,7 @@ void CChannelFader::SetGUIDesign ( const EGUIDesign eNewDesign )
             "QPushButton { font: bold 13px; color: #999999; background: #262626;"
             "            border-radius: 3px; padding: 1px 4px; text-align: center; }"
             "QPushButton::indicator { width: 0px; height: 0px; }"
-            "QPushButton:checked { background: #FF3366; color: #ffffff; }" );
+            "QPushButton:checked { background: #FF33AA; color: #ffffff; }" );
         pcbSolo->setStyleSheet (
             "QPushButton { font: bold 13px; color: #999999; background: #262626;"
             "            border-radius: 3px; padding: 1px 4px; text-align: center; }"
