@@ -340,7 +340,7 @@ void CChannelFader::SetGUIDesign ( const EGUIDesign eNewDesign )
         pFader->setStyleSheet ( "" );
 
         pLabelGrid->addWidget ( plblLabel, 0, Qt::AlignVCenter ); // label next to icons
-        pLabelInstBox->setMinimumHeight ( 52 );                   // maximum height of the instrument+flag pictures
+        pLabelInstBox->setFixedHeight ( 40 );                      // jamony v0: 用户名框高 40（v0 mixer-channel.tsx:368）
         pPanLabel->setText ( "Pan" ); // jamony: 英文(原 tr("PAN") 大写漏改, 翻译成"声像")
         pcbMute->setText ( tr ( "M" ) );
         pcbSolo->setText ( tr ( "S" ) );
@@ -399,7 +399,7 @@ void CChannelFader::SetGUIDesign ( const EGUIDesign eNewDesign )
         pFader->setTickPosition ( QSlider::TicksBothSides );
         pFader->setStyleSheet ( "" );
         pLabelGrid->addWidget ( plblLabel, 0, Qt::AlignVCenter ); // label next to icons
-        pLabelInstBox->setMinimumHeight ( 52 );                   // maximum height of the instrument+flag pictures
+        pLabelInstBox->setFixedHeight ( 40 );                      // jamony v0: 用户名框高 40（v0 mixer-channel.tsx:368）
         pPanLabel->setText ( "Pan" ); // jamony: 英文
         pcbMute->setText ( tr ( "Mute" ) );
         pcbSolo->setText ( tr ( "Solo" ) );
@@ -526,9 +526,9 @@ void CChannelFader::SetupFaderTag ( const ESkillLevel eSkillLevel )
     // setup group box for label/instrument picture: jamony style
     QString strStile = "QGroupBox { border:        2px " + strBorderStyle + " " + strBorderColor +
                        ";"
-                       "            border-radius: 10px;"
+                       "            border-radius: 3px;" // jamony v0: 圆角 3（v0 rounded-[3px]）
                        "            padding:       3px;"
-                       "            background:    #000; }";
+                       "            background:    #0d0d0d; }"; // jamony v0: 背景 #0d0d0d（v0 用户名框）
 
     pLabelInstBox->setStyleSheet ( strStile );
 
@@ -543,7 +543,7 @@ void CChannelFader::SetupFaderTag ( const ESkillLevel eSkillLevel )
     {
         pcbGroup->setStyleSheet (
             "QPushButton { font: bold 13px; color: #999999; background: #262626;"
-            "              border: 1px solid #444; border-radius: 3px; padding: 1px 4px; }" );
+            "              border: 2px solid transparent; border-radius: 3px; padding: 1px 4px; }" ); // jamony v0: 未分组 transparent（不可见），宽度 2px 一致（避免分组时 1→2px 抖动）
     }
 }
 
