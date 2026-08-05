@@ -1347,7 +1347,7 @@ void CAudioMixerBoard::ChangeFaderOrder ( const EChSortType eChSortType )
     }
 
     // jamony: group box 宽度跟随可见 fader 数（最多4列），窗口只缩宽度不缩高度（高度由 AppleScript 设 jamony 等高）
-    const int iMaxVisible = qMin ( iNumVisibleFaders, 1 ); // jamony 临时: 强制1列出水平滚动条看位置, 看完恢复4
+    const int iMaxVisible = qMin ( iNumVisibleFaders, 4 ); // jamony: 封顶4(默认展示2,每增1扩充,到4不再增,第5个出水平滚动条)
     const int iMixerWidth = iMaxVisible * 76 + ( iMaxVisible > 0 ? ( iMaxVisible - 1 ) * 6 : 0 ) + 30; // jamony: fader + 间距 + 边距(pMixerWidget margins24 + QScrollArea margin6)
     setFixedWidth ( iMixerWidth );
     // jamony: 水平滚动条——分轨数超过封顶列数时常驻(AlwaysOn, 非macOS overlay 隐藏), 否则隐藏
