@@ -244,19 +244,20 @@ CChannelFader::CChannelFader ( QWidget* pNW ) :
     pLevelsGrid->addStretch ();
     pLevelsGrid->addWidget ( pFader );
 
-    pMuteSoloGrid->addWidget ( pcbGroup, 0, Qt::AlignHCenter );
+    // jamony v0: pcbGroup 移到 pMainGrid 全宽行；pMuteSoloBox 只留 M/S（半宽 flex-1, gap 4）
     QHBoxLayout* pMSLayout = new QHBoxLayout();
-    pMSLayout->setSpacing ( 2 );
+    pMSLayout->setSpacing ( 4 ); // v0 gap 4
     pMSLayout->setContentsMargins ( 0, 0, 0, 0 );
-    pMSLayout->addWidget ( pcbMute );
-    pMSLayout->addWidget ( pcbSolo );
+    pMSLayout->addWidget ( pcbMute, 1 );
+    pMSLayout->addWidget ( pcbSolo, 1 );
     pMuteSoloGrid->addLayout ( pMSLayout );
 
     // jamony v0 段顺序：电平推子 → Pan 横条 → (Grp+M/S 暂合 pMuteSoloBox，F3 拆) → 用户名
     pMainGrid->addSpacing ( 17 ); // jamony v0: IN/OUT 标签空间（标签 13 + 间距 4；IN/OUT absolute 在 pFrame 顶 y=0-13，标签底距电平推子区顶 4px）
     pMainGrid->addWidget ( pLevelsBox ); // jamony v0: pLevelsBox 占满 pFrame 76 宽（电平+推子 justify-between）
     pMainGrid->addWidget ( pPan, 0, Qt::AlignHCenter );
-    pMainGrid->addWidget ( pMuteSoloBox, 0, Qt::AlignHCenter );
+    pMainGrid->addWidget ( pcbGroup ); // jamony v0: Grp 全宽行（Pan 后）
+    pMainGrid->addWidget ( pMuteSoloBox ); // jamony v0: M/S 半宽（pMuteSoloBox 全宽 76）
     pMainGrid->addWidget ( pLabelInstBox );
 
     // reset current fader
@@ -344,7 +345,7 @@ void CChannelFader::SetGUIDesign ( const EGUIDesign eNewDesign )
         pcbMute->setText ( tr ( "M" ) );
         pcbSolo->setText ( tr ( "S" ) );
         strGroupBaseText  = "Grp"; // jamony: 英文(原 tr("分组")), 显示 Grp / Grp1-8
-        pcbGroup->setFixedWidth ( 48 ); // jamony: 分组按钮宽≈M+S总宽
+        // jamony v0: pcbGroup 全宽（pMainGrid 全宽行），不设 setFixedWidth
         // jamony: MS按钮 删LED + 试听混音器颜色(Mute红#FF3366/Solo绿#BBEE00/Group紫#9933FF)
         pcbMute->setStyleSheet (
             "QPushButton { font: bold 13px; color: #999999; background: #262626;"
@@ -373,7 +374,7 @@ void CChannelFader::SetGUIDesign ( const EGUIDesign eNewDesign )
         pcbMute->setText ( tr ( "M" ) );
         pcbSolo->setText ( tr ( "S" ) );
         strGroupBaseText  = "Grp"; // jamony: 英文(原 tr("分组")), 显示 Grp / Grp1-8
-        pcbGroup->setFixedWidth ( 48 ); // jamony: 分组按钮宽≈M+S总宽
+        // jamony v0: pcbGroup 全宽（pMainGrid 全宽行），不设 setFixedWidth
         // jamony: MS按钮 删LED + 试听混音器颜色(Mute红#FF3366/Solo绿#BBEE00/Group紫#9933FF)
         pcbMute->setStyleSheet (
             "QPushButton { font: bold 13px; color: #999999; background: #262626;"
