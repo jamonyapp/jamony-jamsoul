@@ -149,6 +149,7 @@ CChannelFader::CChannelFader ( QWidget* pNW ) :
     // to be created locally in this constructor)
     pFrame = new QFrame ( pNW );
     pFrame->setFixedWidth ( 76 ); // jamony: fader 固定宽度（纤细苗条，为效果器面板预留空间）
+    pFrame->setFixedHeight ( 690 ); // jamony v0: 分轨总高 690
 
     pLevelsBox       = new QWidget ( pFrame );
     plbrChannelLevel = new CLevelMeter ( pLevelsBox );
@@ -222,6 +223,7 @@ CChannelFader::CChannelFader ( QWidget* pNW ) :
 
     // set margins of the layouts to zero to get maximum space for the controls
     pMainGrid->setContentsMargins ( 0, 0, 0, 0 );
+    pMainGrid->setSpacing ( 6 ); // jamony v0: 段间距 6（STACK_GAP）
 
     pLevelsGrid->setContentsMargins ( 0, 0, 0, 0 );
     pLevelsGrid->setSpacing ( 0 ); // only minimal space
@@ -252,13 +254,17 @@ CChannelFader::CChannelFader ( QWidget* pNW ) :
     pMSLayout->addWidget ( pcbSolo, 1 );
     pMuteSoloGrid->addLayout ( pMSLayout );
 
-    // jamony v0 段顺序：电平推子 → Pan 横条 → (Grp+M/S 暂合 pMuteSoloBox，F3 拆) → 用户名
-    pMainGrid->addSpacing ( 17 ); // jamony v0: IN/OUT 标签空间（标签 13 + 间距 4；IN/OUT absolute 在 pFrame 顶 y=0-13，标签底距电平推子区顶 4px）
-    pMainGrid->addWidget ( pLevelsBox ); // jamony v0: pLevelsBox 占满 pFrame 76 宽（电平+推子 justify-between）
+    // jamony v0 段顺序：电平推子(549) → Pan(20) → Grp(20) → M/S(20) → 用户名(40)，spacing 6，总 690
+    pLevelsBox->setFixedHeight ( 549 );   // v0 METER_FADER_HEIGHT
+    pPan->setFixedHeight ( 20 );          // v0 ROW_HEIGHT
+    pcbGroup->setFixedHeight ( 20 );      // v0 ROW_HEIGHT
+    pMuteSoloBox->setFixedHeight ( 20 );  // v0 ROW_HEIGHT
+    pMainGrid->addSpacing ( 16 ); // jamony v0: IN/OUT 空间（16 + spacer-widget spacing1 = 17 = 标签13 + 间距4，pLevelsBox y=17）
+    pMainGrid->addWidget ( pLevelsBox ); // 549 高（电平+推子）
     pMainGrid->addWidget ( pPan, 0, Qt::AlignHCenter );
-    pMainGrid->addWidget ( pcbGroup ); // jamony v0: Grp 全宽行（Pan 后）
-    pMainGrid->addWidget ( pMuteSoloBox ); // jamony v0: M/S 半宽（pMuteSoloBox 全宽 76）
-    pMainGrid->addWidget ( pLabelInstBox );
+    pMainGrid->addWidget ( pcbGroup ); // Grp 全宽
+    pMainGrid->addWidget ( pMuteSoloBox ); // M/S 半宽
+    pMainGrid->addWidget ( pLabelInstBox ); // 40 高(F4)
 
     // reset current fader
     strGroupBaseText  = "Grp";         // this will most probably overwritten by SetGUIDesign()
