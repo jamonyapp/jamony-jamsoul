@@ -164,8 +164,8 @@ CChannelFader::CChannelFader ( QWidget* pNW ) :
     plblOutTag->setStyleSheet ( "QLabel { color: #8f9096; font: bold 13px; }" );
     plblInTag->setAlignment  ( Qt::AlignCenter );
     plblOutTag->setAlignment ( Qt::AlignCenter );
-    plblInTag->setGeometry  ( 0, 0, 21, 13 );   // IN 居中电平列(0-21)，中心 10.5
-    plblOutTag->setGeometry ( 30, 0, 30, 13 );  // OUT 中心对齐 groove(45)
+    plblInTag->setGeometry  ( 0, -2, 21, 13 );   // jamony: 上移 2px（顶齐 A 栏标题卡上沿，让出 0 刻度空间）
+    plblOutTag->setGeometry ( 30, -2, 30, 13 );  // OUT 中心对齐 groove(45)
     // jamony v0: pPanLabel(Pan文案)/pInfoLabel(静音icon) 舍弃显示，始终隐藏
     pPanLabel->hide();
     pInfoLabel->hide();
@@ -208,7 +208,7 @@ CChannelFader::CChannelFader ( QWidget* pNW ) :
     pFader->setPageStep ( 1 );
     pFader->setRange ( 0, AUD_MIX_FADER_MAX );
     pFader->setTickInterval ( AUD_MIX_FADER_MAX / 9 );
-    pFader->setFixedWidth ( 40 ); // jamony v0: 推子列 40（groove x=9 + 刻度空间，G2 刻度）
+    pFader->setFixedWidth ( 46 ); // jamony v0: 推子列 46（40 + 左刻度线 6，含左刻度线 = v0 视觉宽；groove x=15 绝对不变）
 
     // setup panning control and info label
     pPan->setRange ( 0, AUD_MIX_PAN_MAX );
