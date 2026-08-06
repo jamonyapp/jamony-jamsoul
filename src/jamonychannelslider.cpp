@@ -21,7 +21,7 @@ void JamonyChannelSlider::paintEvent ( QPaintEvent* )
 
     // jamony v0: pFader 46 宽（含左刻度线），groove 中心 x=15
     const qreal GROOVE_CENTER = 15.0;
-    const qreal GROOVE_W = 6.0;
+    const qreal GROOVE_W = 4.0; // jamony: 推子槽 4px（原 6）
     // jamony: groove 顶离 pFader 顶 6px（与消波灯下沿顶齐；0 刻度中心 groove 顶，上半在 pFader 内避裁切）
     const qreal GROOVE_TOP = 6.0;
     const qreal grooveH = height() - GROOVE_TOP;
@@ -43,9 +43,9 @@ void JamonyChannelSlider::paintEvent ( QPaintEvent* )
         { QString::fromUtf8("-\xe2\x88\x9e"), 1.0 } // -∞
     };
     const int   TICK_W = 6, TICK_H = 2;
-    const qreal leftTickX  = GROOVE_CENTER - 15;   // v0 左刻度线 groove 左 15
-    const qreal rightTickX = GROOVE_CENTER + 9;    // v0 右刻度线 groove 右 9
-    const qreal valueX     = GROOVE_CENTER + 16;   // v0 右刻度值 groove 右 16
+    const qreal leftTickX  = GROOVE_CENTER - 11;   // jamony: 内收 4px（原 -15）
+    const qreal rightTickX = GROOVE_CENTER + 5;    // jamony: 内收 4px（原 +9）
+    const qreal valueX     = GROOVE_CENTER + 12;   // jamony: 内收 4px（原 +16）
     const QColor TICK ( "#8f9096" );
 
     QFont valueFont = p.font();

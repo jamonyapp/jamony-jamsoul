@@ -469,11 +469,13 @@ CClientDlg::CClientDlg ( CClient*         pNCliP,
     lbrInputLevelL->setAccessibleDescription ( strInpLevHAccDescr );
     lbrInputLevelL->setToolTip ( strInpLevHTT );
     lbrInputLevelL->setEnabled ( false );
+    lbrInputLevelL->setFixedWidth ( 17 ); // jamony: 类 UI 同步 C 区分轨电平槽 17（原 sizeHint 20）
     lbrInputLevelR->setWhatsThis ( strInpLevH );
     lbrInputLevelR->setAccessibleName ( strInpLevHAccText );
     lbrInputLevelR->setAccessibleDescription ( strInpLevHAccDescr );
     lbrInputLevelR->setToolTip ( strInpLevHTT );
     lbrInputLevelR->setEnabled ( false );
+    lbrInputLevelR->setFixedWidth ( 17 ); // jamony: 类 UI 同步 C 区分轨电平槽 17
 
     // reverberation level
     QString strAudReverb = "<b>" + tr ( "Reverb effect" ) + ":</b> " +

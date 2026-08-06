@@ -164,7 +164,7 @@ CChannelFader::CChannelFader ( QWidget* pNW ) :
     plblOutTag->setStyleSheet ( "QLabel { color: #8f9096; font: bold 13px; }" );
     plblInTag->setAlignment  ( Qt::AlignCenter );
     plblOutTag->setAlignment ( Qt::AlignCenter );
-    plblInTag->setGeometry  ( 0, -2, 21, 13 );   // jamony: 上移 2px（顶齐 A 栏标题卡上沿，让出 0 刻度空间）
+    plblInTag->setGeometry  ( 0, -2, 17, 13 );   // jamony: 宽 17（同步电平列 17）
     plblOutTag->setGeometry ( 30, -2, 30, 13 );  // OUT 中心对齐 groove(45)
     // jamony v0: pPanLabel(Pan文案)/pInfoLabel(静音icon) 舍弃显示，始终隐藏
     pPanLabel->hide();
@@ -202,7 +202,7 @@ CChannelFader::CChannelFader ( QWidget* pNW ) :
 
     // setup channel level
     plbrChannelLevel->setContentsMargins ( 0, 0, 0, 0 ); // jamony v0: margin 全 0，电平条/消波灯占满 CLevelMeter
-    plbrChannelLevel->setFixedWidth ( 21 ); // jamony v0: 电平列 21 宽（= METER_WIDTH；pBarMeter sizeHint 20，强制 21 让消波灯/电平槽等宽 21）
+    plbrChannelLevel->setFixedWidth ( 17 ); // jamony: 电平列 17 宽（原 21，缩 4；消波灯 Ignored 自动跟随；类 UI B 栏 input 同步）
 
     // setup slider
     pFader->setPageStep ( 1 );
