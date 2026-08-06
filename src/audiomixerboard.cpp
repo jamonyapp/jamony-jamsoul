@@ -250,6 +250,8 @@ CChannelFader::CChannelFader ( QWidget* pNW ) :
     QHBoxLayout* pMSLayout = new QHBoxLayout();
     pMSLayout->setSpacing ( 4 ); // v0 gap 4
     pMSLayout->setContentsMargins ( 0, 0, 0, 0 );
+    pcbMute->setFixedHeight ( 20 ); // jamony v0: ROW_HEIGHT 20（等高 Pan/Grp）
+    pcbSolo->setFixedHeight ( 20 );
     pMSLayout->addWidget ( pcbMute, 1 );
     pMSLayout->addWidget ( pcbSolo, 1 );
     pMuteSoloGrid->addLayout ( pMSLayout );
@@ -530,11 +532,17 @@ void CChannelFader::SetupFaderTag ( const ESkillLevel eSkillLevel )
     }
 
     // setup group box for label/instrument picture: jamony style
-    QString strStile = "QGroupBox { border:        2px " + strBorderStyle + " " + strBorderColor +
-                       ";"
-                       "            border-radius: 3px;" // jamony v0: 圆角 3（v0 rounded-[3px]）
-                       "            padding:       3px;"
-                       "            background:    #0d0d0d; }"; // jamony v0: 背景 #0d0d0d（v0 用户名框）
+    // jamony: 未分组 border none（背景全宽等宽 Pan/M+S）；分组 border 2px 彩色（视觉补偿）
+    QString strStile;
+    if ( iGroupID != INVALID_INDEX )
+    {
+        strStile = "QGroupBox { border:        2px " + strBorderStyle + " " + strBorderColor +
+                   "; border-radius: 3px; padding: 3px; background: #0d0d0d; }";
+    }
+    else
+    {
+        strStile = "QGroupBox { border: none; border-radius: 3px; padding: 3px; background: #0d0d0d; }";
+    }
 
     pLabelInstBox->setStyleSheet ( strStile );
 
@@ -549,7 +557,7 @@ void CChannelFader::SetupFaderTag ( const ESkillLevel eSkillLevel )
     {
         pcbGroup->setStyleSheet (
             "QPushButton { font: bold 13px; color: #999999; background: #262626;"
-            "              border: 2px solid transparent; border-radius: 3px; padding: 1px 4px; }" ); // jamony v0: 未分组 transparent（不可见），宽度 2px 一致（避免分组时 1→2px 抖动）
+            "              border: none; border-radius: 3px; padding: 1px 4px; }" ); // jamony: 未分组 border none（背景全宽等宽 Pan/M+S）
     }
 }
 
