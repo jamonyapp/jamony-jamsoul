@@ -164,8 +164,8 @@ CChannelFader::CChannelFader ( QWidget* pNW ) :
     plblOutTag->setStyleSheet ( "QLabel { color: #8f9096; font: bold 13px; }" );
     plblInTag->setAlignment  ( Qt::AlignCenter );
     plblOutTag->setAlignment ( Qt::AlignCenter );
-    plblInTag->setGeometry  ( 3, -2, 17, 13 );   // jamony: x=3 对齐 A列左缘（= Pan 左缘 3）
-    plblOutTag->setGeometry ( 28, -2, 30, 13 );  // jamony: x=28 中心 43 对齐 groove 中心（pFader 左 28 + GROOVE_CENTER 15，B列右移 3）
+    plblInTag->setGeometry  ( 3, -2, 18, 13 );   // jamony: w=18 对齐电平槽18（x=3=A列左缘，和消波灯+电平槽水平居中对齐）
+    plblOutTag->setGeometry ( 29, -2, 30, 13 );  // jamony: x=29 中心 44 对齐 groove 中心（pFader 左 29 + GROOVE_CENTER 15；电平槽 17→18 后 pFader 右移1，OUT 跟随）
     // jamony v0: pPanLabel(Pan文案)/pInfoLabel(静音icon) 舍弃显示，始终隐藏
     pPanLabel->hide();
     pInfoLabel->hide();
@@ -203,7 +203,7 @@ CChannelFader::CChannelFader ( QWidget* pNW ) :
 
     // setup channel level
     plbrChannelLevel->setContentsMargins ( 0, 0, 0, 0 ); // jamony v0: margin 全 0，电平条/消波灯占满 CLevelMeter
-    plbrChannelLevel->setFixedWidth ( 17 ); // jamony: 电平列 17 宽（原 21，缩 4；消波灯 Ignored 自动跟随；类 UI B 栏 input 同步）
+    plbrChannelLevel->setFixedWidth ( 18 ); // jamony: 电平列 18 宽（原 21，缩 3；消波灯 Ignored 自动跟随；类 UI B 栏 input 同步）
 
     // setup slider
     pFader->setPageStep ( 1 );
