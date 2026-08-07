@@ -148,7 +148,7 @@ CChannelFader::CChannelFader ( QWidget* pNW ) :
     // QWidget takes the ownership of the pMainGrid so that this only has
     // to be created locally in this constructor)
     pFrame = new QFrame ( pNW );
-    pFrame->setFixedWidth ( 76 ); // jamony: fader 固定宽度（纤细苗条，为效果器面板预留空间）
+    pFrame->setFixedWidth ( 70 ); // jamony: fader 70（=模块宽70，贴满不偏台；原76含电平槽+推子并排余量）
     pFrame->setFixedHeight ( 690 ); // jamony v0: 分轨总高 690
 
     pLevelsBox       = new QWidget ( pFrame );
@@ -164,8 +164,8 @@ CChannelFader::CChannelFader ( QWidget* pNW ) :
     plblOutTag->setStyleSheet ( "QLabel { color: #8f9096; font: bold 13px; }" );
     plblInTag->setAlignment  ( Qt::AlignCenter );
     plblOutTag->setAlignment ( Qt::AlignCenter );
-    plblInTag->setGeometry  ( 3, -2, 18, 13 );   // jamony: w=18 对齐电平槽18（x=3=A列左缘，和消波灯+电平槽水平居中对齐）
-    plblOutTag->setGeometry ( 29, -2, 30, 13 );  // jamony: x=29 中心 44 对齐 groove 中心（pFader 左 29 + GROOVE_CENTER 15；电平槽 17→18 后 pFader 右移1，OUT 跟随）
+    plblInTag->setGeometry  ( 0, -2, 18, 13 );   // jamony: x=0 对齐电平槽0（A列左缘0=Pan左缘；A+B列整体左移3）
+    plblOutTag->setGeometry ( 25, -2, 30, 13 );  // jamony: x=25 中心 40 对齐 groove（pFader 左 25+15; A+B列整体左移3）
     // jamony v0: pPanLabel(Pan文案)/pInfoLabel(静音icon) 舍弃显示，始终隐藏
     pPanLabel->hide();
     pInfoLabel->hide();
@@ -243,9 +243,9 @@ CChannelFader::CChannelFader ( QWidget* pNW ) :
     pLabelGrid->addWidget ( plblLabel, 0, Qt::AlignVCenter ); // note: just initial add, may be changed later
 
     // jamony v0: 电平列(21) + 推子列(40) justify-between（间距 15，左刻度线在间距里）
-    pLevelsGrid->addSpacing ( 3 );             // jamony: A列左缘 3（对齐 Pan 左缘 3）
+    pLevelsGrid->addSpacing ( 0 );             // jamony: A列左缘 0（电平槽对齐 Pan 左缘 0；原3致A列距BC 6-7 且不对齐Pan）
     pLevelsGrid->addWidget ( plbrChannelLevel );
-    pLevelsGrid->addSpacing ( 8 );             // jamony: A列B列间距（+3 补偿 Qt 压缩，实际 ~8）
+    pLevelsGrid->addSpacing ( 7 );             // jamony: B列左移1（刻度值-24超用户名框1px修正，欢哥定左移1先看效果）
     pLevelsGrid->addSpacing ( 3 );             // jamony: B列整体右移 3px
     pLevelsGrid->addWidget ( pFader );
     pLevelsGrid->addStretch ();
@@ -1083,7 +1083,7 @@ CAudioMixerBoard::CAudioMixerBoard ( QWidget* parent ) :
 
     // set margins of the layout to zero to get maximum space for the controls
     pGroupBoxLayout->setContentsMargins ( 0, 0, 0, 1 ); // note: to avoid problems at the bottom, use a small margin for that
-    pMainLayout->setContentsMargins ( 12, 4, 12, 12 ); // jamony: top 4(原12) 让 pPanLabel/pFrame 顶齐 A栏标题卡上沿(y=40)
+    pMainLayout->setContentsMargins ( 0, 4, 12, 12 ); // jamony 步骤3: 左12→0 让第一轨 pFrame 左对齐 butAutoAdjust; top4 保留顶齐 A栏标题卡 y=40
 
     // add the group box to the scroll area
     pScrollArea->setMinimumWidth ( 0 ); // jamony: 宽度由 MainMixerBoard setFixedWidth 控制(跟随fader数), 不强制200
@@ -1363,7 +1363,7 @@ void CAudioMixerBoard::ChangeFaderOrder ( const EChSortType eChSortType )
 
     // jamony: group box 宽度跟随可见 fader 数（最多4列），窗口只缩宽度不缩高度（高度由 AppleScript 设 jamony 等高）
     const int iMaxVisible = qMin ( iNumVisibleFaders, 4 ); // jamony: 封顶4(默认展示2,每增1扩充,到4不再增,第5个出水平滚动条)
-    const int iMixerWidth = iMaxVisible * 76 + ( iMaxVisible > 0 ? ( iMaxVisible - 1 ) * 6 : 0 ) + 30; // jamony: fader + 间距 + 边距(pMixerWidget margins24 + QScrollArea margin6)
+    const int iMixerWidth = iMaxVisible * 70 + ( iMaxVisible > 0 ? ( iMaxVisible - 1 ) * 6 : 0 ) + 18; // jamony: fader 76→70 (pFrame70=模块宽), C区紧凑
     setFixedWidth ( iMixerWidth );
     // jamony: 水平滚动条——分轨数超过封顶列数时常驻(AlwaysOn, 非macOS overlay 隐藏), 否则隐藏
     pScrollArea->setHorizontalScrollBarPolicy ( iNumVisibleFaders > iMaxVisible ? Qt::ScrollBarAlwaysOn : Qt::ScrollBarAlwaysOff );
