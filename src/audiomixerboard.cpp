@@ -1367,8 +1367,8 @@ void CAudioMixerBoard::ChangeFaderOrder ( const EChSortType eChSortType )
     setFixedWidth ( iMixerWidth );
     // jamony: 水平滚动条——分轨数超过封顶列数时常驻(AlwaysOn, 非macOS overlay 隐藏), 否则隐藏
     pScrollArea->setHorizontalScrollBarPolicy ( iNumVisibleFaders > iMaxVisible ? Qt::ScrollBarAlwaysOn : Qt::ScrollBarAlwaysOff );
-    // jamony: 窗口宽度 = A栏固定261 + B栏53 + C区iMixerWidth + 边距57 = 371 + iMixerWidth
-    if ( QWidget* pw = window() ) pw->resize ( 371 + iMixerWidth, pw->height() );
+    // jamony 统一5px: 窗口宽度（历史371, 步骤2 spacing缩-12 → 359; 步骤3 iMixerWidth 再-12）
+    if ( QWidget* pw = window() ) pw->resize ( 359 + iMixerWidth, pw->height() );
 }
 
 void CAudioMixerBoard::UpdateTitle()

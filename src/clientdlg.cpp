@@ -2101,10 +2101,12 @@ void CClientDlg::SetGUIDesign ( const EGUIDesign eNewDesign )
     frameLocalMute->setFixedWidth ( 37 ); // jamony: frameLocalMute 同步 37
     chbLocalMute->setFixedHeight ( 22 ); // jamony: M按钮高=butAutoAdjust(22)
     frameLocalMute->setStyleSheet ( "" ); // jamony: 去外框, 只M按钮
-    // jamony 步骤1: AB两侧统一 5px（统一间距方案，详见 plan quirky-wobbling-stream）
-    // horizontalLayout spacing 默认3→5: ping→AB 3→5
-    // vboxLayout 左margin 2→0: AB→B栏 配合 spacing5=5（去掉上次居中尝试 margin2 历史包袱；top3 保留消波灯顶齐 y=40）
+    // jamony 统一5px间距方案（详见 plan quirky-wobbling-stream）
+    // 步骤1 AB两侧: horizontalLayout spacing 默认3→5(ping→AB) + vboxLayout 左margin 2→0(AB→B栏 配合 spacing5=5)
+    // 步骤2 BC两侧: horizontalLayout_2 spacing 6→5(B栏→BC) + horizontalLayout_3 spacing→5(BC→C区, 原16)
     horizontalLayout->setSpacing ( 5 );
+    horizontalLayout_2->setSpacing ( 5 );
+    horizontalLayout_3->setSpacing ( 5 );
     vboxLayout->setContentsMargins ( 0, 3, 0, 0 );
 
     // jamony: butAutoAdjust padding 0 + 紧凑边框, 视觉底框 = geometry 底(对齐 frameLocalMute)
