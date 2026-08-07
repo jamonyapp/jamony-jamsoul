@@ -164,8 +164,8 @@ CChannelFader::CChannelFader ( QWidget* pNW ) :
     plblOutTag->setStyleSheet ( "QLabel { color: #8f9096; font: bold 13px; }" );
     plblInTag->setAlignment  ( Qt::AlignCenter );
     plblOutTag->setAlignment ( Qt::AlignCenter );
-    plblInTag->setGeometry  ( 0, -2, 17, 13 );   // jamony: 宽 17（同步电平列 17）
-    plblOutTag->setGeometry ( 30, -2, 30, 13 );  // OUT 中心对齐 groove(45)
+    plblInTag->setGeometry  ( 3, -2, 17, 13 );   // jamony: x=3 对齐 A列左缘（= Pan 左缘 3）
+    plblOutTag->setGeometry ( 28, -2, 30, 13 );  // jamony: x=28 中心 43 对齐 groove 中心（pFader 左 28 + GROOVE_CENTER 15，B列右移 3）
     // jamony v0: pPanLabel(Pan文案)/pInfoLabel(静音icon) 舍弃显示，始终隐藏
     pPanLabel->hide();
     pInfoLabel->hide();
@@ -179,6 +179,7 @@ CChannelFader::CChannelFader ( QWidget* pNW ) :
     pcbGroup->setCheckable ( true );
 
     pLabelInstBox   = new QGroupBox ( pFrame );
+    pLabelInstBox->setFixedWidth ( 70 ); // jamony: 用户名框 70（同步模块 70）
     plblLabel       = new QLabel ( "", pFrame );
     plblInstrument  = new QLabel ( pFrame );
     plblCountryFlag = new QLabel ( pFrame );
@@ -242,9 +243,12 @@ CChannelFader::CChannelFader ( QWidget* pNW ) :
     pLabelGrid->addWidget ( plblLabel, 0, Qt::AlignVCenter ); // note: just initial add, may be changed later
 
     // jamony v0: 电平列(21) + 推子列(40) justify-between（间距 15，左刻度线在间距里）
+    pLevelsGrid->addSpacing ( 3 );             // jamony: A列左缘 3（对齐 Pan 左缘 3）
     pLevelsGrid->addWidget ( plbrChannelLevel );
-    pLevelsGrid->addStretch ();
+    pLevelsGrid->addSpacing ( 8 );             // jamony: A列B列间距（+3 补偿 Qt 压缩，实际 ~8）
+    pLevelsGrid->addSpacing ( 3 );             // jamony: B列整体右移 3px
     pLevelsGrid->addWidget ( pFader );
+    pLevelsGrid->addStretch ();
 
     // jamony v0: pcbGroup 移到 pMainGrid 全宽行；pMuteSoloBox 只留 M/S（半宽 flex-1, gap 4）
     QHBoxLayout* pMSLayout = new QHBoxLayout();
@@ -259,14 +263,17 @@ CChannelFader::CChannelFader ( QWidget* pNW ) :
     // jamony v0 段顺序：电平推子(549) → Pan(20) → Grp(20) → M/S(20) → 用户名(40)，spacing 6，总 690
     pLevelsBox->setFixedHeight ( 549 );   // v0 METER_FADER_HEIGHT
     pPan->setFixedHeight ( 20 );          // v0 ROW_HEIGHT
+    pPan->setFixedWidth ( 70 );           // jamony: 模块宽 70（居中 pFrame 76）
     pcbGroup->setFixedHeight ( 20 );      // v0 ROW_HEIGHT
+    pcbGroup->setFixedWidth ( 70 );       // jamony: 模块宽 70
     pMuteSoloBox->setFixedHeight ( 20 );  // v0 ROW_HEIGHT
+    pMuteSoloBox->setFixedWidth ( 70 );   // jamony: 模块宽 70
     pMainGrid->addSpacing ( 16 ); // jamony v0: IN/OUT 空间（16 + spacer-widget spacing1 = 17 = 标签13 + 间距4，pLevelsBox y=17）
     pMainGrid->addWidget ( pLevelsBox ); // 549 高（电平+推子）
     pMainGrid->addWidget ( pPan, 0, Qt::AlignHCenter );
-    pMainGrid->addWidget ( pcbGroup ); // Grp 全宽
-    pMainGrid->addWidget ( pMuteSoloBox ); // M/S 半宽
-    pMainGrid->addWidget ( pLabelInstBox ); // 40 高(F4)
+    pMainGrid->addWidget ( pcbGroup, 0, Qt::AlignHCenter ); // jamony: 模块 70 居中
+    pMainGrid->addWidget ( pMuteSoloBox, 0, Qt::AlignHCenter ); // 模块 70 居中
+    pMainGrid->addWidget ( pLabelInstBox, 0, Qt::AlignHCenter ); // jamony: 用户名框 70 居中
 
     // reset current fader
     strGroupBaseText  = "Grp";         // this will most probably overwritten by SetGUIDesign()
