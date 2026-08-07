@@ -460,6 +460,7 @@ CClientDlg::CClientDlg ( CClient*         pNCliP,
     lblInputLEDMeter->setWhatsThis ( strInpLevH );
     lblInputLEDMeter->setText ( "Input" ); // jamony: 英文覆盖翻译(原"输入")
     lblInputLEDMeter->setFixedHeight ( 22 ); // jamony: 高=A栏音频设置按钮(22), 视觉等高
+    lblInputLEDMeter->setAlignment ( Qt::AlignHCenter | Qt::AlignTop ); // jamony: 文案顶齐 A栏"音频设置"按钮文案(两文字顶均y=15: Input widget top15 == chbSettings widget12+border1+padding2)
     lblLevelMeterLeft->setWhatsThis ( strInpLevH );
     lblLevelMeterRight->setWhatsThis ( strInpLevH );
     lblLevelMeterLeft->setText ( "L" ); // jamony: 强制英文 L/R, 覆盖中文翻译(左/右)
