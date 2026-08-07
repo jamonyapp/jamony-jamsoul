@@ -2096,9 +2096,13 @@ void CClientDlg::SetGUIDesign ( const EGUIDesign eNewDesign )
         "QPushButton { font: bold 13px; color: #999999; background: #262626;"
         "              border-radius: 3px; padding: 2px 6px; text-align: center; }"
         "QPushButton:checked { background: #FF3366; color: #ffffff; }" );
-    chbLocalMute->setFixedWidth ( 53 ); // jamony: M按钮撑满B栏宽(=frameLocalMute宽), 去静音文案+外框
+    chbLocalMute->setFixedWidth ( 37 ); // jamony: 对齐电平表（L17+R17+spacing3=37）
+    frameLocalMute->setFixedWidth ( 37 ); // jamony: frameLocalMute 同步 37
     chbLocalMute->setFixedHeight ( 22 ); // jamony: M按钮高=butAutoAdjust(22)
     frameLocalMute->setStyleSheet ( "" ); // jamony: 去外框, 只M按钮
+    // jamony: B栏内容水平居中于 AB线(293)..BC线(339)。原左隙3/右隙6偏左；
+    // vboxLayout 左margin+2 → 内容左缘296→298，左隙5/右隙4（Fixed内容顺溢2px进333..339空白，不撞BC线）
+    vboxLayout->setContentsMargins ( 2, 3, 0, 0 );
 
     // jamony: butAutoAdjust padding 0 + 紧凑边框, 视觉底框 = geometry 底(对齐 frameLocalMute)
     butAutoAdjust->setStyleSheet (
