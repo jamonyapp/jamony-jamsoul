@@ -224,7 +224,7 @@ CChannelFader::CChannelFader ( QWidget* pNW ) :
 
     // set margins of the layouts to zero to get maximum space for the controls
     pMainGrid->setContentsMargins ( 0, 0, 0, 0 );
-    pMainGrid->setSpacing ( 6 ); // jamony v0: 段间距 6（STACK_GAP）
+    pMainGrid->setSpacing ( 5 ); // jamony 08-10: 段间距 6→5 (Pan/Grp/M/S/用户名框 全5px)
 
     pLevelsGrid->setContentsMargins ( 0, 0, 0, 0 );
     pLevelsGrid->setSpacing ( 0 ); // only minimal space
@@ -252,7 +252,7 @@ CChannelFader::CChannelFader ( QWidget* pNW ) :
 
     // jamony v0: pcbGroup 移到 pMainGrid 全宽行；pMuteSoloBox 只留 M/S（半宽 flex-1, gap 4）
     QHBoxLayout* pMSLayout = new QHBoxLayout();
-    pMSLayout->setSpacing ( 4 ); // v0 gap 4
+    pMSLayout->setSpacing ( 5 ); // jamony 08-10: M/S 水平间距 4→5
     pMSLayout->setContentsMargins ( 0, 0, 0, 0 );
     pcbMute->setFixedHeight ( 20 ); // jamony v0: ROW_HEIGHT 20（等高 Pan/Grp）
     pcbSolo->setFixedHeight ( 20 );
@@ -261,7 +261,7 @@ CChannelFader::CChannelFader ( QWidget* pNW ) :
     pMuteSoloGrid->addLayout ( pMSLayout );
 
     // jamony v0 段顺序：电平推子(549) → Pan(20) → Grp(20) → M/S(20) → 用户名(40)，spacing 6，总 690
-    pLevelsBox->setFixedHeight ( 549 );   // v0 METER_FADER_HEIGHT
+    pLevelsBox->setFixedHeight ( 553 );   // jamony 08-10: 549→553 (+4, 间距5px化Pan下移, 电平/推子下沿增长补5px; 刻度paintEvent按height自适应)
     pPan->setFixedHeight ( 20 );          // v0 ROW_HEIGHT
     pPan->setFixedWidth ( 64 );           // jamony: 模块宽 64（欢哥定, 与用户名框64对齐）
     pcbGroup->setFixedHeight ( 20 );      // v0 ROW_HEIGHT
@@ -274,6 +274,7 @@ CChannelFader::CChannelFader ( QWidget* pNW ) :
     pMainGrid->addWidget ( pcbGroup, 0, Qt::AlignLeft ); // jamony: 64 左对齐(与用户名框对齐)
     pMainGrid->addWidget ( pMuteSoloBox, 0, Qt::AlignLeft ); // jamony: 64 左对齐(与用户名框对齐)
     pMainGrid->addWidget ( pLabelInstBox, 0, Qt::AlignLeft ); // jamony: 用户名框 64 左对齐 pFrame 左缘(距BC5 不变; 原70贴满AlignHCenter, 改64后AlignLeft保左缘=Pan左缘)
+    pMainGrid->addStretch(); // jamony 08-10: 底部弹性吸收多余空间(pFrame690 - items684 = 6px), 防 Qt 撑大 widget spacing(实测 5→6), 让段间距真5px + 用户名框下沿684=root726 对齐A区滚动区
 
     // reset current fader
     strGroupBaseText  = "Grp";         // this will most probably overwritten by SetGUIDesign()
@@ -355,7 +356,7 @@ void CChannelFader::SetGUIDesign ( const EGUIDesign eNewDesign )
         pFader->setStyleSheet ( "" );
 
         pLabelGrid->addWidget ( plblLabel, 0, Qt::AlignVCenter ); // label next to icons
-        pLabelInstBox->setFixedHeight ( 40 );                      // jamony v0: 用户名框高 40（v0 mixer-channel.tsx:368）
+        pLabelInstBox->setFixedHeight ( 35 );                      // jamony 08-10: 用户名框高 40→35 (下沿→684=root726 对齐A区滚动区)
         pPanLabel->setText ( "Pan" ); // jamony: 英文(原 tr("PAN") 大写漏改, 翻译成"声像")
         pcbMute->setText ( tr ( "M" ) );
         pcbSolo->setText ( tr ( "S" ) );
@@ -414,7 +415,7 @@ void CChannelFader::SetGUIDesign ( const EGUIDesign eNewDesign )
         pFader->setTickPosition ( QSlider::TicksBothSides );
         pFader->setStyleSheet ( "" );
         pLabelGrid->addWidget ( plblLabel, 0, Qt::AlignVCenter ); // label next to icons
-        pLabelInstBox->setFixedHeight ( 40 );                      // jamony v0: 用户名框高 40（v0 mixer-channel.tsx:368）
+        pLabelInstBox->setFixedHeight ( 35 );                      // jamony 08-10: 用户名框高 40→35 (下沿→684=root726 对齐A区滚动区)
         pPanLabel->setText ( "Pan" ); // jamony: 英文
         pcbMute->setText ( tr ( "Mute" ) );
         pcbSolo->setText ( tr ( "Solo" ) );
