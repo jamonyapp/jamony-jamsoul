@@ -91,8 +91,8 @@ CClientDlg::CClientDlg ( CClient*         pNCliP,
 {
     setupUi ( this );
 
-    // jamony: A 栏 spacing 统一 6 (与 m_pRackLayout 效果器间距一致, 等距)
-    verticalLayout_3->setSpacing ( 6 );
+    // jamony: A 栏 spacing 统一 5 (欢哥 08-10: A栏所有纵向间距=5px; 与 m_pRackLayout 效果器间距一致, 等距)
+    verticalLayout_3->setSpacing ( 5 );
 
     // jamony: 效果器滚动区 (7 Pedal; 标题卡/pingWrap/butAutoAdjust 固定不滚动)
     m_pRackScroll = new QScrollArea ( this );
@@ -103,9 +103,9 @@ CClientDlg::CClientDlg ( CClient*         pNCliP,
     QWidget* pRackContent = new QWidget ( m_pRackScroll );
     m_pRackLayout = new QVBoxLayout ( pRackContent );
     m_pRackLayout->setContentsMargins ( 0, 0, 0, 0 );
-    m_pRackLayout->setSpacing ( 6 );
+    m_pRackLayout->setSpacing ( 5 ); // jamony 08-10: 效果器卡片间距 6→5 (A栏纵向全5px)
     m_pRackScroll->setWidget ( pRackContent );
-    m_pRackScroll->setMaximumHeight ( 634 ); // 下沿 720 = B 栏 L/R 文案底(对齐)
+    m_pRackScroll->setMaximumHeight ( 642 ); // jamony 08-10: 下沿726 距ping(731)5px; 原634下沿720对齐B栏L/R文案底→改后下移6px不再对齐B栏(欢哥要A栏纵向全5px,接受)
 
     // 机架标题卡 (固定, 不滚动)
     JamonyFxHeader* pFxHeader = new JamonyFxHeader ( this );
@@ -1272,6 +1272,12 @@ void CClientDlg::showEvent ( QShowEvent* Event )
     // jamony: 首次显示后 dump 完整布局树到 /tmp/jamsoul-layout-dump.txt（UI 调试基建）
     // 用 singleShot(0) 等首帧 layout 完成，此时 geometry/sizeHint 是真实值
     Q_UNUSED ( Event )
+
+    // jamony BUG1: butAutoAdjust 被 MainMixerBoard(QGroupBox) 顶部盖住下边框 3px
+    // (dump 实测 butAutoAdjust y12~34 与 MainMixerBoard y31~ 重叠 31~34)。
+    // raise() 把按钮 z 序提到最上, 让它画在 QGroupBox 边框之上 —— 立竿见影, 零布局改动。
+    butAutoAdjust->raise();
+
     QTimer::singleShot ( 3000, this, [this]() { // jamony: 延迟3秒等fader创建完再dump
         QFile f ( "/tmp/jamsoul-layout-dump.txt" );
         if ( f.open ( QIODevice::WriteOnly | QIODevice::Truncate | QIODevice::Text ) )
