@@ -700,7 +700,7 @@
                     <verstretch>0</verstretch>
                    </sizepolicy>
                   </property>
-                  <property name="text"><string>自动调整分轨信号电平</string></property>
+                  <property name="text"><string>自动调整分轨信号</string></property>
                   <property name="autoDefault"><bool>false</bool></property>
                   <property name="default"><bool>false</bool></property>
                  </widget>

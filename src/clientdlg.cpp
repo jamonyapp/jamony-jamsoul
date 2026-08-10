@@ -2112,7 +2112,8 @@ void CClientDlg::SetGUIDesign ( const EGUIDesign eNewDesign )
     // 步骤2 BC两侧: horizontalLayout_2 spacing 6→5(B栏→BC) + horizontalLayout_3 spacing→5(BC→C区, 原16)
     horizontalLayout->setSpacing ( 5 );
     horizontalLayout_2->setSpacing ( 5 );
-    horizontalLayout_3->setSpacing ( 5 );
+    horizontalLayout_3->setSpacing ( 10 ); // jamony 08-11: BC间距 (looper居中两边10, hl2 327, 分轨349)
+    verticalLayout_5->setContentsMargins ( 12, 12, 7, 12 ); // jamony 08-11: vl5右 7 (looper右距10, 分轨居中两边10)
     vboxLayout->setContentsMargins ( 0, 3, 0, 0 );
 
     // jamony: butAutoAdjust padding 0 + 紧凑边框, 视觉底框 = geometry 底(对齐 frameLocalMute)

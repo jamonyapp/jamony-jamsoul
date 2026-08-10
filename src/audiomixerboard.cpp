@@ -1084,7 +1084,7 @@ CAudioMixerBoard::CAudioMixerBoard ( QWidget* parent ) :
 
     // set margins of the layout to zero to get maximum space for the controls
     pGroupBoxLayout->setContentsMargins ( 0, 0, 0, 1 ); // note: to avoid problems at the bottom, use a small margin for that
-    pMainLayout->setContentsMargins ( 0, 4, 12, 12 ); // jamony 步骤3: 左12→0 让第一轨 pFrame 左对齐 butAutoAdjust; top4 保留顶齐 A栏标题卡 y=40
+    pMainLayout->setContentsMargins ( 0, 4, 0, 12 ); // jamony 08-11: right 12→0 (轨贴MainMixerBoard右); top4 顶齐A栏; 配合 iMixerWidth 去18让 looper 右距 33→15
 
     // add the group box to the scroll area
     pScrollArea->setMinimumWidth ( 0 ); // jamony: 宽度由 MainMixerBoard setFixedWidth 控制(跟随fader数), 不强制200
@@ -1364,7 +1364,7 @@ void CAudioMixerBoard::ChangeFaderOrder ( const EChSortType eChSortType )
 
     // jamony: group box 宽度跟随可见 fader 数（最多4列），窗口只缩宽度不缩高度（高度由 AppleScript 设 jamony 等高）
     const int iMaxVisible = qMin ( iNumVisibleFaders, 4 ); // jamony: 封顶4(默认展示2,每增1扩充,到4不再增,第5个出水平滚动条)
-    const int iMixerWidth = iMaxVisible * 64 + ( iMaxVisible > 0 ? ( iMaxVisible - 1 ) * 5 : 0 ) + 18; // jamony: fader 64 + 分轨间距6→5(欢哥定), C区紧凑
+    const int iMixerWidth = iMaxVisible * 64 + ( iMaxVisible > 0 ? ( iMaxVisible - 1 ) * 5 : 0 ); // jamony 08-11: 去+18余量 → MainMixerBoard=轨区(2轨133); butAutoAdjust 116<133 故 verticalLayout 跟133, looper贴右 looper右距33→15, hl2 不变(A栏/B栏不动)
     setFixedWidth ( iMixerWidth );
     // jamony: 水平滚动条——分轨数超过封顶列数时常驻(AlwaysOn, 非macOS overlay 隐藏), 否则隐藏
     pScrollArea->setHorizontalScrollBarPolicy ( iNumVisibleFaders > iMaxVisible ? Qt::ScrollBarAlwaysOn : Qt::ScrollBarAlwaysOff );
