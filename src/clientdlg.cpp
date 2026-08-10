@@ -2181,16 +2181,16 @@ void CClientDlg::SetGUIDesign ( const EGUIDesign eNewDesign )
 
     // jamony: 四条分割线灰色(低调) — NoFrame + 1px高/宽 + background-color
     lineMeter->setFrameShape ( QFrame::NoFrame );
-    lineMeter->setStyleSheet ( "background-color: #444; border: none;" );
+    lineMeter->setStyleSheet ( "background-color: #2a2a2a; border: none;" );
     lineMeter->setFixedWidth ( 1 );
     linePanReverb->setFrameShape ( QFrame::NoFrame );
-    linePanReverb->setStyleSheet ( "background-color: #444; border: none;" );
+    linePanReverb->setStyleSheet ( "background-color: #2a2a2a; border: none;" );
     linePanReverb->setFixedWidth ( 1 );
     lineUpperLowerLeft->setFrameShape ( QFrame::NoFrame );
-    lineUpperLowerLeft->setStyleSheet ( "background-color: #444; border: none;" );
+    lineUpperLowerLeft->setStyleSheet ( "background-color: #2a2a2a; border: none;" );
     lineUpperLowerLeft->setFixedHeight ( 1 );
     lineUpperLowerLeft_2->setFrameShape ( QFrame::NoFrame );
-    lineUpperLowerLeft_2->setStyleSheet ( "background-color: #444; border: none;" );
+    lineUpperLowerLeft_2->setStyleSheet ( "background-color: #2a2a2a; border: none;" );
     lineUpperLowerLeft_2->setFixedHeight ( 1 );
 
     // jamony: gridLayout 占满A栏宽 + 列均匀分布(删HBox右侧spacer + 6列stretch=1)
