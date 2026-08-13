@@ -431,52 +431,42 @@ CClientDlg::CClientDlg ( CClient*         pNCliP,
 
     // Add help text to controls -----------------------------------------------
     // input level meter
-    QString strInpLevH = "<b>" + tr ( "Input Level Meter" ) + ":</b> " +
-                         tr ( "This shows "
-                              "the level of the two stereo channels "
-                              "for your audio input." ) +
-                         "<br>" +
-                         tr ( "Make sure not to clip the input signal to avoid distortions of the "
-                              "audio signal." );
-
-    QString strInpLevHTT = tr ( "If the application "
-                                "is connected to a server and "
-                                "you play your instrument/sing into the microphone, the VU "
-                                "meter should flicker. If this is not the case, you have "
-                                "probably selected the wrong input channel (e.g. 'line in' instead "
-                                "of the microphone input) or set the input gain too low in the "
-                                "(Windows) audio mixer." ) +
-                           "<br>" +
-                           tr ( "For proper usage of the "
-                                "application, you should not hear your singing/instrument through "
-                                "the loudspeaker or your headphone when the software is not connected. "
-                                "This can be achieved by muting your input audio channel in the "
-                                "Playback mixer (not the Recording mixer!)." ) +
-                           TOOLTIP_COM_END_TEXT;
+    // jamony 08-14: 悬停 toolTip 统一（移除 WhatsThis），定稿见 jamsoul说明文本.txt B1
+    QString strInpLev = QStringLiteral(
+        "<b>本地输入电平</b>：显示本地输入信号（麦克风/乐器）强度，左/右两声道。<br>"
+        "• 本地有信号输入时，<font color=\"#BBEE00\">●</font> 电平应跳动；如果未看到跳动，应检查输入连接或提高增益。<br>"
+        "• <font color=\"#FF33AA\">●</font> 顶部消波灯如亮起，应降低本地输入增益。削波灯点击可熄灭，或20s后自动熄灭。" );
 
     QString strInpLevHAccText  = tr ( "Input level meter" );
     QString strInpLevHAccDescr = tr ( "Simulates an analog LED level meter." );
 
-    lblInputLEDMeter->setWhatsThis ( strInpLevH );
+    lblInputLEDMeter->setToolTip ( strInpLev );
+    lblInputLEDMeter->setWhatsThis ( "" );
     lblInputLEDMeter->setText ( "Input" ); // jamony: 英文覆盖翻译(原"输入")
     lblInputLEDMeter->setFixedHeight ( 22 ); // jamony: 高=A栏音频设置按钮(22), 视觉等高
     lblInputLEDMeter->setAlignment ( Qt::AlignHCenter | Qt::AlignTop ); // jamony: 文案顶齐 A栏"音频设置"按钮文案(两文字顶均y=15: Input widget top15 == chbSettings widget12+border1+padding2)
-    lblLevelMeterLeft->setWhatsThis ( strInpLevH );
-    lblLevelMeterRight->setWhatsThis ( strInpLevH );
+    lblLevelMeterLeft->setToolTip ( strInpLev );
+    lblLevelMeterRight->setToolTip ( strInpLev );
     lblLevelMeterLeft->setText ( "L" ); // jamony: 强制英文 L/R, 覆盖中文翻译(左/右)
     lblLevelMeterRight->setText ( "R" );
-    lbrInputLevelL->setWhatsThis ( strInpLevH );
+    lbrInputLevelL->setToolTip ( strInpLev );
+    lbrInputLevelL->setWhatsThis ( "" );
     lbrInputLevelL->setAccessibleName ( strInpLevHAccText );
     lbrInputLevelL->setAccessibleDescription ( strInpLevHAccDescr );
-    lbrInputLevelL->setToolTip ( strInpLevHTT );
     lbrInputLevelL->setEnabled ( false );
     lbrInputLevelL->setFixedWidth ( 18 ); // jamony: 类 UI 同步 C 区分轨电平槽 18（原 sizeHint 20）
-    lbrInputLevelR->setWhatsThis ( strInpLevH );
+    lbrInputLevelR->setToolTip ( strInpLev );
+    lbrInputLevelR->setWhatsThis ( "" );
     lbrInputLevelR->setAccessibleName ( strInpLevHAccText );
     lbrInputLevelR->setAccessibleDescription ( strInpLevHAccDescr );
-    lbrInputLevelR->setToolTip ( strInpLevHTT );
     lbrInputLevelR->setEnabled ( false );
     lbrInputLevelR->setFixedWidth ( 18 ); // jamony: 类 UI 同步 C 区分轨电平槽 18
+    // jamony 08-14: 悬停持续 15s
+    lblInputLEDMeter->setToolTipDuration ( 15000 );
+    lblLevelMeterLeft->setToolTipDuration ( 15000 );
+    lblLevelMeterRight->setToolTipDuration ( 15000 );
+    lbrInputLevelL->setToolTipDuration ( 15000 );
+    lbrInputLevelR->setToolTipDuration ( 15000 );
 
     // reverberation level
     QString strAudReverb = "<b>" + tr ( "Reverb effect" ) + ":</b> " +
@@ -517,88 +507,60 @@ CClientDlg::CClientDlg ( CClient*         pNCliP,
     rbtReverbSelR->setAccessibleName ( tr ( "Right channel selection for reverb" ) );
 
     // delay LED
-    QString strLEDDelay = "<b>" + tr ( "Delay Status LED" ) + ":</b> " + tr ( "Shows the current audio delay status:" ) +
-                          "<ul>"
-                          "<li>"
-                          "<b>" +
-                          tr ( "Green" ) + ":</b> " +
-                          tr ( "The delay is perfect for a jam "
-                               "session." ) +
-                          "</li>"
-                          "<li>"
-                          "<b>" +
-                          tr ( "Yellow" ) + ":</b> " +
-                          tr ( "A session is still possible "
-                               "but it may be harder to play." ) +
-                          "</li>"
-                          "<li>"
-                          "<b>" +
-                          tr ( "Red" ) + ":</b> " +
-                          tr ( "The delay is too large for "
-                               "jamming." ) +
-                          "</li>"
-                          "</ul>";
+    // jamony 08-14: A2 总延迟+灯（定稿见 jamsoul说明文本.txt），合并原 strLEDDelay
+    QString strA2 = QStringLiteral(
+        "<b>总延迟</b>：由当前的Ping、软件缓冲处理组合计算而来，反映实际听感。<br>"
+        "• <font color=\"#71D870\">●</font>：良好<br>"
+        "• <font color=\"#CDCD93\">●</font>：勉强<br>"
+        "• <font color=\"#E2A1AB\">●</font>：较差" );
 
-    lblDelay->setWhatsThis ( strLEDDelay );
-    ledDelay->setWhatsThis ( strLEDDelay );
-    ledDelay->setToolTip ( tr ( "If this LED indicator turns red, "
-                                "you will not have much fun using %1." )
-                               .arg ( APP_NAME ) +
-                           TOOLTIP_COM_END_TEXT );
-
+    lblDelay->setToolTip ( strA2 );
+    lblDelay->setWhatsThis ( "" );
+    ledDelay->setToolTip ( strA2 );
+    ledDelay->setWhatsThis ( "" );
     ledDelay->setAccessibleName ( tr ( "Delay status LED indicator" ) );
+    lblDelay->setToolTipDuration ( 15000 );
+    ledDelay->setToolTipDuration ( 15000 );
 
-    // buffers LED
-    QString strLEDBuffers = "<b>" + tr ( "Local Jitter Buffer Status LED" ) + ":</b> " +
-                            tr ( "The local jitter buffer status LED shows the current audio/streaming "
-                                 "status. If the light is red, the audio stream is interrupted. "
-                                 "This is caused by one of the following problems:" ) +
-                            "<ul>"
-                            "<li>" +
-                            tr ( "The network jitter buffer is not large enough for the current "
-                                 "network/audio interface jitter." ) +
-                            "</li>"
-                            "<li>" +
-                            tr ( "The sound card's buffer delay (buffer size) is too small "
-                                 "(see Settings window)." ) +
-                            "</li>"
-                            "<li>" +
-                            tr ( "The upload or download stream rate is too high for your "
-                                 "internet bandwidth." ) +
-                            "</li>"
-                            "<li>" +
-                            tr ( "The CPU of the client or server is at 100%." ) +
-                            "</li>"
-                            "</ul>";
+    // jamony 08-14: A3 抖动灯（定稿见 jamsoul说明文本.txt），合并原 strLEDBuffers
+    QString strA3 = QStringLiteral(
+        "<b>抖动</b>：网络稳定性，反映音频流是否顺畅。<br>"
+        "• <font color=\"#71D870\">●</font> 绿：稳定流畅<br>"
+        "• <font color=\"#E2A1AB\">●</font> 红：卡顿/中断（网络不稳/带宽不够/服务器占满）" );
 
-    lblBuffers->setWhatsThis ( strLEDBuffers );
-    ledBuffers->setWhatsThis ( strLEDBuffers );
-    ledBuffers->setToolTip ( tr ( "If this LED indicator turns red, "
-                                  "the audio stream is interrupted." ) +
-                             TOOLTIP_COM_END_TEXT );
-
+    lblBuffers->setToolTip ( strA3 );
+    lblBuffers->setWhatsThis ( "" );
+    ledBuffers->setToolTip ( strA3 );
+    ledBuffers->setWhatsThis ( "" );
     ledBuffers->setAccessibleName ( tr ( "Local Jitter Buffer status LED indicator" ) );
+    lblBuffers->setToolTipDuration ( 15000 );
+    ledBuffers->setToolTipDuration ( 15000 );
 
-    // current connection status details
-    QString strConnStats = "<b>" + tr ( "Current Connection Status" ) + ":</b> " +
-                           tr ( "The Ping Time is the time required for the audio "
-                                "stream to travel from the client to the server and back again. This "
-                                "delay is introduced by the network and should be about "
-                                "20-30 ms. If this delay is higher than about 50 ms, your distance to "
-                                "the server is too large or your internet connection is not "
-                                "sufficient." ) +
-                           "<br>" +
-                           tr ( "Overall Delay is calculated from the current Ping Time and the "
-                                "delay introduced by the current buffer settings." );
+    // jamony 08-14: A1 Ping（定稿见 jamsoul说明文本.txt），合并原 strConnStats 的 Ping 部分
+    QString strA1 = QStringLiteral(
+        "<b>Ping（网络延迟）</b>：音频往返服务器的纯网络耗时，反映网络质量（不含软件处理）。<br>"
+        "• 20–30ms：正常<br>"
+        "• &gt;50ms：偏高（可能离服务器远或网络不够好；WiFi不稳建议换有线）" );
 
-    lblPing->setWhatsThis ( strConnStats );
-    lblPingVal->setWhatsThis ( strConnStats );
-    lblDelay->setWhatsThis ( strConnStats );
-    lblDelayVal->setWhatsThis ( strConnStats );
+    lblPing->setToolTip ( strA1 );
+    lblPing->setWhatsThis ( "" );
+    lblPingVal->setToolTip ( strA1 );
+    lblPingVal->setWhatsThis ( "" );
+    lblPingUnit->setToolTip ( strA1 );
+    lblPingUnit->setWhatsThis ( "" );
+    lblDelayVal->setToolTip ( strA2 );
+    lblDelayVal->setWhatsThis ( "" );
+    lblDelayUnit->setToolTip ( strA2 );
+    lblDelayUnit->setWhatsThis ( "" );
     lblPingVal->setText ( "---" );
     lblPingUnit->setText ( "" );
     lblDelayVal->setText ( "---" );
     lblDelayUnit->setText ( "" );
+    lblPing->setToolTipDuration ( 15000 );
+    lblPingVal->setToolTipDuration ( 15000 );
+    lblPingUnit->setToolTipDuration ( 15000 );
+    lblDelayVal->setToolTipDuration ( 15000 );
+    lblDelayUnit->setToolTipDuration ( 15000 );
 
     // init GUI design
     SetGUIDesign ( pClient->GetGUIDesign() );
@@ -2107,6 +2069,10 @@ void CClientDlg::SetGUIDesign ( const EGUIDesign eNewDesign )
     frameLocalMute->setFixedWidth ( 37 ); // jamony: frameLocalMute 同步 37
     chbLocalMute->setFixedHeight ( 22 ); // jamony: M按钮高=butAutoAdjust(22)
     frameLocalMute->setStyleSheet ( "" ); // jamony: 去外框, 只M按钮
+    // jamony 08-14: B2 M按钮悬停（定稿见 jamsoul说明文本.txt）
+    chbLocalMute->setToolTip ( QStringLiteral(
+        "<b>M（本地输入静音）</b>：切断本地信号上传，电平仍跳动、你仍可听到自己（本地声卡监听），但其他用户听不到你。" ) );
+    chbLocalMute->setToolTipDuration ( 15000 );
     // jamony 统一5px间距方案（详见 plan quirky-wobbling-stream）
     // 步骤1 AB两侧: horizontalLayout spacing 默认3→5(ping→AB) + vboxLayout 左margin 2→0(AB→B栏 配合 spacing5=5)
     // 步骤2 BC两侧: horizontalLayout_2 spacing 6→5(B栏→BC) + horizontalLayout_3 spacing→5(BC→C区, 原16)

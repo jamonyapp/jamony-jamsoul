@@ -282,55 +282,67 @@ CChannelFader::CChannelFader ( QWidget* pNW ) :
     Reset();
 
     // add help text to controls
-    plbrChannelLevel->setWhatsThis ( "<b>" + tr ( "Channel Level" ) + ":</b> " +
-                                     tr ( "Displays the pre-fader audio level of this channel.  All clients connected to the "
-                                          "server will be assigned an audio level, the same value for every client." ) );
-    plbrChannelLevel->setAccessibleName ( tr ( "Input level of the current audio "
-                                               "channel at the server" ) );
+    // jamony 08-14: C区悬停 toolTip 统一（移除 WhatsThis），定稿见 jamsoul说明文本.txt
+    QString strC12 = QStringLiteral(
+        "<b>IN电平</b>：该用户的输入音量，由该用户本地输入信号强度决定，不受控于右侧推子。<br>"
+        "<b>OUT推子</b>：调整该用户在本地听到的音量，不影响其他用户。<br>"
+        "• <font color=\"#FF33AA\">●</font> 如果IN电平顶部的消波灯亮起，则应提醒该用户降低其本地输入增益，削波灯点击可熄灭，或20s后自动熄灭。<br>"
+        "• 该用户有信号输入时，<font color=\"#BBEE00\">●</font> 电平应跳动；如果未看到跳动，应提醒该用户检查输入连接、是否本地静音或提高增益。" );
+    QString strC3 = QStringLiteral(
+        "<b>Pan（声像）</b>：左右拖动可调整该用户在本地播放时的声像。" );
+    QString strC45 = QStringLiteral(
+        "<font color=\"#FF33AA\">●</font> <b>M</b>：在本地静音这位用户，不影响其他用户听到的。<br>"
+        "<font color=\"#BBEE00\">●</font> <b>S</b>：在本地独奏这位用户，不影响其他用户听到的。<br>"
+        "• M与S如同时点亮，则静音优先。" );
+    QString strC6 = QStringLiteral(
+        "<b>Grp（分组）</b>：把多个用户编为一组，拖动组内任一推子，其他推子同步联动。" );
 
-    pFader->setWhatsThis ( "<b>" + tr ( "Mixer Fader" ) + ":</b> " +
-                           tr ( "Adjusts the audio level of this channel. All clients connected to the server "
-                                "will be assigned an audio fader, displayed at each client, to adjust the local mix." ) );
-    pFader->setAccessibleName ( tr ( "Local mix level setting of the current audio "
-                                     "channel at the server" ) );
+    // C1+C2 电平表+推子（IN/OUT 标签也弹同一条）
+    plbrChannelLevel->setToolTip ( strC12 );
+    plbrChannelLevel->setWhatsThis ( "" );
+    plbrChannelLevel->setAccessibleName ( tr ( "Input level of the current audio channel at the server" ) );
+    pFader->setToolTip ( strC12 );
+    pFader->setWhatsThis ( "" );
+    pFader->setAccessibleName ( tr ( "Local mix level setting of the current audio channel at the server" ) );
+    plblInTag->setToolTip ( strC12 );
+    plblOutTag->setToolTip ( strC12 );
+    plbrChannelLevel->setToolTipDuration ( 15000 );
+    pFader->setToolTipDuration ( 15000 );
+    plblInTag->setToolTipDuration ( 15000 );
+    plblOutTag->setToolTipDuration ( 15000 );
 
-    pInfoLabel->setWhatsThis ( "<b>" + tr ( "Status Indicator" ) + ":</b> " +
-                               tr ( "Shows a status indication about the client which is assigned to this channel. "
-                                    "Supported indicators are:" ) +
-                               "<ul><li>" + tr ( "Speaker with cancellation stroke: Indicates that another client has muted you." ) + "</li></ul>" );
+    // pInfoLabel 保持隐藏，清 WhatsThis
+    pInfoLabel->setWhatsThis ( "" );
     pInfoLabel->setAccessibleName ( tr ( "Status indicator label" ) );
 
-    pPan->setWhatsThis ( "<b>" + tr ( "Panning" ) + ":</b> " +
-                         tr ( "Sets the pan from Left to Right of the channel. "
-                              "Works only in stereo or preferably mono in/stereo out mode." ) );
+    // C3 Pan
+    pPan->setToolTip ( strC3 );
+    pPan->setWhatsThis ( "" );
     pPan->setAccessibleName ( tr ( "Local panning position of the current audio channel at the server" ) );
+    pPan->setToolTipDuration ( 15000 );
 
-    pcbMute->setWhatsThis ( "<b>" + tr ( "Mute" ) + ":</b> " + tr ( "With the Mute checkbox, the audio channel can be muted." ) );
+    // C4+C5 M+S（同一条）
+    pcbMute->setToolTip ( strC45 );
+    pcbMute->setWhatsThis ( "" );
     pcbMute->setAccessibleName ( tr ( "Mute button" ) );
-
-    pcbSolo->setWhatsThis ( "<b>" + tr ( "Solo" ) + ":</b> " +
-                            tr ( "With the Solo checkbox, the "
-                                 "audio channel can be set to solo which means that all other channels "
-                                 "except the soloed channel are muted. It is possible to set more than "
-                                 "one channel to solo." ) );
+    pcbSolo->setToolTip ( strC45 );
+    pcbSolo->setWhatsThis ( "" );
     pcbSolo->setAccessibleName ( tr ( "Solo button" ) );
+    pcbMute->setToolTipDuration ( 15000 );
+    pcbSolo->setToolTipDuration ( 15000 );
 
-    pcbGroup->setWhatsThis ( "<b>" + tr ( "Group" ) + ":</b> " +
-                             tr ( "With the Grp checkbox, a "
-                                  "group of audio channels can be defined. All channel faders in a group are moved "
-                                  "in proportional synchronization if any one of the group faders are moved." ) );
+    // C6 Grp
+    pcbGroup->setToolTip ( strC6 );
+    pcbGroup->setWhatsThis ( "" );
     pcbGroup->setAccessibleName ( tr ( "Group button" ) );
+    pcbGroup->setToolTipDuration ( 15000 );
 
-    QString strFaderText = "<b>" + tr ( "Fader Tag" ) + ":</b> " +
-                           tr ( "The fader tag "
-                                "identifies the connected client. The tag name, a picture of your "
-                                "instrument and the flag of your location can be set in the main window." );
-
-    plblInstrument->setWhatsThis ( strFaderText );
+    // 用户名框：移除 WhatsThis(Fader Tag)
+    plblInstrument->setWhatsThis ( "" );
     plblInstrument->setAccessibleName ( tr ( "Mixer channel instrument picture" ) );
-    plblLabel->setWhatsThis ( strFaderText );
+    plblLabel->setWhatsThis ( "" );
     plblLabel->setAccessibleName ( tr ( "Mixer channel label (fader tag)" ) );
-    plblCountryFlag->setWhatsThis ( strFaderText );
+    plblCountryFlag->setWhatsThis ( "" );
     plblCountryFlag->setAccessibleName ( tr ( "Mixer channel country/region flag" ) );
 
     // Connections -------------------------------------------------------------
@@ -1023,11 +1035,9 @@ void CChannelFader::SetChannelInfos ( const CChannelInfo& cChanInfo )
         strToolTip.prepend ( "<h3>" + tr ( "Musician Profile" ) + "</h3>" );
     }
 
-    plblCountryFlag->setToolTip ( strToolTip );
+    // jamony 08-14: 用户名框移除 toolTip（Musician Profile），定稿见 jamsoul说明文本.txt 配置项
     plblCountryFlag->setAccessibleDescription ( strLocationAccessible );
-    plblInstrument->setToolTip ( strToolTip );
     plblInstrument->setAccessibleDescription ( strInstrumentAccessible );
-    plblLabel->setToolTip ( strToolTip );
     plblLabel->setAccessibleName ( strAliasAccessible );
     plblLabel->setAccessibleDescription ( tr ( "Alias" ) );
     pcbMute->setAccessibleName ( "Mute " + strAliasAccessible + ", " + strInstrumentAccessible );
@@ -1060,10 +1070,8 @@ CAudioMixerBoard::CAudioMixerBoard ( QWidget* parent ) :
     pMainLayout                  = new QGridLayout ( pMixerWidget );
 
     setAccessibleName ( "Personal Mix at the Server groupbox" );
-    setWhatsThis ( "<b>" + tr ( "Personal Mix at the Server" ) + ":</b> " +
-                   tr ( "When connected to a server, the controls here allow you to set your "
-                        "local mix without affecting what others hear from you. The title shows "
-                        "the server name and, when known, whether it is actively recording." ) );
+    // jamony 08-14: 移除 MainMixerBoard「位于服务器的个人混音室」whatsThis（定稿见 jamsoul说明文本.txt 配置项）
+    setWhatsThis ( "" );
 
     // set title text (default: no server given)
     SetServerName ( "" );

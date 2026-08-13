@@ -861,6 +861,10 @@ int main ( int argc, char** argv )
             pal.setColor ( QPalette::Inactive, role, pal.color ( QPalette::Active, role ) );
         }
         static_cast<QApplication*> ( pApp )->setPalette ( pal );
+        // jamony 08-14: 全局 QToolTip 样式（jamony 黑底，所有 toolTip 统一风格，定稿见 jamsoul说明文本.txt）
+        static_cast<QApplication*> ( pApp )->setStyleSheet (
+            "QToolTip { background-color: #0d0d0d; color: #e5e5e5; "
+            "border: 1px solid #2a2a2a; border-radius: 4px; padding: 6px; font: 13px; }" );
     }
 #endif
 
