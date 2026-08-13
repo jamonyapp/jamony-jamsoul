@@ -52,6 +52,9 @@
 #include "jamonyrackwidgets.h"
 
 #include <QWindow>
+#include <QApplication> // jamony 08-14: qApp->installEventFilter (全局 tooltip 开关)
+#include <QPainter>     // jamony 08-14: closeEvent 弹窗自定义三角感叹号 icon
+#include <QPainterPath>
 #ifdef Q_OS_MACOS
 #include <objc/runtime.h>
 #include <objc/message.h>
@@ -263,6 +266,7 @@ CClientDlg::CClientDlg ( CClient*         pNCliP,
         JamonyFader* f = new JamonyFader ( Qt::Vertical, pEqRow );
         f->setRange ( 0, AUD_EQ_MAX );
         f->setValue ( pClient->GetEqBand ( i ) );
+        f->setDefaultValue ( AUD_EQ_MAX / 2 ); // jamony 08-14: 双击回居中(0dB)
         f->setLabel ( QString::fromLatin1 ( eqBands[i] ) );
         f->setAccent ( QColor ( "#cc33d4" ) );
         f->setDisplay ( eqDbDisplay );
@@ -277,6 +281,7 @@ CClientDlg::CClientDlg ( CClient*         pNCliP,
         JamonyFader* f = new JamonyFader ( Qt::Vertical, pEqRow );
         f->setRange ( 0, AUD_EQ_MAX );
         f->setValue ( value );
+        f->setDefaultValue ( AUD_EQ_MAX / 2 ); // jamony 08-14: 双击回居中(0dB)
         f->setLabel ( label );
         f->setAccent ( QColor ( "#cc33d4" ) );
         f->setDisplay ( eqDbDisplay );
@@ -408,6 +413,7 @@ CClientDlg::CClientDlg ( CClient*         pNCliP,
     JamonyFader* pReverbMix = new JamonyFader ( Qt::Horizontal, pReverbMixRow );
     pReverbMix->setRange ( 0, AUD_REVERB_MAX );
     pReverbMix->setValue ( pClient->GetReverbLevel() );
+    pReverbMix->setDefaultValue ( AUD_REVERB_MAX / 2 ); // jamony 08-14: 双击回居中
     pReverbMix->setLabel ( tr ( "Mix" ) );
     pReverbMix->setAccent ( QColor ( "#bbee00" ) );
     pReverbMix->setDisplay ( [] ( int v ) { return QString::number ( v ); } );
@@ -1229,11 +1235,24 @@ void CClientDlg::OnIpcRaise()
 #endif
 }
 
+bool CClientDlg::eventFilter ( QObject* Obj, QEvent* Event )
+{
+    // jamony 08-14: 全局 tooltip 开关 (bShowToolTip=false 时吞掉所有 ToolTip 事件, 定稿见 jamsoul说明文本.txt)
+    if ( Event->type() == QEvent::ToolTip && pSettings && !pSettings->bShowToolTip )
+    {
+        return true;
+    }
+    return CBaseDlg::eventFilter ( Obj, Event );
+}
+
 void CClientDlg::showEvent ( QShowEvent* Event )
 {
     // jamony: 首次显示后 dump 完整布局树到 /tmp/jamsoul-layout-dump.txt（UI 调试基建）
     // 用 singleShot(0) 等首帧 layout 完成，此时 geometry/sizeHint 是真实值
     Q_UNUSED ( Event )
+
+    // jamony 08-14: 装全局 eventFilter (拦截 ToolTip 事件, 受 bShowToolTip 开关控制)
+    qApp->installEventFilter ( this );
 
     // jamony BUG1: butAutoAdjust 被 MainMixerBoard(QGroupBox) 顶部盖住下边框 3px
     // (dump 实测 butAutoAdjust y12~34 与 MainMixerBoard y31~ 重叠 31~34)。
@@ -1261,9 +1280,37 @@ void CClientDlg::closeEvent ( QCloseEvent* Event )
     // jamony: 连接中时弹确认（防误关 jamsoul）；统一文案告知后果（唯一合奏者将解散，路由由前端判定）
     if ( pClient->IsRunning() )
     {
-        QMessageBox::StandardButton reply = QMessageBox::question ( this, tr ( "退出 jamsoul" ),
-            tr ( "退出 jamsoul 将断开音频连接，若你是唯一合奏者将解散房间，确认退出？" ), QMessageBox::Yes | QMessageBox::No, QMessageBox::No );
-        if ( reply != QMessageBox::Yes )
+        QMessageBox msgbox ( this );
+        msgbox.setWindowTitle ( tr ( "退出 jamsoul" ) );
+        msgbox.setText ( tr ( "退出 jamsoul 将断开音频连接，若你是唯一合奏者将解散房间，确认退出？" ) );
+        msgbox.setStandardButtons ( QMessageBox::Yes | QMessageBox::No );
+        msgbox.setDefaultButton ( QMessageBox::No );
+        // jamony 08-14: 仿 jamony 本体 disconnect-dialog 的 lucide AlertTriangle(线框三角+感叹号, #FF5C5C)
+        QPixmap pix ( 64, 64 );
+        pix.fill ( Qt::transparent );
+        QPainter p ( &pix );
+        p.setRenderHint ( QPainter::Antialiasing );
+        const QColor c ( "#FF5C5C" );
+        // jamony 08-14: 圆角三角(quadTo 三角圆弧 r=7, 仿 lucide linejoin round), pen 3 细; 感叹号居中不碰框
+        QPainterPath tri;
+        tri.moveTo ( 35.2, 16.2 );
+        tri.lineTo ( 50.8, 45.8 );
+        tri.quadTo ( QPointF ( 54, 52 ), QPointF ( 47, 52 ) );
+        tri.lineTo ( QPointF ( 17, 52 ) );
+        tri.quadTo ( QPointF ( 10, 52 ), QPointF ( 13.2, 45.8 ) );
+        tri.lineTo ( QPointF ( 28.8, 16.2 ) );
+        tri.quadTo ( QPointF ( 32, 10 ), QPointF ( 35.2, 16.2 ) );
+        p.setPen ( QPen ( c, 3, Qt::SolidLine, Qt::RoundCap, Qt::RoundJoin ) );
+        p.setBrush ( Qt::NoBrush );
+        p.drawPath ( tri );
+        p.setPen ( QPen ( c, 3.5, Qt::SolidLine, Qt::RoundCap ) );
+        p.drawLine ( QPointF ( 32, 24 ), QPointF ( 32, 40 ) );
+        p.setBrush ( c );
+        p.setPen ( Qt::NoPen );
+        p.drawEllipse ( QPointF ( 32, 45 ), 2.2, 2.2 );
+        p.end ();
+        msgbox.setIconPixmap ( pix );
+        if ( msgbox.exec() != QMessageBox::Yes )
         {
             Event->ignore();
             return;

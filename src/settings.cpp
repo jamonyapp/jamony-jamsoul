@@ -460,6 +460,12 @@ void CClientSettings::ReadSettingsFromXML ( const QDomDocument& IniXMLDocument, 
         bEnableAudioAlerts = bValue;
     }
 
+    // show tool tip (jamony 08-14: 全局悬停提示开关)
+    if ( GetFlagIniSet ( IniXMLDocument, "client", "showtooltip", bValue ) )
+    {
+        bShowToolTip = bValue;
+    }
+
     // name
     pClient->ChannelInfo.strName = FromBase64ToString (
         GetIniSetting ( IniXMLDocument, "client", "name_base64", ToBase64 ( QCoreApplication::translate ( "CMusProfDlg", "No Name" ) ) ) );
@@ -1057,6 +1063,9 @@ void CClientSettings::WriteSettingsToXML ( QDomDocument& IniXMLDocument, bool is
 
     // audio alerts
     SetFlagIniSet ( IniXMLDocument, "client", "enableaudioalerts", bEnableAudioAlerts );
+
+    // show tool tip (jamony 08-14: 全局悬停提示开关)
+    SetFlagIniSet ( IniXMLDocument, "client", "showtooltip", bShowToolTip );
 
     // name
     PutIniSetting ( IniXMLDocument, "client", "name_base64", ToBase64 ( pClient->ChannelInfo.strName ) );

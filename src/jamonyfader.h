@@ -25,6 +25,8 @@ public:
     void setRange ( int iMin, int iMax );
     void setValue ( int iValue );
     int  value() const { return m_iValue; }
+    void setDefaultValue ( int iValue ) { m_iDefaultValue = iValue; } // jamony 08-14: 双击复位值(-1=禁用双击, boost 用)
+    int  defaultValue() const { return m_iDefaultValue; }
     void setLabel ( const QString& s ) { m_strLabel = s; update(); }
     void setAccent ( const QColor& c ) { m_accent = c; update(); }
     void setActive ( bool on ) { m_bActive = on; update(); }
@@ -39,6 +41,7 @@ protected:
     void mousePressEvent ( QMouseEvent* ) override;
     void mouseMoveEvent ( QMouseEvent* ) override;
     void mouseReleaseEvent ( QMouseEvent* ) override;
+    void mouseDoubleClickEvent ( QMouseEvent* ) override; // jamony 08-14: 双击复位
     void enterEvent ( QEnterEvent* ) override;
     void leaveEvent ( QEvent* ) override;
     QSize sizeHint() const override;
@@ -53,6 +56,7 @@ private:
     int     m_iMin = 0;
     int     m_iMax = 100;
     int     m_iValue = 0;
+    int     m_iDefaultValue = -1; // jamony 08-14: 双击复位值(-1=禁用, boost 推子不设)
     int     m_iGrooveLen = 96;       // V: groove 高度; H: 忽略(用宽度)
     int     m_iPressPos = 0;
     int     m_iPressValue = 0;

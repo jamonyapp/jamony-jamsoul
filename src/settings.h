@@ -179,6 +179,7 @@ public:
         eDirectoryType ( AT_DEFAULT ),
         bEnableFeedbackDetection ( true ),
         bEnableAudioAlerts ( false ),
+        bShowToolTip ( true ), // jamony 08-14: 全局悬停提示开关(默认开, 新手友好)
         vecWindowPosSettings(), // empty array
         vecWindowPosChat(),     // empty array
         vecWindowPosConnect(),  // empty array
@@ -252,6 +253,7 @@ public:
     int              iCustomDirectoryIndex; // index of selected custom directory
     bool             bEnableFeedbackDetection;
     bool             bEnableAudioAlerts;
+    bool             bShowToolTip; // jamony 08-14: 全局悬停提示开关
 
     // window position/state settings
     QByteArray vecWindowPosSettings;

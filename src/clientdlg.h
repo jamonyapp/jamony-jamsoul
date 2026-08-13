@@ -151,6 +151,7 @@ protected:
     virtual void closeEvent ( QCloseEvent* Event );
     virtual void dragEnterEvent ( QDragEnterEvent* Event ) { ManageDragNDrop ( Event, true ); }
     virtual void dropEvent ( QDropEvent* Event ) { ManageDragNDrop ( Event, false ); }
+    bool         eventFilter ( QObject* Obj, QEvent* Event ) override; // jamony 08-14: 全局 tooltip 开关拦截
     void         UpdateDisplay();
 
     CClientSettingsDlg ClientSettingsDlg;

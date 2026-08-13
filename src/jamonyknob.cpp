@@ -224,10 +224,11 @@ void JamonyKnob::mouseReleaseEvent ( QMouseEvent* e )
 
 void JamonyKnob::mouseDoubleClickEvent ( QMouseEvent* e )
 {
-    // 双击回默认值（VST 惯例）
-    if ( m_iValue != m_iDefaultValue )
+    // jamony 08-14: 双击回居中(12点)默认值
+    const int iMid = ( m_iMin + m_iMax ) / 2;
+    if ( m_iValue != iMid )
     {
-        m_iValue = m_iDefaultValue;
+        m_iValue = iMid;
         update();
         emit valueChanged ( m_iValue );
     }

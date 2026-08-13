@@ -227,6 +227,18 @@ void JamonyFader::leaveEvent ( QEvent* )
     scheduleRevert();
 }
 
+void JamonyFader::mouseDoubleClickEvent ( QMouseEvent* e )
+{
+    // jamony 08-14: 双击回默认值(居中); m_iDefaultValue<0 则禁用(boost 推子)
+    if ( m_iDefaultValue >= 0 && m_iValue != m_iDefaultValue )
+    {
+        m_iValue = m_iDefaultValue;
+        update();
+        emit valueChanged ( m_iValue );
+    }
+    e->accept();
+}
+
 void JamonyFader::mousePressEvent ( QMouseEvent* e )
 {
     if ( e->button() == Qt::LeftButton )

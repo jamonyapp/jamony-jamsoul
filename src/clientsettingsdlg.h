@@ -120,6 +120,7 @@ public slots:
     void OnGUIDesignActivated ( int iDesignIdx );
     void OnMeterStyleActivated ( int iMeterStyleIdx );
     void OnAudioAlertsChanged ( int value );
+    void OnShowToolTipChanged ( int value ); // jamony 08-14: 全局悬停提示开关
     void OnLanguageChanged ( QString strLanguage ) { pSettings->strLanguage = strLanguage; }
     void OnAliasTextChanged ( const QString& strNewName );
     void OnInstrumentActivated ( int iCntryListItem );

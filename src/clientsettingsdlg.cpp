@@ -426,6 +426,11 @@ CClientSettingsDlg::CClientSettingsDlg ( CClient* pNCliP, CClientSettings* pNSet
                                         "A second sound device may be required to hear the alerts." ) );
     chbAudioAlerts->setAccessibleName ( tr ( "Audio Alerts check box" ) );
 
+    // show tool tip (jamony 08-14: 全局悬停提示开关)
+    chbShowToolTip->setToolTip ( QStringLiteral(
+        "<b>显示悬停提示</b>：开启后鼠标悬停组件会弹出说明；关闭则全局不再弹出（适合已熟悉的用户）。" ) );
+    chbShowToolTip->setAccessibleName ( QStringLiteral ( "显示悬停提示" ) );
+
     // MIDI settings
     grbMidiControls->setWhatsThis ( tr ( "Enable/disable MIDI-in port" ) );
     grbMidiControls->setAccessibleName ( tr ( "MIDI-in port check box" ) );
@@ -566,6 +571,9 @@ CClientSettingsDlg::CClientSettingsDlg ( CClient* pNCliP, CClientSettings* pNSet
 
     // init audio alerts
     chbAudioAlerts->setCheckState ( pSettings->bEnableAudioAlerts ? Qt::Checked : Qt::Unchecked );
+
+    // init show tool tip (jamony 08-14)
+    chbShowToolTip->setCheckState ( pSettings->bShowToolTip ? Qt::Checked : Qt::Unchecked );
 
     // update feedback detection
     chbDetectFeedback->setCheckState ( pSettings->bEnableFeedbackDetection ? Qt::Checked : Qt::Unchecked );
@@ -731,6 +739,7 @@ CClientSettingsDlg::CClientSettingsDlg ( CClient* pNCliP, CClientSettings* pNSet
     QObject::connect ( chbDetectFeedback, &QCheckBox::stateChanged, this, &CClientSettingsDlg::OnFeedbackDetectionChanged );
 
     QObject::connect ( chbAudioAlerts, &QCheckBox::stateChanged, this, &CClientSettingsDlg::OnAudioAlertsChanged );
+    QObject::connect ( chbShowToolTip, &QCheckBox::stateChanged, this, &CClientSettingsDlg::OnShowToolTipChanged );
 
     // line edits
     QObject::connect ( edtNewClientLevel, &QLineEdit::editingFinished, this, &CClientSettingsDlg::OnNewClientLevelEditingFinished );
@@ -1280,6 +1289,8 @@ void CClientSettingsDlg::OnMeterStyleActivated ( int iMeterStyleIdx )
 }
 
 void CClientSettingsDlg::OnAudioAlertsChanged ( int value ) { pSettings->bEnableAudioAlerts = value == Qt::Checked; }
+
+void CClientSettingsDlg::OnShowToolTipChanged ( int value ) { pSettings->bShowToolTip = value == Qt::Checked; }
 
 void CClientSettingsDlg::OnAutoJitBufStateChanged ( int value )
 {
