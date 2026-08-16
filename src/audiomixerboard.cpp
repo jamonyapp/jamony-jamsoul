@@ -1092,7 +1092,7 @@ CAudioMixerBoard::CAudioMixerBoard ( QWidget* parent ) :
 
     // set margins of the layout to zero to get maximum space for the controls
     pGroupBoxLayout->setContentsMargins ( 0, 0, 0, 1 ); // note: to avoid problems at the bottom, use a small margin for that
-    pMainLayout->setContentsMargins ( 0, 4, 12, 12 ); // jamony 08-12: 回退 right 0→12 (c5ec5295 状态)
+    pMainLayout->setContentsMargins ( 0, 4, 0, 12 ); // jamony 08-17 二轮: right 12→0 —— C区右距33→12(板内右margin砍掉, 分轨内容右缘紧贴板缘; 底12保留防滚动条贴底)
 
     // add the group box to the scroll area
     pScrollArea->setMinimumWidth ( 0 ); // jamony: 板宽由 MainMixerBoard setMinimumWidth 控制(2轨最小), 不强制200
@@ -1373,20 +1373,20 @@ void CAudioMixerBoard::ChangeFaderOrder ( const EChSortType eChSortType )
     // jamony 08-17: 拖拽逻辑照抄 jamulus 原版 —— A/B 栏写死, 拖宽只喂 C 区。
     // MainMixerBoard 只设最小宽(=2轨: 自己+jamony-looper 保证完整显示), 不再 setFixedWidth 锁死、
     // 不再随分轨数自动加宽窗口; 多余宽度全部被板内网格尾部 Expanding spacer 吸收(分轨永远64宽, 空隙堆最右轨右侧)。
-    // 窗口最小宽 = 左359 + 2轨最小板宽(151), 用户不可拖窄; 程序启动后不再自动改窗口宽度(宽度归用户拖拽管)。
-    const int iMixerMinWidth = 2 * 64 + 5 + 18; // 2轨128 + 间距5 + 余量18 (与 c5ec5295 的 2 轨板宽 151 一致)
+    // 窗口最小宽 = 左356 + 2轨最小板宽(133), 用户不可拖窄; 程序启动后不再自动改窗口宽度(宽度归用户拖拽管)。
+    const int iMixerMinWidth = 2 * 64 + 5; // 08-17 二轮: 2轨128 + 间距5 = 133, 板净宽(砍18余量; 配 pMainLayout右margin 12→0)
     setMinimumWidth ( iMixerMinWidth );
     // jamony 08-17: 水平滚动条 AsNeeded —— 视口装不下分轨自动出现, 刚好装下自动消失(拖宽看全部分轨场景)
     pScrollArea->setHorizontalScrollBarPolicy ( Qt::ScrollBarAsNeeded );
     // jamony 08-17: 默认宽=最小宽(2轨), 首次调用一次性设定(启动场景); 之后永不 resize(窗口宽度归用户拖拽管, 人进人出不碰)
     if ( QWidget* pw = window() )
     {
-        const int iMinWinWidth = 359 + iMixerMinWidth; // 359 = 左12 + A栏272 + 间距5 + B栏38 + 间距5 + BC线 + vl5右12 + hbox右3 (c5ec5295 常数, 2轨窗口510)
+        const int iMinWinWidth = 356 + iMixerMinWidth; // 356 = 左12 + A栏272 + 间距5 + B栏38 + 间距5 + BC线 + vl5右12 (hbox右margin已改0, 原359); 2轨窗口489, looper右距窗口右框=12与左镜像
         pw->setMinimumWidth ( iMinWinWidth );          // 锁死: 不可向左拖窄
         if ( !bDefaultWidthApplied )
         {
             bDefaultWidthApplied = true;
-            pw->resize ( iMinWinWidth, pw->height() ); // .ui 初始 511 → 拉到最小宽 510, 保证默认态=最小态=2轨完整
+            pw->resize ( iMinWinWidth, pw->height() ); // .ui 初始 511 → 拉到最小宽 489, 保证默认态=最小态=2轨完整
         }
     }
 }
