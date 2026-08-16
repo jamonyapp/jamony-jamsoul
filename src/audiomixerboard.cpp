@@ -1095,12 +1095,12 @@ CAudioMixerBoard::CAudioMixerBoard ( QWidget* parent ) :
     pMainLayout->setContentsMargins ( 0, 4, 12, 12 ); // jamony 08-12: 回退 right 0→12 (c5ec5295 状态)
 
     // add the group box to the scroll area
-    pScrollArea->setMinimumWidth ( 0 ); // jamony: 宽度由 MainMixerBoard setFixedWidth 控制(跟随fader数), 不强制200
+    pScrollArea->setMinimumWidth ( 0 ); // jamony: 板宽由 MainMixerBoard setMinimumWidth 控制(2轨最小), 不强制200
     pScrollArea->setWidget ( pMixerWidget );
     pScrollArea->setWidgetResizable ( true ); // make sure it fills the entire scroll area
     pScrollArea->setFrameShape ( QFrame::NoFrame );
-    pScrollArea->setHorizontalScrollBarPolicy ( Qt::ScrollBarAlwaysOff ); // jamony: 初始隐藏, ChangeFaderOrder 按分轨数动态切常驻
-    // jamony: 水平滚动条 styled 常驻(绕过 macOS overlay 自动隐藏), 深色配 jamsoul
+    pScrollArea->setHorizontalScrollBarPolicy ( Qt::ScrollBarAsNeeded ); // jamony 08-17: AsNeeded —— 装不下自动出现, 装下自动消失(与 ChangeFaderOrder 一致)
+    // jamony: 水平滚动条 styled(深色配 jamsoul)
     pScrollArea->horizontalScrollBar()->setStyleSheet(
         "QScrollBar:horizontal { background: transparent; height: 10px; border: none; margin: 0; }"
         "QScrollBar::handle:horizontal { background: #555; min-width: 28px; border-radius: 3px; margin: 1px; }"
@@ -1370,14 +1370,25 @@ void CAudioMixerBoard::ChangeFaderOrder ( const EChSortType eChSortType )
         }
     }
 
-    // jamony: group box 宽度跟随可见 fader 数（最多4列），窗口只缩宽度不缩高度（高度由 AppleScript 设 jamony 等高）
-    const int iMaxVisible = qMin ( iNumVisibleFaders, 4 ); // jamony: 封顶4(默认展示2,每增1扩充,到4不再增,第5个出水平滚动条)
-    const int iMixerWidth = iMaxVisible * 64 + ( iMaxVisible > 0 ? ( iMaxVisible - 1 ) * 5 : 0 ) + 18; // jamony 08-12: 回退 +18 余量 (c5ec5295 状态; MainMixerBoard 2轨151, looper右距33)
-    setFixedWidth ( iMixerWidth );
-    // jamony: 水平滚动条——分轨数超过封顶列数时常驻(AlwaysOn, 非macOS overlay 隐藏), 否则隐藏
-    pScrollArea->setHorizontalScrollBarPolicy ( iNumVisibleFaders > iMaxVisible ? Qt::ScrollBarAlwaysOn : Qt::ScrollBarAlwaysOff );
-    // jamony 统一5px: 窗口宽度（历史371, 步骤2 spacing缩-12 → 359; 步骤3 iMixerWidth 再-12）
-    if ( QWidget* pw = window() ) pw->resize ( 359 + iMixerWidth, pw->height() );
+    // jamony 08-17: 拖拽逻辑照抄 jamulus 原版 —— A/B 栏写死, 拖宽只喂 C 区。
+    // MainMixerBoard 只设最小宽(=2轨: 自己+jamony-looper 保证完整显示), 不再 setFixedWidth 锁死、
+    // 不再随分轨数自动加宽窗口; 多余宽度全部被板内网格尾部 Expanding spacer 吸收(分轨永远64宽, 空隙堆最右轨右侧)。
+    // 窗口最小宽 = 左359 + 2轨最小板宽(151), 用户不可拖窄; 程序启动后不再自动改窗口宽度(宽度归用户拖拽管)。
+    const int iMixerMinWidth = 2 * 64 + 5 + 18; // 2轨128 + 间距5 + 余量18 (与 c5ec5295 的 2 轨板宽 151 一致)
+    setMinimumWidth ( iMixerMinWidth );
+    // jamony 08-17: 水平滚动条 AsNeeded —— 视口装不下分轨自动出现, 刚好装下自动消失(拖宽看全部分轨场景)
+    pScrollArea->setHorizontalScrollBarPolicy ( Qt::ScrollBarAsNeeded );
+    // jamony 08-17: 默认宽=最小宽(2轨), 首次调用一次性设定(启动场景); 之后永不 resize(窗口宽度归用户拖拽管, 人进人出不碰)
+    if ( QWidget* pw = window() )
+    {
+        const int iMinWinWidth = 359 + iMixerMinWidth; // 359 = 左12 + A栏272 + 间距5 + B栏38 + 间距5 + BC线 + vl5右12 + hbox右3 (c5ec5295 常数, 2轨窗口510)
+        pw->setMinimumWidth ( iMinWinWidth );          // 锁死: 不可向左拖窄
+        if ( !bDefaultWidthApplied )
+        {
+            bDefaultWidthApplied = true;
+            pw->resize ( iMinWinWidth, pw->height() ); // .ui 初始 511 → 拉到最小宽 510, 保证默认态=最小态=2轨完整
+        }
+    }
 }
 
 void CAudioMixerBoard::UpdateTitle()

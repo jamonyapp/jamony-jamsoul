@@ -100,6 +100,8 @@ CClientDlg::CClientDlg ( CClient*         pNCliP,
     // jamony: 效果器滚动区 (7 Pedal; 标题卡/pingWrap/butAutoAdjust 固定不滚动)
     m_pRackScroll = new QScrollArea ( this );
     m_pRackScroll->setWidgetResizable ( true );
+    m_pRackScroll->setFixedWidth ( 272 ); // jamony 08-17: A 栏写死 272 —— 不钉死则拖宽窗口时 Expanding 抢宽(A/B 栏永远不动)
+    m_pRackScroll->setSizePolicy ( QSizePolicy::Fixed, QSizePolicy::Expanding ); // jamony 08-17: 只钉宽不够——policy 仍 Expanding 会向上层宣称能吃宽, hl2 把增量 50/50 分给 A 栏容器; 改 Fixed 让增量 100% 进 C 区
     m_pRackScroll->setHorizontalScrollBarPolicy ( Qt::ScrollBarAlwaysOff );
     m_pRackScroll->setVerticalScrollBarPolicy ( Qt::ScrollBarAsNeeded );
     m_pRackScroll->setFrameShape ( QFrame::NoFrame );
@@ -112,6 +114,7 @@ CClientDlg::CClientDlg ( CClient*         pNCliP,
 
     // 机架标题卡 (固定, 不滚动)
     JamonyFxHeader* pFxHeader = new JamonyFxHeader ( this );
+    pFxHeader->setFixedWidth ( 272 ); // jamony 08-17: A 栏写死 272 —— sizeHint 360 不钉死则拖宽窗口时 A 栏先回弹抢宽
     verticalLayout_3->insertWidget ( 1, pFxHeader );
     pxlLogo->setVisible ( false );
     verticalLayout_3->insertWidget ( 2, m_pRackScroll ); // 标题卡后
@@ -127,6 +130,7 @@ CClientDlg::CClientDlg ( CClient*         pNCliP,
     pPingPanel->setObjectName ( "pingPanel" );
     pPingPanel->setStyleSheet ( "QFrame#pingPanel { background: #0d0d0d; border: 1px solid rgba(255,255,255,26); border-radius: 6px; }" );
     pPingPanel->setFixedHeight ( 22 ); // jamony: 卡片高=M按钮22, 底齐 frameLocalMute(底y=753)
+    pPingPanel->setFixedWidth ( 272 ); // jamony 08-17: A 栏写死 272(Preferred 无上限, 拖宽时会被溢出宽度撑大)
     QHBoxLayout* pPingLay = new QHBoxLayout ( pPingPanel );
     pPingLay->setContentsMargins ( 8, 2, 8, 2 ); // 上下 2: 卡片高 22 = M 按钮高, 内部 16 一致
     pPingLay->setSpacing ( 4 );
@@ -2106,6 +2110,7 @@ void CClientDlg::SetGUIDesign ( const EGUIDesign eNewDesign )
         "QCheckBox:checked { color: #FF33AA; border: 1px solid #FF33AA; }"
         "QCheckBox:hover { border: 1px solid #888; }" );
     chbSettings->setFixedHeight ( 22 ); // jamony: 内部高度=butAutoAdjust(22-4padding-2border=16)
+    chbSettings->setMaximumWidth ( chbSettings->sizeHint().width() ); // jamony 08-17: 钉死 73 —— 顶栏 spacer 恢复 Expanding(吸收器), 此行保险带(撑不破)
 
     // jamony: chbLocalMute 移到 B栏底部 frameLocalMute(M+静音), M 字母灯样式 + 边框
     chbLocalMute->setStyleSheet (
@@ -2126,6 +2131,13 @@ void CClientDlg::SetGUIDesign ( const EGUIDesign eNewDesign )
     horizontalLayout->setSpacing ( 5 );
     horizontalLayout_2->setSpacing ( 5 );
     horizontalLayout_3->setSpacing ( 5 ); // jamony 08-12: 回退到 c5ec5295 (BC间距5; 撤销 e37228be 的 vl5 右margin覆盖回默认), 重新调 C区右侧
+    // jamony 08-17: 拖宽增量 100% 归 C 区 —— hl3 设 stretch 因子(0=A+B侧, 1=C侧)。
+    // Qt 规则: 有 stretch>0 的项时增量只按 stretch 分, sizePolicy 声明失效 —— A/B 栏整条链写死,
+    // 不管内部藏多少 Expanding(滚动区/遗留 gridLayout columnStretch)都拿不到多余像素。比逐个钉火种结构性可靠。
+    // ⚠️ hl3 的直接子项是 C 区容器 verticalLayout(butAutoAdjust+MainMixerBoard 都在它里面),
+    // 不是 MainMixerBoard 本身 —— stretch 只认直接子项, 设孙子辈无效(08-17 实测 A 栏仍延迟偷宽)。
+    horizontalLayout_3->setStretchFactor ( horizontalLayout_2, 0 );
+    horizontalLayout_3->setStretchFactor ( verticalLayout, 1 );
     vboxLayout->setContentsMargins ( 0, 3, 0, 0 );
 
     // jamony: butAutoAdjust padding 0 + 紧凑边框, 视觉底框 = geometry 底(对齐 frameLocalMute)

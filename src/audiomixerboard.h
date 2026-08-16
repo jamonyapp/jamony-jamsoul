@@ -300,6 +300,7 @@ protected:
     QMutex                  Mutex;
     EChSortType             eChSortType;
     CVector<float>          vecAvgLevels;
+    bool                    bDefaultWidthApplied = false; // jamony 08-17: 默认宽(=最小宽, 2轨)只设一次, 之后窗口宽度归用户
 
     virtual void UpdateGainValue ( const int    iChannelIdx,
                                    const float  fValue,
