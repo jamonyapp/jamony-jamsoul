@@ -739,12 +739,18 @@
              </property>
              <layout class="QVBoxLayout" name="_15">
               <item>
-               <widget class="QCheckBox" name="chbAutoJitBuf">
+               <widget class="QPushButton" name="chbAutoJitBuf">
                 <property name="sizePolicy">
                  <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
                   <horstretch>0</horstretch>
                   <verstretch>0</verstretch>
                  </sizepolicy>
+                </property>
+                <property name="checkable">
+                 <bool>true</bool>
+                </property>
+                <property name="autoDefault">
+                 <bool>false</bool>
                 </property>
                 <property name="text">
                  <string>Auto</string>
@@ -889,14 +895,20 @@
             </widget>
            </item>
            <item>
-            <widget class="QCheckBox" name="chbSmallNetworkBuffers">
+            <widget class="QPushButton" name="chbSmallNetworkBuffers">
              <property name="sizePolicy">
               <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
                <horstretch>0</horstretch>
                <verstretch>0</verstretch>
               </sizepolicy>
              </property>
-             <property name="text">
+             <property name="checkable">
+                 <bool>true</bool>
+                </property>
+                <property name="autoDefault">
+                 <bool>false</bool>
+                </property>
+                <property name="text">
               <string>Small Network Buffers</string>
              </property>
             </widget>
@@ -1129,14 +1141,20 @@
               </spacer>
              </item>
              <item>
-              <widget class="QCheckBox" name="chbDetectFeedback">
+              <widget class="QPushButton" name="chbDetectFeedback">
                <property name="sizePolicy">
                 <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
                  <horstretch>0</horstretch>
                  <verstretch>0</verstretch>
                 </sizepolicy>
                </property>
-               <property name="text">
+               <property name="checkable">
+                 <bool>true</bool>
+                </property>
+                <property name="autoDefault">
+                 <bool>false</bool>
+                </property>
+                <property name="text">
                 <string>Feedback Protection</string>
                </property>
               </widget>
@@ -1340,9 +1358,15 @@
           </spacer>
          </item>
          <item>
-          <widget class="QCheckBox" name="chbShowToolTip">
-           <property name="text">
-            <string>显示悬停提示</string>
+          <widget class="QPushButton" name="chbShowToolTip">
+           <property name="checkable">
+                 <bool>true</bool>
+                </property>
+                <property name="autoDefault">
+                 <bool>false</bool>
+                </property>
+                <property name="text">
+            <string>显示组件悬停说明</string>
            </property>
            <property name="toolTip">
             <string>关闭后，鼠标悬停不再弹出说明提示</string>
@@ -1559,8 +1583,14 @@
              </spacer>
             </item>
             <item>
-             <widget class="QCheckBox" name="chbMIDIPickupMode">
-              <property name="text">
+             <widget class="QPushButton" name="chbMIDIPickupMode">
+              <property name="checkable">
+                 <bool>true</bool>
+                </property>
+                <property name="autoDefault">
+                 <bool>false</bool>
+                </property>
+                <property name="text">
                <string>Pick-up Mode</string>
               </property>
              </widget>

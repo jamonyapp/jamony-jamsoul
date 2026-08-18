@@ -46,6 +46,130 @@
 
 #include "clientsettingsdlg.h"
 
+#include <QFile>
+#include <QTextStream>
+
+// jamony 08-18: 设置窗口布局 dump 基建（照搬 clientdlg 同款，读不猜纪律）
+// 打开设置窗 800ms 后 dump 到 /tmp/jamsoul-settings-dump.txt（与主窗 dump 分文件）
+namespace {
+
+void settingsDumpIndent ( QTextStream& s, int depth )
+{
+    for ( int i = 0; i < depth; ++i ) s << "  ";
+}
+
+void settingsDumpLayoutRecursive ( QTextStream& s, QLayout* pLayout, int depth, QWidget* pRoot );
+
+void settingsDumpWidget ( QTextStream& s, QWidget* pWidget, int depth, QWidget* pRoot )
+{
+    if ( !pWidget ) return;
+    const QRect        g ( pWidget->geometry() );
+    const QPoint       tl ( pWidget->mapTo ( pRoot, QPoint ( 0, 0 ) ) );
+    const QSize        sh ( pWidget->sizeHint() );
+    const QSize        mn ( pWidget->minimumSize() );
+    const QSize        mx ( pWidget->maximumSize() );
+    const QSizePolicy  sp ( pWidget->sizePolicy() );
+    const QColor       winCol ( pWidget->palette().color ( pWidget->backgroundRole() ) ); // 背景色诊断
+
+    settingsDumpIndent ( s, depth );
+    s << "[W] " << pWidget->metaObject()->className()
+      << " name=\"" << pWidget->objectName() << "\""
+      << " parent_geom=" << g.x() << "," << g.y() << " " << g.width() << "x" << g.height()
+      << " root_xy=" << tl.x() << "," << tl.y()
+      << " sizeHint=" << sh.width() << "x" << sh.height()
+      << " minSize=" << mn.width() << "x" << mn.height()
+      << " maxSize=" << mx.width() << "x" << mx.height()
+      << " sizePolicy(hpol=" << static_cast<int> ( sp.horizontalPolicy() )
+      << " vpol=" << static_cast<int> ( sp.verticalPolicy() )
+      << " hstr=" << sp.horizontalStretch() << " vstr=" << sp.verticalStretch() << ")"
+      << " visible=" << pWidget->isVisible() << " hidden=" << pWidget->isHidden()
+      << " winRgb=" << winCol.red() << "," << winCol.green() << "," << winCol.blue()
+      << " ownSS=" << ( pWidget->styleSheet().isEmpty() ? 0 : 1 )
+      << "\n";
+
+    if ( pWidget->layout() )
+    {
+        settingsDumpLayoutRecursive ( s, pWidget->layout(), depth + 1, pRoot );
+    }
+
+    // jamony: QTabWidget 的页面不在 layout 里(由内部 QStackedWidget 管), 单独遍历各页
+    if ( QTabWidget* pTab = qobject_cast<QTabWidget*> ( pWidget ) )
+    {
+        for ( int i = 0; i < pTab->count(); ++i )
+        {
+            settingsDumpIndent ( s, depth + 1 );
+            s << "(tab page " << i << " \"" << pTab->tabText ( i ) << "\""
+              << " visible=" << pTab->isTabVisible ( i ) << ")\n";
+            settingsDumpWidget ( s, pTab->widget ( i ), depth + 1, pRoot );
+        }
+    }
+}
+
+void settingsDumpLayoutRecursive ( QTextStream& s, QLayout* pLayout, int depth, QWidget* pRoot )
+{
+    if ( !pLayout ) return;
+    const QRect    g ( pLayout->geometry() );
+    const QMargins m ( pLayout->contentsMargins() );
+
+    settingsDumpIndent ( s, depth );
+    s << "[L] " << pLayout->metaObject()->className()
+      << " name=\"" << pLayout->objectName() << "\""
+      << " count=" << pLayout->count()
+      << " spacing=" << pLayout->spacing()
+      << " margins=" << m.left() << "/" << m.top() << "/" << m.right() << "/" << m.bottom()
+      << " geom=" << g.x() << "," << g.y() << " " << g.width() << "x" << g.height()
+      << "\n";
+
+    QBoxLayout*     pBox   = qobject_cast<QBoxLayout*> ( pLayout );
+    QGridLayout*    pGrid  = qobject_cast<QGridLayout*> ( pLayout );
+    QStackedLayout* pStack = qobject_cast<QStackedLayout*> ( pLayout );
+
+    if ( pStack )
+    {
+        settingsDumpIndent ( s, depth + 1 );
+        s << "(stack currentIndex=" << pStack->currentIndex() << ")\n";
+    }
+
+    for ( int i = 0; i < pLayout->count(); ++i )
+    {
+        QLayoutItem* pItem = pLayout->itemAt ( i );
+        if ( !pItem ) continue;
+
+        if ( pItem->widget() )
+        {
+            settingsDumpWidget ( s, pItem->widget(), depth + 1, pRoot );
+        }
+        else if ( pItem->spacerItem() )
+        {
+            QSpacerItem* pSp = pItem->spacerItem();
+            settingsDumpIndent ( s, depth + 1 );
+            s << "[S] spacer sizeHint=" << pSp->sizeHint().width() << "x" << pSp->sizeHint().height()
+              << " sizePolicy=" << static_cast<int> ( pSp->sizePolicy().horizontalPolicy() )
+              << "/" << static_cast<int> ( pSp->sizePolicy().verticalPolicy() ) << "\n";
+        }
+        else if ( pItem->layout() )
+        {
+            settingsDumpLayoutRecursive ( s, pItem->layout(), depth + 1, pRoot );
+        }
+
+        if ( pBox )
+        {
+            settingsDumpIndent ( s, depth + 1 );
+            s << "(item " << i << " stretch=" << pBox->stretch ( i ) << ")\n";
+        }
+        if ( pGrid )
+        {
+            int row, col, rowSpan, colSpan;
+            pGrid->getItemPosition ( i, &row, &col, &rowSpan, &colSpan );
+            settingsDumpIndent ( s, depth + 1 );
+            s << "(grid item " << i << " row=" << row << " col=" << col
+              << " rowSpan=" << rowSpan << " colSpan=" << colSpan << ")\n";
+        }
+    }
+}
+
+} // namespace
+
 /* Implementation *************************************************************/
 CClientSettingsDlg::CClientSettingsDlg ( CClient* pNCliP, CClientSettings* pNSetP, QWidget* parent ) :
     CBaseDlg ( parent, Qt::Window ), // use Qt::Window to get min/max window buttons
@@ -69,8 +193,8 @@ CClientSettingsDlg::CClientSettingsDlg ( CClient* pNCliP, CClientSettings* pNSet
         "                               border: 1px solid #2a2a2a; border-bottom: none;"
         "                               padding: 5px 12px;"
         "                               border-top-left-radius: 4px; border-top-right-radius: 4px; }"
-        "QTabBar::tab:selected {        color: #FF33AA; border-color: #444;"
-        "                               border-bottom: 2px solid #FF33AA; }"
+        "QTabBar::tab:selected {        color: #0077CC; border-color: #444;" // jamony 品牌蓝深一档
+        "                               border-bottom: 2px solid #0077CC; }"
         "QTabBar::tab:hover {           color: #e5e5e5; }"
         "QGroupBox {                    background: transparent; border: 1px solid #333;"
         "                               border-radius: 4px; margin-top: 8px; }" // 线条框, 不填充
@@ -95,25 +219,35 @@ CClientSettingsDlg::CClientSettingsDlg ( CClient* pNCliP, CClientSettings* pNSet
         "                               padding: 3px 6px; }"
         "QPushButton {                  background: #262626; color: #e5e5e5;"
         "                               border: 1px solid #444; border-radius: 3px;"
-        "                               padding: 4px 12px; }"
+        "                               padding: 2px 12px; }" // jamony: 高度对齐主窗A栏音频设置按钮(22)
         "QPushButton:hover {            border: 1px solid #888; }"
         "QPushButton:pressed {          background: #1a1a1a; }"
         "QPushButton:disabled {         color: #666; background: #1a1a1a; }"
-        "QCheckBox {                    color: #e5e5e5; }"
+        // jamony: 5个开关按钮(checkable)开=填充(沿用灯PNG亮起语义), 文字天然居中无indicator占位
+        "QPushButton:checked {          background: #FF33AA; color: #ffffff;"
+        "                               border: 1px solid #FF33AA; }"
+        "QCheckBox {                    color: #999999; font: bold 13px;"
+        "                               padding: 2px 8px; border: 1px solid #444;"
+        "                               border-radius: 3px; background: transparent;"
+        "                               spacing: 0px; text-align: center; }" // jamony: 纯按钮, 无勾选框
         "QCheckBox:disabled {           color: #666; }"
-        "QCheckBox::indicator {         width: 38px; height: 21px; }" // 主窗同款灯 PNG
-        "QCheckBox::indicator:unchecked {"
-        "                               image: url(:/png/fader/res/ledbuttonnotpressed.png); }"
-        "QCheckBox::indicator:checked {"
-        "                               image: url(:/png/fader/res/ledbuttonpressed.png); }"
+        "QCheckBox::indicator {         width: 0px; height: 0px;"
+        "                               background: none; image: none;"
+        "                               border: none; subcontrol-position: center; }" // 勾选框彻底抹除(Mac残留也要清)
+        "QCheckBox:checked {            color: #ffffff; background: #FF33AA;"
+        "                               border: 1px solid #FF33AA; }"
+        "QCheckBox:hover {              border: 1px solid #888; }"
         "QRadioButton {                 color: #e5e5e5; }"
         "QRadioButton:disabled {        color: #666; }"
-        "QRadioButton::indicator {      width: 14px; height: 14px;"
-        "                               border: 1px solid #666; border-radius: 7px;"
-        "                               background: #1a1a1a; }"
+        // jamony: 仿 ping 卡 CLED 圆点 — 10x10 圆, 未选灰暗外圈, 选中亮绿+光晕感
+        "QRadioButton::indicator {      width: 10px; height: 10px;"
+        "                               border: 1px solid #444; border-radius: 5px;"
+        "                               background: #262626; }"
         "QRadioButton::indicator:checked {"
-        "                               border: 2px solid #BBEE00;"
-        "                               background: #BBEE00; }"
+        "                               border: 1px solid #BBEE00;"
+        "                               background: qradialgradient("
+        "                               cx:0.5, cy:0.4, radius:0.5, fx:0.5, fy:0.4,"
+        "                               stop:0 #E5FF66, stop:0.7 #BBEE00, stop:1 #88AA00); }"
         "QSlider {                      background: transparent; }"
         "QSlider::groove {              background: #1a1a1a; border: 1px solid #333; }"
         "QSlider::handle {              background: #999999; border-radius: 2px; }"
@@ -126,6 +260,39 @@ CClientSettingsDlg::CClientSettingsDlg ( CClient* pNCliP, CClientSettings* pNSet
     cbxCustomDirectories->hide();
     lblCustomDirectories->hide();
     tbtDeleteCustomDirectory->hide();
+
+    // jamony 08-18 dump 驱动微调(音频/网络页右列):
+    // 1. 文案居中靠 QSS text-align:center(已全局) + spacing:0 + indicator 抹除
+    // 2. "自动"宽74 = 两滑杆整体宽(622~696)
+    // 3. "小型网络缓冲区"宽121 = grbUpstreamValue(音频流速度)等宽
+    chbAutoJitBuf->setFixedWidth ( 74 );
+    chbSmallNetworkBuffers->setFixedWidth ( 121 );
+    // jamony 08-19: 按钮底与"音频流速度"框标题重叠7px(dump 623 vs 616)
+    // ⚠️ setContentsMargins 无效(fixed 尺寸锁死后 margin 不参与布局) — 改用布局 insertSpacing
+    if ( QVBoxLayout* pVBox13 = qobject_cast<QVBoxLayout*> ( verticalLayout_13 ) )
+    {
+        pVBox13->insertSpacing ( 2, 14 ); // index2 = grbUpstreamValue 前插 14px
+    }
+    // jamony 08-19: 全部按钮高度=主窗A栏"音频设置"按钮(22) — padding 2 + border 1 + 文字16
+    for ( QPushButton* pBtn : { chbAutoJitBuf,
+                                chbSmallNetworkBuffers,
+                                chbDetectFeedback,
+                                chbShowToolTip,
+                                chbMIDIPickupMode,
+                                butLearnMuteMyself,
+                                butLearnFaderOffset,
+                                butLearnPanOffset,
+                                butLearnSoloOffset,
+                                butLearnMuteOffset } )
+    {
+        pBtn->setFixedHeight ( 22 );
+    }
+    // 按钮在各自布局里水平居中(变窄后不再左贴)
+    if ( QVBoxLayout* pVBox = qobject_cast<QVBoxLayout*> ( grbJitterBuffer->layout() ) )
+    {
+        pVBox->setAlignment ( chbAutoJitBuf, Qt::AlignHCenter );
+    }
+    verticalLayout_13->setAlignment ( chbSmallNetworkBuffers, Qt::AlignHCenter );
 
 #if defined( Q_OS_IOS )
     // iOS needs menu to close
@@ -494,8 +661,8 @@ CClientSettingsDlg::CClientSettingsDlg ( CClient* pNCliP, CClientSettings* pNSet
 
     // show tool tip (jamony 08-14: 全局悬停提示开关)
     chbShowToolTip->setToolTip ( QStringLiteral(
-        "<b>显示悬停提示</b>：开启后鼠标悬停组件会弹出说明；关闭则全局不再弹出（适合已熟悉的用户）。" ) );
-    chbShowToolTip->setAccessibleName ( QStringLiteral ( "显示悬停提示" ) );
+        "<b>显示组件悬停说明</b>：开启后鼠标悬停组件会弹出说明；关闭则全局不再弹出（适合已熟悉的用户）。" ) );
+    chbShowToolTip->setAccessibleName ( QStringLiteral ( "显示组件悬停说明" ) );
 
     // MIDI settings
     grbMidiControls->setWhatsThis ( tr ( "Enable/disable MIDI-in port" ) );
@@ -639,13 +806,13 @@ CClientSettingsDlg::CClientSettingsDlg ( CClient* pNCliP, CClientSettings* pNSet
     chbAudioAlerts->setCheckState ( pSettings->bEnableAudioAlerts ? Qt::Checked : Qt::Unchecked );
 
     // init show tool tip (jamony 08-14)
-    chbShowToolTip->setCheckState ( pSettings->bShowToolTip ? Qt::Checked : Qt::Unchecked );
+    chbShowToolTip->setChecked ( pSettings->bShowToolTip );
 
     // update feedback detection
-    chbDetectFeedback->setCheckState ( pSettings->bEnableFeedbackDetection ? Qt::Checked : Qt::Unchecked );
+    chbDetectFeedback->setChecked ( pSettings->bEnableFeedbackDetection );
 
     // update enable small network buffers check box
-    chbSmallNetworkBuffers->setCheckState ( pClient->GetEnableOPUS64() ? Qt::Checked : Qt::Unchecked );
+    chbSmallNetworkBuffers->setChecked ( pClient->GetEnableOPUS64() );
 
     // set text for sound card buffer delay radio buttons
     rbtBufferDelayPreferred->setText ( GenSndCrdBufferDelayString ( FRAME_SIZE_FACTOR_PREFERRED * SYSTEM_FRAME_SIZE_SAMPLES ) );
@@ -798,14 +965,14 @@ CClientSettingsDlg::CClientSettingsDlg ( CClient* pNCliP, CClientSettings* pNSet
     QObject::connect ( sldNetBufServer, &QSlider::valueChanged, this, &CClientSettingsDlg::OnNetBufServerValueChanged );
 
     // check boxes
-    QObject::connect ( chbAutoJitBuf, &QCheckBox::stateChanged, this, &CClientSettingsDlg::OnAutoJitBufStateChanged );
+    QObject::connect ( chbAutoJitBuf, &QPushButton::toggled, this, &CClientSettingsDlg::OnAutoJitBufStateChanged );
 
-    QObject::connect ( chbSmallNetworkBuffers, &QCheckBox::stateChanged, this, &CClientSettingsDlg::OnEnableOPUS64StateChanged );
+    QObject::connect ( chbSmallNetworkBuffers, &QPushButton::toggled, this, &CClientSettingsDlg::OnEnableOPUS64StateChanged );
 
-    QObject::connect ( chbDetectFeedback, &QCheckBox::stateChanged, this, &CClientSettingsDlg::OnFeedbackDetectionChanged );
+    QObject::connect ( chbDetectFeedback, &QPushButton::toggled, this, &CClientSettingsDlg::OnFeedbackDetectionChanged );
 
     QObject::connect ( chbAudioAlerts, &QCheckBox::stateChanged, this, &CClientSettingsDlg::OnAudioAlertsChanged );
-    QObject::connect ( chbShowToolTip, &QCheckBox::stateChanged, this, &CClientSettingsDlg::OnShowToolTipChanged );
+    QObject::connect ( chbShowToolTip, &QPushButton::toggled, this, &CClientSettingsDlg::OnShowToolTipChanged );
 
     // line edits
     QObject::connect ( edtNewClientLevel, &QLineEdit::editingFinished, this, &CClientSettingsDlg::OnNewClientLevelEditingFinished );
@@ -971,7 +1138,7 @@ CClientSettingsDlg::CClientSettingsDlg ( CClient* pNCliP, CClientSettings* pNSet
         butLearnMuteMyself->setEnabled ( checked );
     } );
 
-    QObject::connect ( chbMIDIPickupMode, &QCheckBox::toggled, this, &CClientSettingsDlg::OnMIDIPickupModeToggled );
+    QObject::connect ( chbMIDIPickupMode, &QPushButton::toggled, this, &CClientSettingsDlg::OnMIDIPickupModeToggled );
 
     QObject::connect ( grbMidiControls, &QGroupBox::toggled, this, [this] ( bool checked ) {
         pSettings->bUseMIDIController = checked;
@@ -1041,6 +1208,40 @@ CClientSettingsDlg::CClientSettingsDlg ( CClient* pNCliP, CClientSettings* pNSet
 
 void CClientSettingsDlg::showEvent ( QShowEvent* event )
 {
+    // jamony 08-18: 布局 dump —— show 后 800ms 等当前页 layout 完成落盘
+    // ⚠️ Qt 只有激活 tab 页有真实 geometry, 未激活页全是 0 — dump 前依次切页激活
+    // (0=我的信息(隐藏) 1=音频/网络 2=高级 3=MIDI), 完了切回用户原页
+    QTimer::singleShot ( 800, this, [this]() {
+        const int iOrigTab = tabSettings->currentIndex();
+        QFile      f ( "/tmp/jamsoul-settings-dump.txt" );
+        if ( f.open ( QIODevice::WriteOnly | QIODevice::Truncate | QIODevice::Text ) )
+        {
+            QTextStream s ( &f );
+            s << "=== jamsoul SETTINGS dump (root=CClientSettingsDlg) ===\n";
+            s << "window size=" << width() << "x" << height()
+              << " frameGeom=" << frameGeometry().width() << "x" << frameGeometry().height()
+              << " titlebarH=" << ( frameGeometry().height() - geometry().height() ) << "\n";
+            s << "userTab=" << iOrigTab << "\n";
+            for ( int iTab = 0; iTab < tabSettings->count(); ++iTab )
+            {
+                tabSettings->setCurrentIndex ( iTab ); // 激活页面让 layout 产生真实 geometry
+                QApplication::processEvents();         // 强制走一轮布局
+                s << "\n========== TAB " << iTab << " ==========\n";
+                if ( layout() )
+                {
+                    settingsDumpLayoutRecursive ( s, layout(), 0, this );
+                }
+                else
+                {
+                    s << "(no layout!)\n";
+                }
+            }
+            tabSettings->setCurrentIndex ( iOrigTab ); // 切回用户所在页
+            s << "=== end ===\n";
+            s.flush();
+        }
+    } );
+
     UpdateDisplay();
     UpdateDirectoryComboBox();
 
@@ -1276,7 +1477,7 @@ void CClientSettingsDlg::UpdateSoundDeviceChannelSelectionFrame()
 void CClientSettingsDlg::SetEnableFeedbackDetection ( bool enable )
 {
     pSettings->bEnableFeedbackDetection = enable;
-    chbDetectFeedback->setCheckState ( pSettings->bEnableFeedbackDetection ? Qt::Checked : Qt::Unchecked );
+    chbDetectFeedback->setChecked ( pSettings->bEnableFeedbackDetection );
 }
 
 #if defined( _WIN32 ) && !defined( WITH_JACK )
@@ -1356,21 +1557,21 @@ void CClientSettingsDlg::OnMeterStyleActivated ( int iMeterStyleIdx )
 
 void CClientSettingsDlg::OnAudioAlertsChanged ( int value ) { pSettings->bEnableAudioAlerts = value == Qt::Checked; }
 
-void CClientSettingsDlg::OnShowToolTipChanged ( int value ) { pSettings->bShowToolTip = value == Qt::Checked; }
+void CClientSettingsDlg::OnShowToolTipChanged ( int value ) { pSettings->bShowToolTip = value != 0; } // jamony: QPushButton::toggled(bool)→int, true=1
 
 void CClientSettingsDlg::OnAutoJitBufStateChanged ( int value )
 {
-    pClient->SetDoAutoSockBufSize ( value == Qt::Checked );
+    pClient->SetDoAutoSockBufSize ( value != 0 ); // jamony: toggled(bool)→int
     UpdateJitterBufferFrame();
 }
 
 void CClientSettingsDlg::OnEnableOPUS64StateChanged ( int value )
 {
-    pClient->SetEnableOPUS64 ( value == Qt::Checked );
+    pClient->SetEnableOPUS64 ( value != 0 ); // jamony: toggled(bool)→int
     UpdateDisplay();
 }
 
-void CClientSettingsDlg::OnFeedbackDetectionChanged ( int value ) { pSettings->bEnableFeedbackDetection = value == Qt::Checked; }
+void CClientSettingsDlg::OnFeedbackDetectionChanged ( int value ) { pSettings->bEnableFeedbackDetection = value != 0; } // jamony: toggled(bool)→int
 
 void CClientSettingsDlg::OnCustomDirectoriesChanged ( bool bDelete )
 {
