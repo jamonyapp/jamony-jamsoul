@@ -55,6 +55,72 @@ CClientSettingsDlg::CClientSettingsDlg ( CClient* pNCliP, CClientSettings* pNSet
 {
     setupUi ( this );
 
+    // jamony 08-18: 设置窗口深色化 —— 与主界面 GD_ORIGINAL 一致的纯黑风格
+    // v2: 大面(pane/页面)必须显式填黑, 否则露 macOS 原生蓝灰; QGroupBox 改线条框不填充
+    setStyleSheet (
+        "CClientSettingsDlg {           background: #000; }"
+        "QDialog {                      background: #000; }" // 兜底(dialog 窗面)
+        "QWidget {                      background: transparent; }" // 页面透明露出黑底(子类控件各自设底色)
+        "QLabel {                       color: #e5e5e5; font: 13px; }"
+        "QTabWidget {                   background: #000; }" // 大面填黑(否则露原生蓝灰)
+        "QTabWidget::pane {             background: #000; border: 1px solid #2a2a2a; top: -1px; }"
+        "QTabBar {                      background: #000; }"
+        "QTabBar::tab {                 background: #1a1a1a; color: #999999;"
+        "                               border: 1px solid #2a2a2a; border-bottom: none;"
+        "                               padding: 5px 12px;"
+        "                               border-top-left-radius: 4px; border-top-right-radius: 4px; }"
+        "QTabBar::tab:selected {        color: #FF33AA; border-color: #444;"
+        "                               border-bottom: 2px solid #FF33AA; }"
+        "QTabBar::tab:hover {           color: #e5e5e5; }"
+        "QGroupBox {                    background: transparent; border: 1px solid #333;"
+        "                               border-radius: 4px; margin-top: 8px; }" // 线条框, 不填充
+        "QGroupBox::title {             color: #8f9096; font: bold 12px;"
+        "                               subcontrol-origin: margin; left: 8px; }"
+        "QComboBox {                    background: #1a1a1a; color: #e5e5e5;"
+        "                               border: 1px solid #444; border-radius: 3px;"
+        "                               padding: 3px 8px; }"
+        "QComboBox:hover {              border: 1px solid #888; }"
+        "QComboBox:disabled {           color: #666; background: #141414; }"
+        // Mac 坑: 不设弹窗视图样式则列表白底+继承 color 白字 → 白底白字不可读
+        "QComboBox QAbstractItemView {  background: #0d0d0d; color: #e5e5e5;"
+        "                               selection-background-color: #FF33AA; selection-color: #ffffff;"
+        "                               border: 1px solid #2a2a2a; }"
+        "QSpinBox {                     background: #1a1a1a; color: #e5e5e5;"
+        "                               border: 1px solid #444; border-radius: 3px;"
+        "                               padding: 3px 6px; }"
+        "QSpinBox:hover {               border: 1px solid #888; }"
+        "QSpinBox:disabled {            color: #666; background: #141414; }"
+        "QLineEdit {                    background: #1a1a1a; color: #e5e5e5;"
+        "                               border: 1px solid #444; border-radius: 3px;"
+        "                               padding: 3px 6px; }"
+        "QPushButton {                  background: #262626; color: #e5e5e5;"
+        "                               border: 1px solid #444; border-radius: 3px;"
+        "                               padding: 4px 12px; }"
+        "QPushButton:hover {            border: 1px solid #888; }"
+        "QPushButton:pressed {          background: #1a1a1a; }"
+        "QPushButton:disabled {         color: #666; background: #1a1a1a; }"
+        "QCheckBox {                    color: #e5e5e5; }"
+        "QCheckBox:disabled {           color: #666; }"
+        "QCheckBox::indicator {         width: 38px; height: 21px; }" // 主窗同款灯 PNG
+        "QCheckBox::indicator:unchecked {"
+        "                               image: url(:/png/fader/res/ledbuttonnotpressed.png); }"
+        "QCheckBox::indicator:checked {"
+        "                               image: url(:/png/fader/res/ledbuttonpressed.png); }"
+        "QRadioButton {                 color: #e5e5e5; }"
+        "QRadioButton:disabled {        color: #666; }"
+        "QRadioButton::indicator {      width: 14px; height: 14px;"
+        "                               border: 1px solid #666; border-radius: 7px;"
+        "                               background: #1a1a1a; }"
+        "QRadioButton::indicator:checked {"
+        "                               border: 2px solid #BBEE00;"
+        "                               background: #BBEE00; }"
+        "QSlider {                      background: transparent; }"
+        "QSlider::groove {              background: #1a1a1a; border: 1px solid #333; }"
+        "QSlider::handle {              background: #999999; border-radius: 2px; }"
+        "QSlider::handle:disabled {     background: #444; }"
+        "QToolButton {                  background: #262626; color: #e5e5e5;"
+        "                               border: 1px solid #444; border-radius: 3px; }" );
+
     // jamony: 我的信息由 jamony 用户系统管理，隐藏 Profile tab；自定义目录由 jamony 直连，隐藏
     tabSettings->setTabVisible ( SETTING_TAB_USER, false );
     cbxCustomDirectories->hide();
