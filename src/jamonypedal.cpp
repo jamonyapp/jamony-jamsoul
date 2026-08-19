@@ -39,8 +39,8 @@ PedalWidget::PedalWidget ( QWidget* parent ) : QWidget ( parent )
     m_pNameLabel = new QLabel;
     QFont nf = m_pNameLabel->font();
     nf.setBold ( true );
-    nf.setPointSize ( 8 );
-    nf.setLetterSpacing ( QFont::AbsoluteSpacing, 1.6 );
+    nf.setPointSize ( 6 ); // jamony 08-20: 8pt 调小两个字号 = 6pt
+    nf.setLetterSpacing ( QFont::AbsoluteSpacing, 0.8 ); // 1.6→0.8 字间距减半
     m_pNameLabel->setFont ( nf );
     m_pNameLabel->setStyleSheet ( "color: #8f9096;" );
 

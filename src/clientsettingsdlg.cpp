@@ -187,14 +187,18 @@ CClientSettingsDlg::CClientSettingsDlg ( CClient* pNCliP, CClientSettings* pNSet
         "QWidget {                      background: transparent; }" // 页面透明露出黑底(子类控件各自设底色)
         "QLabel {                       color: #e5e5e5; font: 13px; }"
         "QTabWidget {                   background: #000; }" // 大面填黑(否则露原生蓝灰)
-        "QTabWidget::pane {             background: #000; border: 1px solid #2a2a2a; top: -1px; }"
-        "QTabBar {                      background: #000; }"
+        // jamony 08-20 v5: pane 四角全 6px 圆(顶部两角圆弧由背景色过渡呈现, 无需线);
+        // 顶边线仍不画(选中 tab 与 pane 同色连通无线段)
+        "QTabWidget::pane {             background: #0d0d0d;"
+        "                               border: 1px solid #2a2a2a; border-top: none;"
+        "                               border-top-left-radius: 6px; border-top-right-radius: 6px;"
+        "                               border-bottom-left-radius: 6px; border-bottom-right-radius: 6px; }"
+        "QTabBar {                      background: transparent; qproperty-drawBase: 0; }" // 去原生底线(直角来源)
         "QTabBar::tab {                 background: #1a1a1a; color: #999999;"
-        "                               border: 1px solid #2a2a2a; border-bottom: none;"
-        "                               padding: 5px 12px;"
-        "                               border-top-left-radius: 4px; border-top-right-radius: 4px; }"
-        "QTabBar::tab:selected {        color: #0077CC; border-color: #444;" // jamony 品牌蓝深一档
-        "                               border-bottom: 2px solid #0077CC; }"
+        "                               border: none;"
+        "                               padding: 6px 16px; margin: 0 2px 0 0;"
+        "                               border-top-left-radius: 6px; border-top-right-radius: 6px; }"
+        "QTabBar::tab:selected {        background: #0d0d0d; color: #0077CC; }" // 与 pane 同色, 连通
         "QTabBar::tab:hover {           color: #e5e5e5; }"
         "QGroupBox {                    background: transparent; border: 1px solid #333;"
         "                               border-radius: 4px; margin-top: 8px; }" // 线条框, 不填充
@@ -205,15 +209,23 @@ CClientSettingsDlg::CClientSettingsDlg ( CClient* pNCliP, CClientSettings* pNSet
         "                               padding: 3px 8px; }"
         "QComboBox:hover {              border: 1px solid #888; }"
         "QComboBox:disabled {           color: #666; background: #141414; }"
+        // jamony 08-19: drop-down 区彻底 QSS 化 — Mac 原生胶囊箭头区与 QSS 圆角边框
+        // 两套渲染叠加 = "又直角又圆角"打架; 关掉原生样式只留自绘箭头 PNG
+        "QComboBox::drop-down {         subcontrol-origin: padding;"
+        "                               subcontrol-position: top right;"
+        "                               border: none; background: transparent;"
+        "                               width: 18px; }"
+        "QComboBox::down-arrow {        image: url(:/png/fader/res/jamonyarrowdown.png);"
+        "                               width: 12px; height: 8px; }" // jamony: 线条V同FoldButton
         // Mac 坑: 不设弹窗视图样式则列表白底+继承 color 白字 → 白底白字不可读
         "QComboBox QAbstractItemView {  background: #0d0d0d; color: #e5e5e5;"
         "                               selection-background-color: #FF33AA; selection-color: #ffffff;"
         "                               border: 1px solid #2a2a2a; }"
-        "QSpinBox {                     background: #1a1a1a; color: #e5e5e5;"
-        "                               border: 1px solid #444; border-radius: 3px;"
-        "                               padding: 3px 6px; }"
-        "QSpinBox:hover {               border: 1px solid #888; }"
-        "QSpinBox:disabled {            color: #666; background: #141414; }"
+        // jamony 08-20: QSpinBox 不加任何 QSS 盒样式(碰了 QSS 就会脱离 QMacStyle 原生渲染,
+        // 上次乱加 border/按钮样式导致上下箭头重叠 7px 的布局灾难) — 只给文字色,
+        // 框体/上下箭头全部交给 macOS 原生画(深色模式自动深色, 即原版 jamulus 的样子)
+        "QSpinBox {                     color: #e5e5e5; }"
+        "QSpinBox:disabled {           color: #666; }"
         "QLineEdit {                    background: #1a1a1a; color: #e5e5e5;"
         "                               border: 1px solid #444; border-radius: 3px;"
         "                               padding: 3px 6px; }"
@@ -287,12 +299,6 @@ CClientSettingsDlg::CClientSettingsDlg ( CClient* pNCliP, CClientSettings* pNSet
     {
         pBtn->setFixedHeight ( 22 );
     }
-    // 按钮在各自布局里水平居中(变窄后不再左贴)
-    if ( QVBoxLayout* pVBox = qobject_cast<QVBoxLayout*> ( grbJitterBuffer->layout() ) )
-    {
-        pVBox->setAlignment ( chbAutoJitBuf, Qt::AlignHCenter );
-    }
-    verticalLayout_13->setAlignment ( chbSmallNetworkBuffers, Qt::AlignHCenter );
 
 #if defined( Q_OS_IOS )
     // iOS needs menu to close
@@ -1237,6 +1243,24 @@ void CClientSettingsDlg::showEvent ( QShowEvent* event )
                 }
             }
             tabSettings->setCurrentIndex ( iOrigTab ); // 切回用户所在页
+            // jamony 08-20: spinbox subcontrol 真实矩形实测(QStyle 计算, 不猜)
+            tabSettings->setCurrentIndex ( 3 ); // MIDI 页
+            QApplication::processEvents();
+            s << "\n========== SPINBOX SUBCONTROL RECTS (MIDI tab) ==========\n";
+            for ( QSpinBox* pSB : { spnMuteMyself, spnFaderOffset } )
+            {
+                QStyleOptionSpinBox opt;
+                opt.initFrom ( pSB );
+                opt.subControls = QStyle::SC_SpinBoxUp | QStyle::SC_SpinBoxDown | QStyle::SC_SpinBoxEditField;
+                const QRect rUp   = pSB->style()->subControlRect ( QStyle::CC_SpinBox, &opt, QStyle::SC_SpinBoxUp, pSB );
+                const QRect rDown = pSB->style()->subControlRect ( QStyle::CC_SpinBox, &opt, QStyle::SC_SpinBoxDown, pSB );
+                const QRect rEdit = pSB->style()->subControlRect ( QStyle::CC_SpinBox, &opt, QStyle::SC_SpinBoxEditField, pSB );
+                s << pSB->objectName() << " size=" << pSB->width() << "x" << pSB->height() << "\n"
+                  << "  UP   rect=" << rUp.x() << "," << rUp.y() << " " << rUp.width() << "x" << rUp.height() << "\n"
+                  << "  DOWN rect=" << rDown.x() << "," << rDown.y() << " " << rDown.width() << "x" << rDown.height() << "\n"
+                  << "  EDIT rect=" << rEdit.x() << "," << rEdit.y() << " " << rEdit.width() << "x" << rEdit.height() << "\n";
+            }
+            tabSettings->setCurrentIndex ( iOrigTab );
             s << "=== end ===\n";
             s.flush();
         }
