@@ -221,11 +221,19 @@ CClientSettingsDlg::CClientSettingsDlg ( CClient* pNCliP, CClientSettings* pNSet
         "QComboBox QAbstractItemView {  background: #0d0d0d; color: #e5e5e5;"
         "                               selection-background-color: #FF33AA; selection-color: #ffffff;"
         "                               border: 1px solid #2a2a2a; }"
-        // jamony 08-20: QSpinBox 不加任何 QSS 盒样式(碰了 QSS 就会脱离 QMacStyle 原生渲染,
-        // 上次乱加 border/按钮样式导致上下箭头重叠 7px 的布局灾难) — 只给文字色,
-        // 框体/上下箭头全部交给 macOS 原生画(深色模式自动深色, 即原版 jamulus 的样子)
-        "QSpinBox {                     color: #e5e5e5; }"
+        // jamony 08-20: QSpinBox 只加"常驻边框 + 焦点白色高亮 + 箭头PNG"三件事:
+        // 1. 默认边框(#444=Learn按钮同色) 2. 获焦边框变白(覆盖Mac原生蓝环)
+        // 3. ::up/down-arrow 只给图形(不给 ::up/down-button 任何规则 — 布局仍走原生, subControlRect 实测零重叠)
+        //    (本体 border 会接管绘制导致原生箭头消失, 必须补箭头图)
+        "QSpinBox {                     color: #e5e5e5;"
+        "                               border: 1px solid #444; border-radius: 3px; }"
+        "QSpinBox:focus {              border: 1px solid #ffffff; }"
         "QSpinBox:disabled {           color: #666; }"
+        "QSpinBox::up-arrow {           image: url(:/png/fader/res/jamonyarrowsmallup.png);"
+        "                               width: 14px; height: 9px; }"
+        "QSpinBox::down-arrow {         image: url(:/png/fader/res/jamonyarrowsmalldown.png);"
+        "                               width: 14px; height: 9px; }"
+        "QSpinBox::up-arrow:disabled, QSpinBox::down-arrow:disabled { image: none; }"
         "QLineEdit {                    background: #1a1a1a; color: #e5e5e5;"
         "                               border: 1px solid #444; border-radius: 3px;"
         "                               padding: 3px 6px; }"
