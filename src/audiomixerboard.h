@@ -79,6 +79,7 @@ public:
     int     GetReceivedInstrument() { return cReceivedChanInfo.iInstrument; }
     QString GetReceivedCity() { return cReceivedChanInfo.strCity; }
     int     GetReceivedChID() { return cReceivedChanInfo.iChanID; }
+    const CChannelInfo& GetReceivedChanInfo() { return cReceivedChanInfo; } // jamony 08-24: 供 SetMIDICtrlUsed 重画标签
     void    SetChannelInfos ( const CChannelInfo& cChanInfo );
     void    Show() { pFrame->show(); }
     void    Hide() { pFrame->hide(); }
@@ -158,6 +159,7 @@ protected:
     EMeterStyle eMeterStyle;
     QPixmap     BitmapMutedIcon;
     bool        bMIDICtrlUsed;
+    QString     strLabelToolTip; // jamony 08-24: 用户名框悬停文案(SetChannelInfos 重画后回挂,防被清)
 
 public slots:
     void OnLevelValueChanged ( int value )

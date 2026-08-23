@@ -97,12 +97,14 @@ void CMultiColorLED::changeEvent ( QEvent* curEvent )
 void CMultiColorLED::SetColor ( const ELightColor eNewColorFlag )
 {
     setPixmap ( QPixmap() ); // jamony: 清pixmap, 改用stylesheet(jamony品牌色+圆+无外框)
+    // jamony 08-24: 规则加 .CMultiColorLED 类选择器 —— 无选择器的 stylesheet 会级联到
+    // 子部件, QToolTip 按悬停目标的样式表渲染, 导致灯上悬停弹窗背景跟随灯色跳动
     switch ( eNewColorFlag )
     {
     case RL_RED:
         if ( eColorFlag != RL_RED )
         {
-            setStyleSheet ( "background-color: #FF3366; border-radius: 5px; border: none;" );
+            setStyleSheet ( ".CMultiColorLED { background-color: #FF3366; border-radius: 5px; border: none; }" );
             setAccessibleDescription ( tr ( "Red" ) );
             eColorFlag = RL_RED;
         }
@@ -111,7 +113,7 @@ void CMultiColorLED::SetColor ( const ELightColor eNewColorFlag )
     case RL_YELLOW:
         if ( eColorFlag != RL_YELLOW )
         {
-            setStyleSheet ( "background-color: #FFCC00; border-radius: 5px; border: none;" );
+            setStyleSheet ( ".CMultiColorLED { background-color: #FFCC00; border-radius: 5px; border: none; }" );
             setAccessibleDescription ( tr ( "Yellow" ) );
             eColorFlag = RL_YELLOW;
         }
@@ -120,7 +122,7 @@ void CMultiColorLED::SetColor ( const ELightColor eNewColorFlag )
     case RL_GREEN:
         if ( eColorFlag != RL_GREEN )
         {
-            setStyleSheet ( "background-color: #BBEE00; border-radius: 5px; border: none;" );
+            setStyleSheet ( ".CMultiColorLED { background-color: #BBEE00; border-radius: 5px; border: none; }" );
             setAccessibleDescription ( tr ( "Green" ) );
             eColorFlag = RL_GREEN;
         }
@@ -129,7 +131,7 @@ void CMultiColorLED::SetColor ( const ELightColor eNewColorFlag )
     default:
         if ( eColorFlag != RL_GREY )
         {
-            setStyleSheet ( "background-color: #333333; border-radius: 5px; border: none;" );
+            setStyleSheet ( ".CMultiColorLED { background-color: #333333; border-radius: 5px; border: none; }" );
             eColorFlag = RL_GREY;
         }
         break;

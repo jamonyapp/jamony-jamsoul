@@ -518,11 +518,12 @@ CClientDlg::CClientDlg ( CClient*         pNCliP,
 
     // delay LED
     // jamony 08-14: A2 总延迟+灯（定稿见 jamsoul说明文本.txt），合并原 strLEDDelay
+    // jamony 08-24: 圆点颜色改为 LED 灯真实色值(绿#BBEE00/黄#FFCC00/红#FF3366)
     QString strA2 = QStringLiteral(
         "<b>总延迟</b>：由当前的Ping、软件缓冲处理组合计算而来，反映实际听感。<br>"
-        "• <font color=\"#71D870\">●</font>：良好<br>"
-        "• <font color=\"#CDCD93\">●</font>：勉强<br>"
-        "• <font color=\"#E2A1AB\">●</font>：较差" );
+        "• <font color=\"#BBEE00\">●</font>：良好<br>"
+        "• <font color=\"#FFCC00\">●</font>：勉强<br>"
+        "• <font color=\"#FF3366\">●</font>：较差" );
 
     lblDelay->setToolTip ( strA2 );
     lblDelay->setWhatsThis ( "" );
@@ -533,10 +534,11 @@ CClientDlg::CClientDlg ( CClient*         pNCliP,
     ledDelay->setToolTipDuration ( 15000 );
 
     // jamony 08-14: A3 抖动灯（定稿见 jamsoul说明文本.txt），合并原 strLEDBuffers
+    // jamony 08-24: 圆点颜色改为 LED 灯真实色值(绿#BBEE00/红#FF3366)
     QString strA3 = QStringLiteral(
         "<b>抖动</b>：网络稳定性，反映音频流是否顺畅。<br>"
-        "• <font color=\"#71D870\">●</font> 绿：稳定流畅<br>"
-        "• <font color=\"#E2A1AB\">●</font> 红：卡顿/中断（网络不稳/带宽不够/服务器占满）" );
+        "• <font color=\"#BBEE00\">●</font> 绿：稳定流畅<br>"
+        "• <font color=\"#FF3366\">●</font> 红：卡顿/中断（网络不稳/带宽不够/服务器占满）" );
 
     lblBuffers->setToolTip ( strA3 );
     lblBuffers->setWhatsThis ( "" );

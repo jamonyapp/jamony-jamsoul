@@ -345,6 +345,16 @@ CChannelFader::CChannelFader ( QWidget* pNW ) :
     plblCountryFlag->setWhatsThis ( "" );
     plblCountryFlag->setAccessibleName ( tr ( "Mixer channel country/region flag" ) );
 
+    // jamony 08-24: 用户名框悬停说明（C区风格同 strC12 等,文案欢哥定稿）
+    strLabelToolTip = QStringLiteral(
+        "<b>用户名</b>：显示这位乐手的昵称。<br>"
+        "• 如果在“音频设置-MIDI 控制器”中打开了MIDI控制，昵称前会出现序号（如0:、1:），"
+        "这是该分轨的MIDI通道号——MIDI推子映射按此序号对号入座"
+        "（音频设置-MIDI 控制器里配置的起始CC+序号=该分轨的推子CC）。"
+        "关闭MIDI控制后序号消失。" );
+    plblLabel->setToolTip ( strLabelToolTip );
+    plblLabel->setToolTipDuration ( 15000 );
+
     // Connections -------------------------------------------------------------
     QObject::connect ( pFader, &QSlider::valueChanged, this, &CChannelFader::OnLevelValueChanged );
 
@@ -1036,6 +1046,8 @@ void CChannelFader::SetChannelInfos ( const CChannelInfo& cChanInfo )
     }
 
     // jamony 08-14: 用户名框移除 toolTip（Musician Profile），定稿见 jamsoul说明文本.txt 配置项
+    // jamony 08-24: 回挂说明文案（重画不覆盖，见构造函数 strLabelToolTip）
+    plblLabel->setToolTip ( strLabelToolTip );
     plblCountryFlag->setAccessibleDescription ( strLocationAccessible );
     plblInstrument->setAccessibleDescription ( strInstrumentAccessible );
     plblLabel->setAccessibleName ( strAliasAccessible );
@@ -1843,6 +1855,12 @@ void CAudioMixerBoard::SetMIDICtrlUsed ( const bool bMIDICtrlUsed )
     for ( size_t i = 0; i < MAX_NUM_CHANNELS; i++ )
     {
         vecpChanFader[i]->SetMIDICtrlUsed ( bMIDICtrlUsed );
+
+        // jamony 08-24: 重画分轨标签让序号前缀("0:昵称")立即生效/消失,
+        // 不必等下次服务器推频道列表(上游只改标志不重画,开关后要重启才刷新)。
+        // 重喂缓存的频道信息即可 — 隐藏分轨缓存为空 info,渲染空标签无副作用
+        // (先例: SetGUIDesign 换风格同样靠重喂 cReceivedChanInfo 刷新)。
+        vecpChanFader[i]->SetChannelInfos ( vecpChanFader[i]->GetReceivedChanInfo() );
     }
 
     // Reset MIDI pickup state when toggling MIDI control to
