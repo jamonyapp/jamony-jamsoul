@@ -519,7 +519,7 @@
                 <item>
                  <layout class="QVBoxLayout" name="_5">
                   <property name="spacing">
-                   <number>3</number>
+                   <number>8</number>
                   </property>
                   <item>
                    <widget class="QComboBox" name="cbxLInChan"/>
@@ -582,7 +582,7 @@
                 <item>
                  <layout class="QVBoxLayout" name="_8">
                   <property name="spacing">
-                   <number>3</number>
+                   <number>8</number>
                   </property>
                   <item>
                    <widget class="QComboBox" name="cbxLOutChan"/>
@@ -641,6 +641,9 @@
              </item>
              <item>
               <layout class="QVBoxLayout" name="verticalLayout">
+               <property name="spacing">
+                <number>8</number>
+               </property>
                <item>
                 <widget class="QComboBox" name="cbxAudioChannels"/>
                </item>
