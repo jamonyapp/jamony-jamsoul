@@ -437,6 +437,7 @@ CClientDlg::CClientDlg ( CClient*         pNCliP,
     m_pIpc = new JamsoulIpc ( this );
     connect ( m_pIpc, &JamsoulIpc::RaiseRequested, this, &CClientDlg::OnIpcRaise );
     connect ( m_pIpc, &JamsoulIpc::MoveRequested, this, &CClientDlg::OnIpcMove );
+    connect ( m_pIpc, &JamsoulIpc::TestFeedbackRequested, this, &CClientDlg::OnIpcTestFeedback ); // jamony 08-27: debug 弹窗验收
     m_pIpc->Start();
 
     // Add help text to controls -----------------------------------------------
@@ -1799,21 +1800,27 @@ void CClientDlg::OnTimerSigMet()
         MainMixerBoard->MuteMyChannel();
 
         // show message box about feedback issue
-        QCheckBox* chb = new QCheckBox ( tr ( "Enable feedback detection" ) );
-        chb->setCheckState ( pSettings->bEnableFeedbackDetection ? Qt::Checked : Qt::Unchecked );
-        QMessageBox msgbox;
-        msgbox.setText ( tr ( "Audio feedback or loud signal detected.\n\n"
-                              "We muted your channel and activated 'Mute Myself'. Please solve "
-                              "the feedback issue first and unmute yourself afterwards." ) );
-        msgbox.setIcon ( QMessageBox::Icon::Warning );
-        msgbox.addButton ( QMessageBox::Ok );
-        msgbox.setDefaultButton ( QMessageBox::Ok );
-        msgbox.setCheckBox ( chb );
-
-        QObject::connect ( chb, &QCheckBox::stateChanged, this, &CClientDlg::OnFeedbackDetectionChanged );
-
-        msgbox.exec();
+        ShowFeedbackPopup();
     }
+}
+
+// jamony 08-27: 反馈保护弹窗抽出(OnTimerSigMet 触发路径与 IPC testfeedback debug 路径共用)
+void CClientDlg::ShowFeedbackPopup()
+{
+    QCheckBox* chb = new QCheckBox ( tr ( "Enable feedback detection" ) );
+    chb->setCheckState ( pSettings->bEnableFeedbackDetection ? Qt::Checked : Qt::Unchecked );
+    QMessageBox msgbox;
+    msgbox.setText ( tr ( "Audio feedback or loud signal detected.\n\n"
+                          "We muted your channel and activated 'Mute Myself'. Please solve "
+                          "the feedback issue first and unmute yourself afterwards." ) );
+    msgbox.setIcon ( QMessageBox::Icon::Warning );
+    msgbox.addButton ( QMessageBox::Ok );
+    msgbox.setDefaultButton ( QMessageBox::Ok );
+    msgbox.setCheckBox ( chb );
+
+    QObject::connect ( chb, &QCheckBox::stateChanged, this, &CClientDlg::OnFeedbackDetectionChanged );
+
+    msgbox.exec();
 }
 
 void CClientDlg::OnTimerBuffersLED()

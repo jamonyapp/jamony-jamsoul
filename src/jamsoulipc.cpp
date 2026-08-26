@@ -37,4 +37,8 @@ void JamsoulIpc::OnStdinReady()
     {
         emit MoveRequested ( obj.value ( "x" ).toInt(), obj.value ( "y" ).toInt() );
     }
+    else if ( cmd == "testfeedback" ) // jamony 08-27: debug, 弹一次反馈保护弹窗
+    {
+        emit TestFeedbackRequested();
+    }
 }

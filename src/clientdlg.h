@@ -267,6 +267,8 @@ public slots:
     // OnIpcRaise 用原生 NSWindow orderFront: (前置不 makeKey, 不抢焦点, jamony 可操作)
     void OnIpcRaise();
     void OnIpcMove ( int x, int y ) { move ( x, y ); }
+    void ShowFeedbackPopup(); // jamony 08-27: 反馈保护弹窗(定时器路径与IPC debug路径共用)
+    void OnIpcTestFeedback()  { ShowFeedbackPopup(); }
     void OnBoostOnOffToggled ( bool on )
     {
         pClient->SetBoostEnabled ( on );

@@ -27,6 +27,7 @@ public:
 signals:
     void RaiseRequested();
     void MoveRequested ( int x, int y );
+    void TestFeedbackRequested(); // jamony 08-27: debug 指令, 手动弹反馈保护弹窗(验收用)
 
 private slots:
     void OnStdinReady();

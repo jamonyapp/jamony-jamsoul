@@ -330,20 +330,24 @@ CClientSettingsDlg::CClientSettingsDlg ( CClient* pNCliP, CClientSettings* pNSet
 #endif
 
     // Add help text to controls -----------------------------------------------
-    // local audio input fader
-    QString strAudFader = "<b>" + tr ( "Local Audio Input Fader" ) + ":</b> " +
-                          tr ( "Controls the relative levels of the left and right local audio "
-                               "channels. For a mono signal it acts as a pan between the two channels. "
-                               "For example, if a microphone is connected to "
-                               "the right input channel and an instrument is connected to the left "
-                               "input channel which is much louder than the microphone, move the "
-                               "audio fader in a direction where the label above the fader shows "
-                               "%1, where %2 is the current attenuation indicator." )
-                              .arg ( "<i>" + tr ( "L" ) + " -x</i>", "<i>x</i>" );
+    // jamony 08-27: 第9条 本地音频输入（Input Balance, 组框补挂; whatsThis 移除）
+    QString strAudFaderTT = QStringLiteral(
+        "<b>本地音频输入</b>：调整自己左右两路输入的相对音量。<br>"
+        "• 单声道信号时相当于声像（Pan）：哪路接的设备声音大，就往反方向衰减它"
+        "（如左路吉他太响压过右路麦克风，滑杆向“L-x”方向拉）。" );
 
-    lblAudioPan->setWhatsThis ( strAudFader );
-    lblAudioPanValue->setWhatsThis ( strAudFader );
-    sldAudioPan->setWhatsThis ( strAudFader );
+    groupBox->setToolTip ( strAudFaderTT ); // Input Balance 组框, 原三无补挂
+    groupBox->setWhatsThis ( "" );
+    lblAudioPan->setToolTip ( strAudFaderTT );
+    lblAudioPan->setWhatsThis ( "" );
+    lblAudioPanValue->setToolTip ( strAudFaderTT );
+    lblAudioPanValue->setWhatsThis ( "" );
+    sldAudioPan->setToolTip ( strAudFaderTT );
+    sldAudioPan->setWhatsThis ( "" );
+    groupBox->setToolTipDuration ( 15000 );
+    lblAudioPan->setToolTipDuration ( 15000 );
+    lblAudioPanValue->setToolTipDuration ( 15000 );
+    sldAudioPan->setToolTipDuration ( 15000 );
 
     sldAudioPan->setAccessibleName ( tr ( "Local audio input fader (left/right)" ) );
 
@@ -521,33 +525,34 @@ CClientSettingsDlg::CClientSettingsDlg ( CClient* pNCliP, CClientSettings* pNSet
     cbxAudioQuality->setToolTipDuration ( 15000 );
 
     // new client fader level
-    QString strNewClientLevel = "<b>" + tr ( "New Client Level" ) + ":</b> " +
-                                tr ( "This setting defines the fader level of a newly "
-                                     "connected client in percent. If a new client connects "
-                                     "to the current server, they will get the specified initial "
-                                     "fader level if no other fader level from a previous connection "
-                                     "of that client was already stored." );
+    // jamony 08-27: 第10条 新客户端音量（whatsThis 移除）
+    QString strNewClientLevelTT = QStringLiteral(
+        "<b>新客户端音量</b>：新乐手进入房间时，其分轨推子的初始音量（%）。<br>"
+        "• 仅对首次进房、没有历史记忆值的乐手生效。" );
 
-    lblNewClientLevel->setWhatsThis ( strNewClientLevel );
-    edtNewClientLevel->setWhatsThis ( strNewClientLevel );
+    lblNewClientLevel->setToolTip ( strNewClientLevelTT );
+    lblNewClientLevel->setWhatsThis ( "" );
+    edtNewClientLevel->setToolTip ( strNewClientLevelTT );
+    edtNewClientLevel->setWhatsThis ( "" );
     edtNewClientLevel->setAccessibleName ( tr ( "New client level edit box" ) );
+    lblNewClientLevel->setToolTipDuration ( 15000 );
+    edtNewClientLevel->setToolTipDuration ( 15000 );
 
     // input boost
-    QString strInputBoost = "<b>" + tr ( "Input Boost" ) + ":</b> " +
-                            tr ( "This setting allows you to increase your input signal level "
-                                 "by factors up to 10 (+20dB). "
-                                 "If your sound is too quiet, first try to increase the level by "
-                                 "getting closer to the microphone, adjusting your sound equipment "
-                                 "or increasing levels in your operating system's input settings. "
-                                 "Only if this fails, set a factor here. "
-                                 "If your sound is too loud, sounds distorted and is clipping, this "
-                                 "option will not help. Do not use it. The distortion will still be "
-                                 "there. Instead, decrease your input level by getting farther away "
-                                 "from your microphone, adjusting your sound equipment "
-                                 "or by decreasing your operating system's input settings." );
-    lblInputBoost->setWhatsThis ( strInputBoost );
-    cbxInputBoost->setWhatsThis ( strInputBoost );
+    // jamony 08-27: 第11条 输入增强（欢哥定稿双向指引版; whatsThis 移除）
+    QString strInputBoostTT = QStringLiteral(
+        "<b>输入增强</b>：把输入信号放大最多10倍（+20dB）。<br>"
+        "• 当你的声卡输入音量过低，应优先通过“麦克风离近/调高声卡增益/调高系统输入音量”等方式来调整。"
+        "如以上做法都不奏效，再尝试调整此增强。<br>"
+        "• ⚠ 当你的输入音量过高，已经消波失真，请不要启用此增强，"
+        "而应进行“离远麦克风/调低声卡增益/调低系统输入音量”等操作。" );
+    lblInputBoost->setToolTip ( strInputBoostTT );
+    lblInputBoost->setWhatsThis ( "" );
+    cbxInputBoost->setToolTip ( strInputBoostTT );
+    cbxInputBoost->setWhatsThis ( "" );
     cbxInputBoost->setAccessibleName ( tr ( "Input Boost combo box" ) );
+    lblInputBoost->setToolTipDuration ( 15000 );
+    cbxInputBoost->setToolTipDuration ( 15000 );
 
     // custom directories
     QString strCustomDirectories = "<b>" + tr ( "Custom Directories" ) + ":</b> " +
@@ -583,8 +588,15 @@ CClientSettingsDlg::CClientSettingsDlg ( CClient* pNCliP, CClientSettings* pNSet
     spnMixerRows->setWhatsThis ( strNumMixerPanelRows );
     spnMixerRows->setAccessibleName ( tr ( "Number of Mixer Panel Rows spin box" ) );
 
-    chbDetectFeedback->setWhatsThis ( "<b>" + tr ( "Feedback Protection" ) + ":</b> " +
-                                      tr ( "Prevents acoustic feedback between microphone and speakers." ) );
+    // jamony 08-27: 第12条 反馈保护（按jamulus源码真实实现写: 连接后头3秒监控+电平接近满刻度触发
+    // +自动本地静音+弹窗可反选关闭, clientdlg.cpp:1788-1816,1971-1975; whatsThis 移除）
+    chbDetectFeedback->setToolTip ( QStringLiteral(
+        "<b>反馈保护</b>：防止啸叫。<br>"
+        "• 每次连接后的头3秒内，若输入音量接近消波失真（如麦克风拾到音箱形成回路），"
+        "自动帮你勾选“本地输入静音”，并弹窗提示先解决啸叫、再手动解除静音。<br>"
+        "• 3秒后不再监控；弹窗里也可关掉此功能。" ) );
+    chbDetectFeedback->setWhatsThis ( "" );
+    chbDetectFeedback->setToolTipDuration ( 15000 );
     chbDetectFeedback->setAccessibleName ( tr ( "Feedback Protection check box" ) );
 
     // audio alerts
