@@ -347,196 +347,128 @@ CClientSettingsDlg::CClientSettingsDlg ( CClient* pNCliP, CClientSettings* pNSet
 
     sldAudioPan->setAccessibleName ( tr ( "Local audio input fader (left/right)" ) );
 
-    // jitter buffer
-    QString strJitterBufferSize = "<b>" + tr ( "Jitter Buffer Size" ) + ":</b> " +
-                                  tr ( "The jitter buffer compensates for network and sound card timing jitters. The "
-                                       "size of the buffer therefore influences the quality of "
-                                       "the audio stream (how many dropouts occur) and the overall delay "
-                                       "(the longer the buffer, the higher the delay)." ) +
-                                  "<br>" +
-                                  tr ( "You can set the jitter buffer size manually for the local client "
-                                       "and the remote server. For the local jitter buffer, dropouts in the "
-                                       "audio stream are indicated by the light below the "
-                                       "jitter buffer size faders. If the light turns to red, a buffer "
-                                       "overrun/underrun has taken place and the audio stream is interrupted." ) +
-                                  "<br>" +
-                                  tr ( "The jitter buffer setting is therefore a trade-off between audio "
-                                       "quality and overall delay." ) +
-                                  "<br>" +
-                                  tr ( "If the Auto setting is enabled, the jitter buffers of the local client and "
-                                       "the remote server are set automatically "
-                                       "based on measurements of the network and sound card timing jitter. If "
-                                       "Auto is enabled, the jitter buffer size faders are "
-                                       "disabled (they cannot be moved with the mouse)." );
+    // jamony 08-27: 第4条 抖动缓冲区（悬停短版+右键长版综合为一, 原"推子下方的灯"在jamony中
+    // 位于音频窗口左栏底部, 指路改到那里; whatsThis 移除）
+    QString strJitterBufTT = QStringLiteral(
+        "<b>抖动缓冲区</b>：缓冲网络和声卡的时间抖动，越大越稳、延迟越高，是音质和延迟之间的权衡。<br>"
+        "• <b>自动</b>（推荐）：按网络状况自动取保守值，丢包率最低。<br>"
+        "• 降低延迟：关掉自动，手动调低两根滑杆（本地/服务器），调到音频窗口左栏底部的“抖动”灯不红为止。" );
 
-    QString strJitterBufferSizeTT = tr ( "If the Auto setting "
-                                         "is enabled, the network buffers of the local client and "
-                                         "the remote server are set to a conservative "
-                                         "value to minimize the audio dropout probability. To tweak the "
-                                         "audio delay/latency it is recommended to disable the Auto setting "
-                                         "and to lower the jitter buffer size manually by "
-                                         "using the sliders until your personal acceptable amount "
-                                         "of dropouts is reached. The LED indicator will display the audio "
-                                         "dropouts of the local jitter buffer with a red light." ) +
-                                    TOOLTIP_COM_END_TEXT;
-
-    lblNetBuf->setWhatsThis ( strJitterBufferSize );
-    lblNetBuf->setToolTip ( strJitterBufferSizeTT );
-    grbJitterBuffer->setWhatsThis ( strJitterBufferSize );
-    grbJitterBuffer->setToolTip ( strJitterBufferSizeTT );
-    sldNetBuf->setWhatsThis ( strJitterBufferSize );
+    lblNetBuf->setToolTip ( strJitterBufTT );
+    lblNetBuf->setWhatsThis ( "" );
+    grbJitterBuffer->setToolTip ( strJitterBufTT );
+    grbJitterBuffer->setWhatsThis ( "" );
+    sldNetBuf->setToolTip ( strJitterBufTT );
+    sldNetBuf->setWhatsThis ( "" );
     sldNetBuf->setAccessibleName ( tr ( "Local jitter buffer slider control" ) );
-    sldNetBuf->setToolTip ( strJitterBufferSizeTT );
-    sldNetBufServer->setWhatsThis ( strJitterBufferSize );
+    sldNetBufServer->setToolTip ( strJitterBufTT );
+    sldNetBufServer->setWhatsThis ( "" );
     sldNetBufServer->setAccessibleName ( tr ( "Server jitter buffer slider control" ) );
-    sldNetBufServer->setToolTip ( strJitterBufferSizeTT );
+    lblNetBufServer->setToolTip ( strJitterBufTT ); // 原三无, 补挂同文
+    lblNetBufServer->setWhatsThis ( "" );
+    chbAutoJitBuf->setToolTip ( strJitterBufTT );
+    chbAutoJitBuf->setWhatsThis ( "" );
     chbAutoJitBuf->setAccessibleName ( tr ( "Auto jitter buffer check box" ) );
-    chbAutoJitBuf->setToolTip ( strJitterBufferSizeTT );
+
+    lblNetBuf->setToolTipDuration ( 15000 );
+    grbJitterBuffer->setToolTipDuration ( 15000 );
+    sldNetBuf->setToolTipDuration ( 15000 );
+    sldNetBufServer->setToolTipDuration ( 15000 );
+    lblNetBufServer->setToolTipDuration ( 15000 );
+    chbAutoJitBuf->setToolTipDuration ( 15000 );
 
 #if !defined( WITH_JACK )
-    // sound card device
-    lblSoundcardDevice->setWhatsThis ( "<b>" + tr ( "Audio Device" ) + ":</b> " +
-                                       tr ( "Under the Windows operating system the ASIO driver (sound card) can be "
-                                            "selected using %1. If the selected ASIO driver is not valid an error "
-                                            "message is shown and the previous valid driver is selected. "
-                                            "Under macOS the input and output hardware can be selected." )
-                                           .arg ( APP_NAME ) +
-                                       "<br>" +
-                                       tr ( "If the driver is selected during an active connection, the connection "
-                                            "is stopped, the driver is changed and the connection is started again "
-                                            "automatically." ) );
+    // jamony 08-27: 设置窗悬停文案统一（音频/网络页第1条）, 移除 whatsThis
+    QString strAudioDeviceTT = QStringLiteral(
+        "<b>音频设备</b>：选择jamony使用的声卡。<br>"
+        "• Windows：选择ASIO驱动（声卡）；所选驱动无效时会报错并回退到上一个有效驱动。"
+        "ASIO4ALL驱动会额外引入约10–30ms延迟，建议用原生ASIO驱动的声卡。<br>"
+        "• Mac：选择输入/输出硬件设备。<br>"
+        "• 连接中切换设备会先断开连接，切换后自动重连。" );
 
+    lblSoundcardDevice->setToolTip ( strAudioDeviceTT );
+    lblSoundcardDevice->setWhatsThis ( "" );
+    cbxSoundcard->setToolTip ( strAudioDeviceTT );
+    cbxSoundcard->setWhatsThis ( "" );
     cbxSoundcard->setAccessibleName ( tr ( "Sound card device selector combo box" ) );
 
-#    if defined( _WIN32 )
-    // set Windows specific tool tip
-    cbxSoundcard->setToolTip ( tr ( "If the ASIO4ALL driver is used, "
-                                    "please note that this driver usually introduces approx. 10-30 ms of "
-                                    "additional audio delay. Using a sound card with a native ASIO driver "
-                                    "is therefore recommended." ) +
-                               "<br>" +
-                               tr ( "If you are using the kX ASIO "
-                                    "driver, make sure to connect the ASIO inputs in the kX DSP settings "
-                                    "panel." ) +
-                               TOOLTIP_COM_END_TEXT );
-#    endif
+    // jamony 08-27: 第2条 声道映射
+    QString strChanMappingTT = QStringLiteral(
+        "<b>声道映射</b>：把jamony的左/右输入、输出声道，对应到声卡上的实际物理接口。<br>"
+        "• 只有声卡提供多路输入/输出时这组设置才会出现。<br>"
+        "• 接了多路设备（如声卡上同时接了吉他和麦克风）时，在这里指定哪路进左声道、哪路进右声道。" );
 
-    // sound card input/output channel mapping
-    QString strSndCrdChanMapp = "<b>" + tr ( "Sound Card Channel Mapping" ) + ":</b> " +
-                                tr ( "If the selected sound card device offers more than one "
-                                     "input or output channel, the Input Channel Mapping and Output "
-                                     "Channel Mapping settings are visible." ) +
-                                "<br>" +
-                                tr ( "For each %1 input/output channel (left and "
-                                     "right channel) a different actual sound card channel can be "
-                                     "selected." )
-                                    .arg ( APP_NAME );
-
-    lblInChannelMapping->setWhatsThis ( strSndCrdChanMapp );
-    lblOutChannelMapping->setWhatsThis ( strSndCrdChanMapp );
-    cbxLInChan->setWhatsThis ( strSndCrdChanMapp );
+    lblInChannelMapping->setToolTip ( strChanMappingTT );
+    lblInChannelMapping->setWhatsThis ( "" );
+    lblOutChannelMapping->setToolTip ( strChanMappingTT );
+    lblOutChannelMapping->setWhatsThis ( "" );
+    cbxLInChan->setToolTip ( strChanMappingTT );
+    cbxLInChan->setWhatsThis ( "" );
     cbxLInChan->setAccessibleName ( tr ( "Left input channel selection combo box" ) );
-    cbxRInChan->setWhatsThis ( strSndCrdChanMapp );
+    cbxRInChan->setToolTip ( strChanMappingTT );
+    cbxRInChan->setWhatsThis ( "" );
     cbxRInChan->setAccessibleName ( tr ( "Right input channel selection combo box" ) );
-    cbxLOutChan->setWhatsThis ( strSndCrdChanMapp );
+    cbxLOutChan->setToolTip ( strChanMappingTT );
+    cbxLOutChan->setWhatsThis ( "" );
     cbxLOutChan->setAccessibleName ( tr ( "Left output channel selection combo box" ) );
-    cbxROutChan->setWhatsThis ( strSndCrdChanMapp );
+    cbxROutChan->setToolTip ( strChanMappingTT );
+    cbxROutChan->setWhatsThis ( "" );
     cbxROutChan->setAccessibleName ( tr ( "Right output channel selection combo box" ) );
+
+    // jamony 08-27: 悬停时长与主窗统一 15s
+    lblSoundcardDevice->setToolTipDuration ( 15000 );
+    cbxSoundcard->setToolTipDuration ( 15000 );
+    lblInChannelMapping->setToolTipDuration ( 15000 );
+    lblOutChannelMapping->setToolTipDuration ( 15000 );
+    cbxLInChan->setToolTipDuration ( 15000 );
+    cbxRInChan->setToolTipDuration ( 15000 );
+    cbxLOutChan->setToolTipDuration ( 15000 );
+    cbxROutChan->setToolTipDuration ( 15000 );
 #endif
 
     // enable OPUS64
-    chbSmallNetworkBuffers->setWhatsThis (
-        "<b>" + tr ( "Small Network Buffers" ) + ":</b> " +
-        tr ( "Enables support for very small network audio packets. These "
-             "network packets are only actually used if the sound card buffer delay is smaller than %1 samples. The "
-             "smaller the network buffers, the lower the audio latency. But at the same time "
-             "the network load and the probability of audio dropouts or sound artifacts increases." )
-            .arg ( DOUBLE_SYSTEM_FRAME_SIZE_SAMPLES ) );
+    // jamony 08-27: 第3条 小型网络缓冲区（误译修正: 采样点/与此同时; whatsThis 移除）
+    chbSmallNetworkBuffers->setToolTip ( QStringLiteral(
+        "<b>小型网络缓冲区</b>：使用更小的网络音频包，进一步降低延迟。<br>"
+        "• 仅当“缓冲区延迟”设为64采样时实际生效。<br>"
+        "• 代价是网络负载升高、卡顿风险增大——需根据网络情况判断是否启用。" ) );
+    chbSmallNetworkBuffers->setWhatsThis ( "" );
+    chbSmallNetworkBuffers->setToolTipDuration ( 15000 );
 
     chbSmallNetworkBuffers->setAccessibleName ( tr ( "Small network buffers check box" ) );
 
-    // sound card buffer delay
-    QString strSndCrdBufDelay =
-        "<b>" + tr ( "Sound Card Buffer Delay" ) + ":</b> " +
-        tr ( "The buffer delay setting is a fundamental setting of %1. "
-             "This setting has an influence on many connection properties." )
-            .arg ( APP_NAME ) +
-        "<br>" + tr ( "Three buffer sizes can be selected" ) +
-        ":<ul>"
-        "<li>" +
-        tr ( "64 samples: Provides the lowest latency but does not work with all sound cards." ) +
-        "</li>"
-        "<li>" +
-        tr ( "128 samples: Should work for most available sound cards." ) +
-        "</li>"
-        "<li>" +
-        tr ( "256 samples: Should only be used when 64 or 128 samples "
-             "is causing issues." ) +
-        "</li>"
-        "</ul>" +
-        tr ( "Some sound card drivers do not allow the buffer delay to be changed from within %1. "
-             "In this case the buffer delay setting is disabled and has to be changed using the sound card driver. "
-             "Use the appropriate tool for the interface in use to adjust this buffer size. "
-             "For example, if using ASIO, use the \"ASIO Device Settings\" button to open the driver settings panel or if using JACK, use a tool "
-             "such as QjackCtl to adjust the buffer size. "
-             "Other interfaces, such as Pipewire, would require their appropriate tool being used. Please refer to the interface manual." )
-            .arg ( APP_NAME ) +
-        "<br>" +
-        tr ( "If no buffer size is selected and all settings are disabled, this means a "
-             "buffer size in use by the driver which does not match the values. %1 "
-             "will still work with this setting but may have restricted "
-             "performance." )
-            .arg ( APP_NAME ) +
-        "<br>" +
-        tr ( "The actual buffer delay has influence on the connection, the "
-             "current upload rate and the overall delay. The lower the buffer size, "
-             "the higher the probability of a red light in the status indicator (drop "
-             "outs) and the higher the upload rate and the lower the overall "
-             "delay." ) +
-        "<br>" + tr ( "The buffer setting is therefore a trade-off between audio quality and overall delay." );
+    // jamony 08-27: 第5条 缓冲区延迟（含原 ASIO 驱动面板指引合并, 原 #if _WIN32 tooltip 并入）
+    QString strBufDelayTT = QStringLiteral(
+        "<b>缓冲区延迟</b>：声卡单次处理的采样块大小，是延迟和稳定性的根源权衡。<br>"
+        "• <b>64采样</b>：延迟最低，部分声卡不支持。<br>"
+        "• <b>128采样</b>（默认）：大多数声卡都稳定。<br>"
+        "• <b>256采样</b>：仅在64/128出问题时选用，延迟明显升高。<br>"
+        "• 块越小延迟越低，但丢包概率和对上行带宽的要求越高。<br>"
+        "• Windows：若这里的选项被禁用成灰，须到ASIO驱动面板（“ASIO设备选项”按钮）或声卡驱动面板里调整缓冲区大小；"
+        "ASIO4ALL驱动可在该面板选择启用哪些输入/输出；仅支持48000Hz设备。" );
 
-    QString strSndCrdBufDelayTT =
-        tr ( "Some sound card drivers do not allow the buffer delay to be changed from within %1. "
-             "In this case the buffer delay setting is disabled and has to be changed using the sound card driver. "
-             "Use the appropriate tool for the interface in use to adjust this buffer size. "
-             "For example, if using ASIO, use the \"ASIO Device Settings\" button to open the driver settings panel or if using JACK, use a tool "
-             "such as QjackCtl to adjust the buffer size. "
-             "Other interfaces, such as Pipewire, would require their appropriate tool being used. Please refer to the interface manual." )
-            .arg ( APP_NAME ) +
-        TOOLTIP_COM_END_TEXT;
-
-#if defined( _WIN32 ) && !defined( WITH_JACK )
-    // Driver setup button
-    QString strSndCardDriverSetup = "<b>" + tr ( "Sound card driver settings" ) + ":</b> " +
-                                    tr ( "This opens the driver settings of your sound card. Some drivers "
-                                         "allow you to change buffer settings, others like ASIO4ALL "
-                                         "lets you choose input or outputs of your device(s). "
-                                         "More information can be found on jamulus.io." );
-
-    QString strSndCardDriverSetupTT = tr ( "Opens the driver settings. Note: %1 currently only supports devices "
-                                           "with a sample rate of %2 Hz. "
-                                           "You will not be able to select a driver/device which doesn't. "
-                                           "For more help see jamulus.io." )
-                                          .arg ( APP_NAME )
-                                          .arg ( SYSTEM_SAMPLE_RATE_HZ ) +
-                                      TOOLTIP_COM_END_TEXT;
-#endif
-
-    rbtBufferDelayPreferred->setWhatsThis ( strSndCrdBufDelay );
+    grbSoundCrdBufDelay->setToolTip ( strBufDelayTT );
+    grbSoundCrdBufDelay->setWhatsThis ( "" );
+    rbtBufferDelayPreferred->setToolTip ( strBufDelayTT );
+    rbtBufferDelayPreferred->setWhatsThis ( "" );
     rbtBufferDelayPreferred->setAccessibleName ( tr ( "64 samples setting radio button" ) );
-    rbtBufferDelayPreferred->setToolTip ( strSndCrdBufDelayTT );
-    rbtBufferDelayDefault->setWhatsThis ( strSndCrdBufDelay );
+    rbtBufferDelayDefault->setToolTip ( strBufDelayTT );
+    rbtBufferDelayDefault->setWhatsThis ( "" );
     rbtBufferDelayDefault->setAccessibleName ( tr ( "128 samples setting radio button" ) );
-    rbtBufferDelayDefault->setToolTip ( strSndCrdBufDelayTT );
-    rbtBufferDelaySafe->setWhatsThis ( strSndCrdBufDelay );
+    rbtBufferDelaySafe->setToolTip ( strBufDelayTT );
+    rbtBufferDelaySafe->setWhatsThis ( "" );
     rbtBufferDelaySafe->setAccessibleName ( tr ( "256 samples setting radio button" ) );
-    rbtBufferDelaySafe->setToolTip ( strSndCrdBufDelayTT );
 
 #if defined( _WIN32 ) && !defined( WITH_JACK )
-    butDriverSetup->setWhatsThis ( strSndCardDriverSetup );
+    butDriverSetup->setToolTip ( strBufDelayTT ); // 与组框同文（欢哥 08-27 合并决策）
+    butDriverSetup->setWhatsThis ( "" );
     butDriverSetup->setAccessibleName ( tr ( "ASIO Device Settings push button" ) );
-    butDriverSetup->setToolTip ( strSndCardDriverSetupTT );
 #endif
+
+    grbSoundCrdBufDelay->setToolTipDuration ( 15000 );
+    rbtBufferDelayPreferred->setToolTipDuration ( 15000 );
+    rbtBufferDelayDefault->setToolTipDuration ( 15000 );
+    rbtBufferDelaySafe->setToolTipDuration ( 15000 );
 
     // fancy skin
     lblSkin->setWhatsThis ( "<b>" + tr ( "Skin" ) + ":</b> " + tr ( "Select the skin to be used for the main window." ) );
@@ -559,50 +491,34 @@ CClientSettingsDlg::CClientSettingsDlg ( CClient* pNCliP, CClientSettings* pNSet
     cbxLanguage->setAccessibleName ( tr ( "Language combo box" ) );
 
     // audio channels
-    QString strAudioChannels = "<b>" + tr ( "Audio Channels" ) + ":</b> " +
-                               tr ( "Selects the number of audio channels to be used for communication between "
-                                    "client and server. There are three modes available:" ) +
-                               "<ul>"
-                               "<li>"
-                               "<b>" +
-                               tr ( "Mono" ) + "</b> " + tr ( "and" ) + " <b>" + tr ( "Stereo" ) + ":</b> " +
-                               tr ( "These modes use "
-                                    "one and two audio channels respectively." ) +
-                               "</li>"
-                               "<li>"
-                               "<b>" +
-                               tr ( "Mono in/Stereo-out" ) + ":</b> " +
-                               tr ( "The audio signal sent to the server is mono but the "
-                                    "return signal is stereo. This is useful if the "
-                                    "sound card has the instrument on one input channel and the "
-                                    "microphone on the other. In that case the two input signals "
-                                    "can be mixed to one mono channel but the server mix is heard in "
-                                    "stereo." ) +
-                               "</li>"
-                               "<li>" +
-                               tr ( "Enabling " ) + "<b>" + tr ( "Stereo" ) + "</b> " +
-                               tr ( " mode "
-                                    "will increase your stream's data rate. Make sure your upload rate does not "
-                                    "exceed the available upload speed of your internet connection." ) +
-                               "</li>"
-                               "</ul>" +
-                               tr ( "In stereo streaming mode, no audio channel selection "
-                                    "for the reverb effect will be available on the main window "
-                                    "since the effect is applied to both channels in this case." );
+    // jamony 08-27: 第6条 音频通道（FX RACK 声道行为按魔改后真实逻辑核实, whatsThis 移除）
+    QString strAudioChannelsTT = QStringLiteral(
+        "<b>音频通道</b>：上传音频使用的声道数。<br>"
+        "• <b>单声道</b>：省带宽，多数场景够用。<br>"
+        "• <b>单声道输入/立体声输出</b>：上传单声道、下载立体声——声卡一路接乐器、另一路接麦克风时用。<br>"
+        "• <b>立体声</b>：带宽翻倍，需确认上行速率够用；jamony FX RACK中的所有效果器都会同时作用于两个声道"
+        "（混响在其他模式下按照L/R按钮生效，立体声模式下不再需要选择，同时作用于L/R声道）。" );
 
-    lblAudioChannels->setWhatsThis ( strAudioChannels );
-    cbxAudioChannels->setWhatsThis ( strAudioChannels );
+    lblAudioChannels->setToolTip ( strAudioChannelsTT );
+    lblAudioChannels->setWhatsThis ( "" );
+    cbxAudioChannels->setToolTip ( strAudioChannelsTT );
+    cbxAudioChannels->setWhatsThis ( "" );
     cbxAudioChannels->setAccessibleName ( tr ( "Audio channels combo box" ) );
+    lblAudioChannels->setToolTipDuration ( 15000 );
+    cbxAudioChannels->setToolTipDuration ( 15000 );
 
     // audio quality
-    QString strAudioQuality = "<b>" + tr ( "Audio Quality" ) + ":</b> " +
-                              tr ( "The higher the audio quality, the higher your audio stream's "
-                                   "data rate. Make sure your upload rate does not exceed the "
-                                   "available bandwidth of your internet connection." );
+    // jamony 08-27: 第7条 音频质量
+    QString strAudioQualityTT = QStringLiteral(
+        "<b>音频质量</b>：音质档位越高，对上行带宽要求越大，按网络能力选择即可。" );
 
-    lblAudioQuality->setWhatsThis ( strAudioQuality );
-    cbxAudioQuality->setWhatsThis ( strAudioQuality );
+    lblAudioQuality->setToolTip ( strAudioQualityTT );
+    lblAudioQuality->setWhatsThis ( "" );
+    cbxAudioQuality->setToolTip ( strAudioQualityTT );
+    cbxAudioQuality->setWhatsThis ( "" );
     cbxAudioQuality->setAccessibleName ( tr ( "Audio quality combo box" ) );
+    lblAudioQuality->setToolTipDuration ( 15000 );
+    cbxAudioQuality->setToolTipDuration ( 15000 );
 
     // new client fader level
     QString strNewClientLevel = "<b>" + tr ( "New Client Level" ) + ":</b> " +
@@ -648,14 +564,18 @@ CClientSettingsDlg::CClientSettingsDlg ( CClient* pNCliP, CClientSettings* pNSet
     tbtDeleteCustomDirectory->setText ( u8"\u232B" );
 
     // current connection status parameter
-    QString strConnStats = "<b>" + tr ( "Audio Upstream Rate" ) + ":</b> " +
-                           tr ( "Depends on the current audio packet size and "
-                                "compression setting. Make sure that the upstream rate is not "
-                                "higher than your available internet upload speed (check this with a "
-                                "service such as speedtest.net)." );
+    // jamony 08-27: 第8条 音频流上行速度（误译修正: 上行速率; whatsThis 移除）
+    QString strUpstreamTT = QStringLiteral(
+        "<b>音频流上行速度</b>：当前设置下每秒实际上传的数据量（kbps）。<br>"
+        "• 由音频通道、音频质量、缓冲区延迟共同决定。<br>"
+        "• 应低于网络上行的实际能力。" );
 
-    lblUpstreamValue->setWhatsThis ( strConnStats );
-    grbUpstreamValue->setWhatsThis ( strConnStats );
+    lblUpstreamValue->setToolTip ( strUpstreamTT );
+    lblUpstreamValue->setWhatsThis ( "" );
+    grbUpstreamValue->setToolTip ( strUpstreamTT );
+    grbUpstreamValue->setWhatsThis ( "" );
+    lblUpstreamValue->setToolTipDuration ( 15000 );
+    grbUpstreamValue->setToolTipDuration ( 15000 );
 
     QString strNumMixerPanelRows =
         "<b>" + tr ( "Number of Mixer Panel Rows" ) + ":</b> " + tr ( "Adjust the number of rows used to arrange the mixer panel." );
