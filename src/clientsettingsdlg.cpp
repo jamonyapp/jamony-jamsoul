@@ -475,22 +475,18 @@ CClientSettingsDlg::CClientSettingsDlg ( CClient* pNCliP, CClientSettings* pNSet
     rbtBufferDelaySafe->setToolTipDuration ( 15000 );
 
     // fancy skin
-    lblSkin->setWhatsThis ( "<b>" + tr ( "Skin" ) + ":</b> " + tr ( "Select the skin to be used for the main window." ) );
+    // jamony 08-27: 隐藏User页控件 whatsThis 一并清空（右键whatsThis机制全窗废除, 下方同）
+    lblSkin->setWhatsThis ( "" );
 
     cbxSkin->setAccessibleName ( tr ( "Skin combo box" ) );
 
     // MeterStyle
-    lblMeterStyle->setWhatsThis ( "<b>" + tr ( "Meter Style" ) + ":</b> " +
-                                  tr ( "Select the meter style to be used for the level meters. The "
-                                       "Bar (narrow) and LEDs (round, small) options only apply to the mixerboard. When "
-                                       "Bar (narrow) is selected, the input meters are set to Bar (wide). When "
-                                       "LEDs (round, small) is selected, the input meters are set to LEDs (round, big). "
-                                       "The remaining options apply to the mixerboard and input meters." ) );
+    lblMeterStyle->setWhatsThis ( "" );
 
     cbxMeterStyle->setAccessibleName ( tr ( "Meter Style combo box" ) );
 
     // Interface Language
-    lblLanguage->setWhatsThis ( "<b>" + tr ( "Language" ) + ":</b> " + tr ( "Select the language to be used for the user interface." ) );
+    lblLanguage->setWhatsThis ( "" );
 
     cbxLanguage->setAccessibleName ( tr ( "Language combo box" ) );
 
@@ -555,17 +551,13 @@ CClientSettingsDlg::CClientSettingsDlg ( CClient* pNCliP, CClientSettings* pNSet
     cbxInputBoost->setToolTipDuration ( 15000 );
 
     // custom directories
-    QString strCustomDirectories = "<b>" + tr ( "Custom Directories" ) + ":</b> " +
-                                   tr ( "If you need to add additional directories to the Connect dialog Directory drop down, "
-                                        "you can enter the addresses here.<br>" );
-
-    lblCustomDirectories->setWhatsThis ( strCustomDirectories );
-    cbxCustomDirectories->setWhatsThis ( strCustomDirectories );
+    // jamony 08-27: \u5DF2\u9690\u85CF\u63A7\u4EF6, whatsThis \u6E05\u7A7A
+    lblCustomDirectories->setWhatsThis ( "" );
+    cbxCustomDirectories->setWhatsThis ( "" );
     cbxCustomDirectories->setAccessibleName ( tr ( "Custom Directories combo box" ) );
 
     tbtDeleteCustomDirectory->setAccessibleName ( tr ( "Delete custom directory button" ) );
-    tbtDeleteCustomDirectory->setWhatsThis ( "<b>" + tr ( "Delete Custom Directory" ) + ":</b> " +
-                                             tr ( "Click the button to delete the currently selected custom directory." ) );
+    tbtDeleteCustomDirectory->setWhatsThis ( "" );
     tbtDeleteCustomDirectory->setText ( u8"\u232B" );
 
     // current connection status parameter
@@ -582,10 +574,9 @@ CClientSettingsDlg::CClientSettingsDlg ( CClient* pNCliP, CClientSettings* pNSet
     lblUpstreamValue->setToolTipDuration ( 15000 );
     grbUpstreamValue->setToolTipDuration ( 15000 );
 
-    QString strNumMixerPanelRows =
-        "<b>" + tr ( "Number of Mixer Panel Rows" ) + ":</b> " + tr ( "Adjust the number of rows used to arrange the mixer panel." );
-    lblMixerRows->setWhatsThis ( strNumMixerPanelRows );
-    spnMixerRows->setWhatsThis ( strNumMixerPanelRows );
+    // jamony 08-27: 隐藏User页控件 whatsThis 清空
+    lblMixerRows->setWhatsThis ( "" );
+    spnMixerRows->setWhatsThis ( "" );
     spnMixerRows->setAccessibleName ( tr ( "Number of Mixer Panel Rows spin box" ) );
 
     // jamony 08-27: 第12条 反馈保护（按jamulus源码真实实现写: 连接后头3秒监控+电平接近满刻度触发
@@ -600,9 +591,8 @@ CClientSettingsDlg::CClientSettingsDlg ( CClient* pNCliP, CClientSettings* pNSet
     chbDetectFeedback->setAccessibleName ( tr ( "Feedback Protection check box" ) );
 
     // audio alerts
-    chbAudioAlerts->setWhatsThis ( "<b>" + tr ( "Audio Alerts" ) + ":</b> " +
-                                   tr ( "Trigger an audio alert when receiving a chat message and when a new client joins the session. "
-                                        "A second sound device may be required to hear the alerts." ) );
+    // jamony 08-27: 隐藏User页控件 whatsThis 清空
+    chbAudioAlerts->setWhatsThis ( "" );
     chbAudioAlerts->setAccessibleName ( tr ( "Audio Alerts check box" ) );
 
     // show tool tip (jamony 08-14: 全局悬停提示开关)
@@ -611,51 +601,72 @@ CClientSettingsDlg::CClientSettingsDlg ( CClient* pNCliP, CClientSettings* pNSet
     chbShowToolTip->setAccessibleName ( QStringLiteral ( "显示组件悬停说明" ) );
 
     // MIDI settings
-    grbMidiControls->setWhatsThis ( tr ( "Enable/disable MIDI-in port" ) );
+    // jamony 08-27: 第14条 MIDI输入总开关（序号说明呼应8-24用户名框悬停; whatsThis 移除）
+    grbMidiControls->setToolTip ( QStringLiteral(
+        "<b>MIDI输入</b>：开启后才能用MIDI控制器遥控jamony的推子和按钮。<br>"
+        "• 开启后，分轨界面用户名前会显示序号（如0:、1:），即该分轨的MIDI通道号，MIDI推子映射对号入座。" ) );
+    grbMidiControls->setWhatsThis ( "" );
+    grbMidiControls->setToolTipDuration ( 15000 );
     grbMidiControls->setAccessibleName ( tr ( "MIDI-in port check box" ) );
 
-    chbMIDIPickupMode->setWhatsThis ( "<b>" + tr ( "Pick-up Mode" ) + ":</b> " +
-                                      tr ( "When enabled, MIDI fader and pan controls will wait until the physical controller "
-                                           "position matches the current software value before responding. This prevents sudden "
-                                           "jumps when your physical controller is out of sync with the software." ) );
+    // jamony 08-27: 第16条 接管模式（官方误译"拾音器模式"修正; whatsThis 移除）
+    chbMIDIPickupMode->setToolTip ( QStringLiteral(
+        "<b>接管模式</b>：开启后，转动MIDI物理推子/旋钮时，要等物理位置与软件当前值同步时才开始生效。<br>"
+        "• 防止物理控制器和软件不同步时，软件值突然变化。<br>"
+        "• 物理控制器无电机（不能自动对位）的用户建议常开。" ) );
+    chbMIDIPickupMode->setWhatsThis ( "" );
+    chbMIDIPickupMode->setToolTipDuration ( 15000 );
     chbMIDIPickupMode->setAccessibleName ( tr ( "Pick-up Mode check box" ) );
 
-#if defined( WITH_JACK )
-    lblMidiDevice->setWhatsThis ( tr ( "Select which MIDI output port to connect to. "
-                                       "Jamulus will automatically connect its MIDI input port to the selected device when enabled."
-                                       "You can also use your connection manager of choice to manually change connections." ) );
-#elif defined( __APPLE__ )
-    lblMidiDevice->setWhatsThis ( tr ( "Select which MIDI source to connect to. "
-                                       "Jamulus will automatically connect its MIDI input port to the selected device when enabled."
-                                       "You can also use Audio MIDI Setup to manually change connections." ) );
-#else
-    lblMidiDevice->setWhatsThis ( tr ( "Select which MIDI input device(s) Jamulus should listen to. "
-                                       "Select 'All Devices' to receive MIDI from all connected devices, or choose a specific device." ) );
-#endif
+    // jamony 08-27: 第15条 MIDI设备（分平台写; Mac用"音频MIDI设置"系统工具, Win有"所有设备";
+    // 原三平台#分支合并为一条中文; whatsThis 移除）
+    lblMidiDevice->setToolTip ( QStringLiteral(
+        "<b>MIDI设备</b>：选择要接入的MIDI控制器。<br>"
+        "• 开启MIDI输入后自动连接所选设备。<br>"
+        "• Mac：也可用系统的“音频MIDI设置”手动改连接；Windows：可选“所有设备”一次接入全部。" ) );
+    lblMidiDevice->setWhatsThis ( "" );
+    lblMidiDevice->setToolTipDuration ( 15000 );
+    cbxMidiDevice->setToolTip ( lblMidiDevice->toolTip() ); // 原三无补挂
+    cbxMidiDevice->setWhatsThis ( "" );
+    cbxMidiDevice->setToolTipDuration ( 15000 );
     cbxMidiDevice->setAccessibleName ( tr ( "MIDI input device combo box" ) );
 
-    QString strMidiSettings = "<b>" + tr ( "MIDI controller settings" ) + ":</b> " +
-                              tr ( "There is one global MIDI channel parameter (0-16) and two parameters you can set "
-                                   "for each item controlled: First MIDI CC and consecutive CC numbers (count). First set the "
-                                   "channel you want Jamulus to listen on (0 for all channels). Then, for each item "
-                                   "you want to control (volume fader, pan, solo, mute), set the first MIDI CC (CC number "
-                                   "to start from) and number of consecutive CC numbers (count). There is one "
-                                   "exception that does not require establishing consecutive CC numbers which is "
-                                   "the “Mute Myself” parameter - it only requires a single CC number as it is only "
-                                   "applied to one’s own audio stream." ) +
-                              "<br>" +
-                              tr ( "You can either type in the MIDI CC values or use the \"Learn\" button: click on "
-                                   "\"Learn\", actuate the fader/knob/button on your MIDI controller, and the MIDI CC "
-                                   "number will be detected and saved." );
-
-    lblChannel->setWhatsThis ( strMidiSettings );
-    grbMidiMuteMyself->setWhatsThis ( strMidiSettings );
-    grbMidiFader->setWhatsThis ( strMidiSettings );
-    grbMidiPan->setWhatsThis ( strMidiSettings );
-    grbMidiSolo->setWhatsThis ( strMidiSettings );
-    grbMidiMute->setWhatsThis ( strMidiSettings );
-
+    // jamony 08-27: 第17条 MIDI通道（下拉实际选项 0(所有)~16, ui静态填充; whatsThis 移除）
+    lblChannel->setToolTip ( QStringLiteral(
+        "<b>MIDI通道</b>：jamony只监听这个通道上的MIDI信号。<br>"
+        "• 0(所有)=监听全部通道；1~16=只听对应通道。<br>"
+        "• 需与MIDI控制器上设置的发送通道一致。" ) );
+    lblChannel->setWhatsThis ( "" );
+    lblChannel->setToolTipDuration ( 15000 );
+    cbxChannel->setToolTip ( lblChannel->toolTip() ); // 原三无补挂
+    cbxChannel->setWhatsThis ( "" );
+    cbxChannel->setToolTipDuration ( 15000 );
     cbxChannel->setAccessibleName ( tr ( "MIDI channel combo box" ) );
+
+    // jamony 08-27: 第18条 五参数组框映射（原文没讲透的"逐分轨按序号对号入座"补例句;
+    // "声相"统一为"声像"与主窗Pan一致; whatsThis 移除）
+    QString strMidiMappingTT = QStringLiteral(
+        "<b>MIDI控制器映射</b>：为每类操作指定起始CC编号和连续个数。<br>"
+        "• <b>推子/声像/独奏/静音</b>：是“逐分轨”控制——设起始CC和连续个数后，"
+        "按分轨界面用户名前的序号（0:、1:…）依次对号入座。"
+        "例：推子起始CC=70、个数=8 → CC70对0号分轨推子、CC71对1号分轨推子……<br>"
+        "• <b>静音自己</b>是例外：只控制你自己一路，只需1个CC，没有个数设置。<br>"
+        "• 填法二选一：手填CC号，或点<b>学习</b>后直接扭一下控制器上对应的推子/旋钮/按钮，自动录入。" );
+
+    // 五组框+组内全部部件挂同文（whatsThis不向下继承, 组内件不挂则无提示）
+    QWidget* const midiGroupWidgets[] = { grbMidiMuteMyself, grbMidiFader, grbMidiPan, grbMidiSolo, grbMidiMute,
+                                          spnMuteMyself,    spnFaderOffset, spnFaderCount,
+                                          spnPanOffset,     spnPanCount,
+                                          spnSoloOffset,    spnSoloCount,
+                                          spnMuteOffset,    spnMuteCount,
+                                          butLearnMuteMyself, butLearnFaderOffset, butLearnPanOffset,
+                                          butLearnSoloOffset, butLearnMuteOffset };
+    for ( QWidget* w : midiGroupWidgets )
+    {
+        w->setToolTip ( strMidiMappingTT );
+        w->setWhatsThis ( "" );
+        w->setToolTipDuration ( 15000 );
+    }
     spnMuteMyself->setAccessibleName ( tr ( "Mute Myself MIDI CC number spin box" ) );
     spnFaderOffset->setAccessibleName ( tr ( "Fader offset spin box" ) );
     spnPanOffset->setAccessibleName ( tr ( "Pan offset spin box" ) );
@@ -776,27 +787,17 @@ CClientSettingsDlg::CClientSettingsDlg ( CClient* pNCliP, CClientSettings* pNSet
 
     // Add help text to controls -----------------------------------------------
     // Musician Profile
-    QString strFaderTag = "<b>" + tr ( "Musician Profile" ) + ":</b> " +
-                          tr ( "Write your name or an alias here so the other musicians you want to "
-                               "play with know who you are. You may also add a picture of the instrument "
-                               "you play and a flag of the country or region you are located in. "
-                               "Your city and skill level playing your instrument may also be added." ) +
-                          "<br>" +
-                          tr ( "What you set here will appear at your fader on the mixer "
-                               "board when you are connected to a %1 server. This tag will "
-                               "also be shown at each client which is connected to the same server as "
-                               "you." )
-                              .arg ( APP_NAME );
-
-    plblAlias->setWhatsThis ( strFaderTag );
+    // jamony 08-27: 隐藏User页(我的信息)控件 whatsThis 清空——jamony用户资料由jamony主窗口管理,
+    // 8-14 主窗定稿时已删同类"乐手档案"悬停, 此处保持一致
+    plblAlias->setWhatsThis ( "" );
     pedtAlias->setAccessibleName ( tr ( "Alias or name edit box" ) );
-    plblInstrument->setWhatsThis ( strFaderTag );
+    plblInstrument->setWhatsThis ( "" );
     pcbxInstrument->setAccessibleName ( tr ( "Instrument picture button" ) );
-    plblCountry->setWhatsThis ( strFaderTag );
+    plblCountry->setWhatsThis ( "" );
     pcbxCountry->setAccessibleName ( tr ( "Country/region flag button" ) );
-    plblCity->setWhatsThis ( strFaderTag );
+    plblCity->setWhatsThis ( "" );
     pedtCity->setAccessibleName ( tr ( "City edit box" ) );
-    plblSkill->setWhatsThis ( strFaderTag );
+    plblSkill->setWhatsThis ( "" );
     pcbxSkill->setAccessibleName ( tr ( "Skill level combo box" ) );
 
     // Instrument pictures combo box -------------------------------------------

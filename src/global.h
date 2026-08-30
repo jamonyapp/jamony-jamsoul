@@ -295,13 +295,8 @@ LED bar:      lbr
 #define SETTING_TAB_ADVANCED 2
 #define SETTING_TAB_MIDI     3
 
-// common tool tip bottom line text
-#define TOOLTIP_COM_END_TEXT \
-    "<br><div align=right><font size=-1><i>" + \
-        QCoreApplication::translate ( "global", \
-                                      "For more information use the \"What's " \
-                                      "This\" help (help menu, right mouse button or Shift+F1)" ) + \
-        "</i></font></div>"
+// jamony 08-27: TOOLTIP_COM_END_TEXT 宏已删——右键 whatsThis 机制全窗废除后,
+// "更多信息请通过这是什么查阅"引导小字彻底失效 (三步悬停统一收尾)
 
 // server welcome message title (do not change for compatibility!)
 #define WELCOME_MESSAGE_PREFIX "<b>Server Welcome Message:</b> "
