@@ -45,7 +45,10 @@
 \******************************************************************************/
 
 #include <QCoreApplication>
+#include <QDateTime>
 #include <QDir>
+#include <QFile>
+#include <QTextStream>
 #include <QTimer>
 #include <QWindow>
 #ifdef _WIN32
@@ -1028,32 +1031,47 @@ int main ( int argc, char** argv )
                         ClientDlg.resize ( ClientDlg.width(), jh - iTitleBarH );
 
 #ifdef _WIN32
-                        QTimer::singleShot ( 100, &ClientDlg, [&ClientDlg, jx, jy, jh]() {
-                            // 动态加载 dwmapi（免改 .pro 加链接库）
-                            typedef LONG ( WINAPI *PFN_DwmGetWindowAttribute ) ( HWND, DWORD, void*, DWORD );
-                            HMODULE hDwm = LoadLibraryW ( L"dwmapi.dll" );
-                            if ( !hDwm ) { return; }
-                            PFN_DwmGetWindowAttribute pfnDGA = (PFN_DwmGetWindowAttribute) GetProcAddress ( hDwm, "DwmGetWindowAttribute" );
-                            if ( !pfnDGA ) { return; }
-                            HWND hwnd = (HWND) ClientDlg.winId();
-                            RECT outer, vis;
-                            GetWindowRect ( hwnd, &outer );
-                            if ( pfnDGA ( hwnd, 9 /* DWMWA_EXTENDED_FRAME_BOUNDS */, &vis, sizeof ( vis ) ) != 0 ) { return; }
-                            // DIP→物理像素（100% 缩放下 1:1，高 DPI 下正确换算）
-                            QWindow* pWin = ClientDlg.windowHandle();
-                            const double dDpr = pWin ? pWin->devicePixelRatio() : 1.0;
-                            const int    iPxJx = qRound ( jx * dDpr );
-                            const int    iPxJy = qRound ( jy * dDpr );
-                            const int    iPxJh = qRound ( jh * dDpr );
-                            const int    iInvisL = vis.left - outer.left;
-                            const int    iInvisT = vis.top - outer.top;
-                            const int    iInvisR = outer.right - vis.right;
-                            const int    iInvisB = outer.bottom - vis.bottom;
-                            const int    iVisW   = vis.right - vis.left;
-                            SetWindowPos ( hwnd, 0, iPxJx - iInvisL, iPxJy - iInvisT,
-                                           iVisW + iInvisL + iInvisR, iPxJh + iInvisT + iInvisB,
-                                           SWP_NOACTIVATE | SWP_NOZORDER );
-                        } );
+                        // v3.2: jamsoul 启动期（初始化/音频告警/布局）会再动一次窗口，
+                        // 单次 100ms 修正会被盖掉（实测稳态无人动）。四连发校正 +
+                        // 日志（%TEMP%\jamsoul-geom.log）留仪表。
+                        const int iApplyDelays[] = { 100, 500, 1500, 3000 };
+                        for ( int iDelay : iApplyDelays )
+                        {
+                            QTimer::singleShot ( iDelay, &ClientDlg, [&ClientDlg, jx, jy, jh, iDelay]() {
+                                typedef LONG ( WINAPI *PFN_DwmGetWindowAttribute ) ( HWND, DWORD, void*, DWORD );
+                                HMODULE hDwm = LoadLibraryW ( L"dwmapi.dll" );
+                                if ( !hDwm ) { return; }
+                                PFN_DwmGetWindowAttribute pfnDGA = (PFN_DwmGetWindowAttribute) GetProcAddress ( hDwm, "DwmGetWindowAttribute" );
+                                if ( !pfnDGA ) { return; }
+                                HWND hwnd = (HWND) ClientDlg.winId();
+                                RECT outer, vis;
+                                GetWindowRect ( hwnd, &outer );
+                                if ( pfnDGA ( hwnd, 9 /* DWMWA_EXTENDED_FRAME_BOUNDS */, &vis, sizeof ( vis ) ) != 0 ) { return; }
+                                QWindow* pWin = ClientDlg.windowHandle();
+                                const double dDpr = pWin ? pWin->devicePixelRatio() : 1.0;
+                                const int    iPxJx = qRound ( jx * dDpr );
+                                const int    iPxJy = qRound ( jy * dDpr );
+                                const int    iPxJh = qRound ( jh * dDpr );
+                                const int    iInvisL = vis.left - outer.left;
+                                const int    iInvisT = vis.top - outer.top;
+                                const int    iInvisR = outer.right - vis.right;
+                                const int    iInvisB = outer.bottom - vis.bottom;
+                                const int    iVisW   = vis.right - vis.left;
+                                const BOOL   bRet = SetWindowPos ( hwnd, 0, iPxJx - iInvisL, iPxJy - iInvisT,
+                                                                   iVisW + iInvisL + iInvisR, iPxJh + iInvisT + iInvisB,
+                                                                   SWP_NOACTIVATE | SWP_NOZORDER );
+                                QFile fLog ( QDir::temp().filePath ( "jamsoul-geom.log" ) );
+                                if ( fLog.open ( QIODevice::Append | QIODevice::Text ) )
+                                {
+                                    QTextStream tsLog ( &fLog );
+                                    tsLog << QDateTime::currentDateTime().toString ( "HH:mm:ss.zzz" )
+                                          << " +" << iDelay << "ms"
+                                          << " invis=" << iInvisL << "," << iInvisT << "," << iInvisR << "," << iInvisB
+                                          << " dpr=" << dDpr
+                                          << " ret=" << bRet << "\n";
+                                }
+                            } );
+                        }
 #endif
                     }
                 }
