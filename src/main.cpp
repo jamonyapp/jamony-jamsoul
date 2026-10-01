@@ -1057,7 +1057,10 @@ int main ( int argc, char** argv )
                                 const int    iInvisR = outer.right - vis.right;
                                 const int    iInvisB = outer.bottom - vis.bottom;
                                 const int    iVisW   = vis.right - vis.left;
-                                const BOOL   bRet = SetWindowPos ( hwnd, 0, iPxJx - iInvisL, iPxJy - iInvisT,
+                                // 2px 边框互叠：两道窗口边框线叠成一道利落的缝（欢哥 10-02 凌晨
+                                // 反复比对目测定稿：0px 纯贴合呈双线感、3px 重叠感明显、2px 完美）
+                                const int    iOverlapPx = 2;
+                                const BOOL   bRet = SetWindowPos ( hwnd, 0, iPxJx - iInvisL - iOverlapPx, iPxJy - iInvisT,
                                                                    iVisW + iInvisL + iInvisR, iPxJh + iInvisT + iInvisB,
                                                                    SWP_NOACTIVATE | SWP_NOZORDER );
                                 QFile fLog ( QDir::temp().filePath ( "jamsoul-geom.log" ) );
