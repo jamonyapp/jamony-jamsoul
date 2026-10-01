@@ -46,6 +46,7 @@
 
 #include <QCoreApplication>
 #include <QDir>
+#include <QTimer>
 #include <QWindow>
 #include <iostream>
 #include "global.h"
@@ -1006,30 +1007,31 @@ int main ( int argc, char** argv )
                 ClientDlg.show();
 
                 // jamony: show 后设窗口位置（贴 jamony 右边框 + 上边框对齐）+ 高度（外框 = jamony 高度）
-                // jamony 10-01: Win 贴边修正——QWidget::move() 在 Windows 定位的是客户区原点，
-                // DWM 隐形 resize 边框（100% 缩放约 7-8px）把可见左缘顶出一条缝；macOS 的
-                // move() 本就是外框定位故无缝。改用 QWindow::setFramePosition 统一按外框
-                // 原点定位，高度按外框总高倒推客户区高，两端行为一致。
+                // jamony 10-01 v2: Win 贴边精修。DWM 在窗口左右两侧和底部各有 ~6-8px 隐形
+                // resize 边框（顶部没有），且 show() 刚返回时 Qt 的 frameMargins 尚未定准
+                // （实测 v1：横向仍 6px 缝、底部多 8px）。改为：先按老逻辑粗定位，事件循环
+                // 稳定后（100ms）用真实 margins 精修——可见左缘对齐 jamony 可见右缘
+                // （外框左 = jx - m.left()），外框总高 = jh（客户高 = jh - m.top - m.bottom）。
+                // macOS 的 left/right/bottom margins 恒为 0，公式两端通用，行为不变。
                 const QByteArray jamonyBounds = qgetenv ( "JAMONY_BOUNDS" );
                 if ( !jamonyBounds.isEmpty() )
                 {
                     int jx, jy, jh;
                     if ( sscanf ( jamonyBounds.constData(), "%d,%d,%d", &jx, &jy, &jh ) == 3 )
                     {
-                        QWindow* pJamWin = ClientDlg.windowHandle();
-                        if ( pJamWin )
-                        {
-                            pJamWin->setFramePosition ( QPoint ( jx, jy ) );
-                            const int iFrameExtraH = pJamWin->frameGeometry().height() - pJamWin->geometry().height();
-                            ClientDlg.resize ( ClientDlg.width(), jh - iFrameExtraH );
-                        }
-                        else
-                        {
-                            // 兜底：拿不到 QWindow 时退回原逻辑
-                            ClientDlg.move ( jx, jy );
-                            const int iTitleBarH = ClientDlg.frameGeometry().height() - ClientDlg.geometry().height();
-                            ClientDlg.resize ( ClientDlg.width(), jh - iTitleBarH );
-                        }
+                        // 粗定位兜底（macOS 上即为最终结果）
+                        ClientDlg.move ( jx, jy );
+                        const int iTitleBarH = ClientDlg.frameGeometry().height() - ClientDlg.geometry().height();
+                        ClientDlg.resize ( ClientDlg.width(), jh - iTitleBarH );
+
+                        // Win 精修：margins 就绪后按可见边缘对齐
+                        QTimer::singleShot ( 100, &ClientDlg, [&ClientDlg, jx, jy, jh]() {
+                            QWindow* pWin = ClientDlg.windowHandle();
+                            if ( !pWin ) { return; }
+                            const QMargins m = pWin->frameMargins();
+                            pWin->setFramePosition ( QPoint ( jx - m.left(), jy ) );
+                            pWin->resize ( pWin->width(), jh - m.top() - m.bottom() );
+                        } );
                     }
                 }
 
