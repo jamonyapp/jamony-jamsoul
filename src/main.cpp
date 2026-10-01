@@ -49,6 +49,7 @@
 #include <QTimer>
 #include <QWindow>
 #ifdef _WIN32
+#define WIN32_LEAN_AND_MEAN  // 10-01: 防 windows.h 拖入旧 winsock.h 与 winsock2.h 冲突(sockaddr 重定义)
 #include <windows.h>
 #endif
 #include <iostream>
