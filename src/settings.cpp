@@ -433,8 +433,10 @@ void CClientSettings::ReadSettingsFromXML ( const QDomDocument& IniXMLDocument, 
     }
 
     // language
+    // jamony 10-01: 默认中文（欢哥拍板，产品面向国内；语言选项已随设置窗魔改隐藏，
+    // ini 中的 language 值保留作调试覆盖阀）
     strLanguage =
-        GetIniSetting ( IniXMLDocument, "client", "language", CLocale::FindSysLangTransFileName ( CLocale::GetAvailableTranslations() ).first );
+        GetIniSetting ( IniXMLDocument, "client", "language", "zh_CN" );
 
     // fader channel sorting
     if ( GetNumericIniSet ( IniXMLDocument, "client", "channelsort", 0, 5 /* ST_BY_SERVER_CHANNEL */, iValue ) )
@@ -1320,8 +1322,9 @@ void CServerSettings::ReadSettingsFromXML ( const QDomDocument& IniXMLDocument, 
     }
 
     // language
+    // jamony 10-01: 默认中文（与 client 侧一致，见上方说明）
     strLanguage =
-        GetIniSetting ( IniXMLDocument, "server", "language", CLocale::FindSysLangTransFileName ( CLocale::GetAvailableTranslations() ).first );
+        GetIniSetting ( IniXMLDocument, "server", "language", "zh_CN" );
 
     // base recording directory
     if ( !CommandLineOptions.contains ( "--recording" ) )
