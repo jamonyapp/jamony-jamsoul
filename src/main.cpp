@@ -48,6 +48,9 @@
 #include <QDir>
 #include <QTimer>
 #include <QWindow>
+#ifdef _WIN32
+#include <windows.h>
+#endif
 #include <iostream>
 #include "global.h"
 #ifndef HEADLESS
@@ -1007,31 +1010,50 @@ int main ( int argc, char** argv )
                 ClientDlg.show();
 
                 // jamony: show 后设窗口位置（贴 jamony 右边框 + 上边框对齐）+ 高度（外框 = jamony 高度）
-                // jamony 10-01 v2: Win 贴边精修。DWM 在窗口左右两侧和底部各有 ~6-8px 隐形
-                // resize 边框（顶部没有），且 show() 刚返回时 Qt 的 frameMargins 尚未定准
-                // （实测 v1：横向仍 6px 缝、底部多 8px）。改为：先按老逻辑粗定位，事件循环
-                // 稳定后（100ms）用真实 margins 精修——可见左缘对齐 jamony 可见右缘
-                // （外框左 = jx - m.left()），外框总高 = jh（客户高 = jh - m.top - m.bottom）。
-                // macOS 的 left/right/bottom margins 恒为 0，公式两端通用，行为不变。
+                // jamony 10-01 v3: Qt 的 frameMargins 在本窗口上拿不到 DWM 隐形边框（恒 0，
+                // v1/v2 实测原地不动：横向 6px 缝 + 底部多 8px）。Win 下改为直接量
+                // DWMWA_EXTENDED_FRAME_BOUNDS（可见矩形）与 GetWindowRect（外框）之差，
+                // SetWindowPos 精确落位：可见左缘=jx、可见顶缘=jy、可见高度=jh。
+                // macOS 无隐形边框，move()+frameGeometry 差值即正确，保持原逻辑。
                 const QByteArray jamonyBounds = qgetenv ( "JAMONY_BOUNDS" );
                 if ( !jamonyBounds.isEmpty() )
                 {
                     int jx, jy, jh;
                     if ( sscanf ( jamonyBounds.constData(), "%d,%d,%d", &jx, &jy, &jh ) == 3 )
                     {
-                        // 粗定位兜底（macOS 上即为最终结果）
+                        // 粗定位（macOS 上即最终结果；Win 100ms 后精修）
                         ClientDlg.move ( jx, jy );
                         const int iTitleBarH = ClientDlg.frameGeometry().height() - ClientDlg.geometry().height();
                         ClientDlg.resize ( ClientDlg.width(), jh - iTitleBarH );
 
-                        // Win 精修：margins 就绪后按可见边缘对齐
+#ifdef _WIN32
                         QTimer::singleShot ( 100, &ClientDlg, [&ClientDlg, jx, jy, jh]() {
+                            // 动态加载 dwmapi（免改 .pro 加链接库）
+                            typedef LONG ( WINAPI *PFN_DwmGetWindowAttribute ) ( HWND, DWORD, void*, DWORD );
+                            HMODULE hDwm = LoadLibraryW ( L"dwmapi.dll" );
+                            if ( !hDwm ) { return; }
+                            PFN_DwmGetWindowAttribute pfnDGA = (PFN_DwmGetWindowAttribute) GetProcAddress ( hDwm, "DwmGetWindowAttribute" );
+                            if ( !pfnDGA ) { return; }
+                            HWND hwnd = (HWND) ClientDlg.winId();
+                            RECT outer, vis;
+                            GetWindowRect ( hwnd, &outer );
+                            if ( pfnDGA ( hwnd, 9 /* DWMWA_EXTENDED_FRAME_BOUNDS */, &vis, sizeof ( vis ) ) != 0 ) { return; }
+                            // DIP→物理像素（100% 缩放下 1:1，高 DPI 下正确换算）
                             QWindow* pWin = ClientDlg.windowHandle();
-                            if ( !pWin ) { return; }
-                            const QMargins m = pWin->frameMargins();
-                            pWin->setFramePosition ( QPoint ( jx - m.left(), jy ) );
-                            pWin->resize ( pWin->width(), jh - m.top() - m.bottom() );
+                            const double dDpr = pWin ? pWin->devicePixelRatio() : 1.0;
+                            const int    iPxJx = qRound ( jx * dDpr );
+                            const int    iPxJy = qRound ( jy * dDpr );
+                            const int    iPxJh = qRound ( jh * dDpr );
+                            const int    iInvisL = vis.left - outer.left;
+                            const int    iInvisT = vis.top - outer.top;
+                            const int    iInvisR = outer.right - vis.right;
+                            const int    iInvisB = outer.bottom - vis.bottom;
+                            const int    iVisW   = vis.right - vis.left;
+                            SetWindowPos ( hwnd, 0, iPxJx - iInvisL, iPxJy - iInvisT,
+                                           iVisW + iInvisL + iInvisR, iPxJh + iInvisT + iInvisB,
+                                           SWP_NOACTIVATE | SWP_NOZORDER );
                         } );
+#endif
                     }
                 }
 
