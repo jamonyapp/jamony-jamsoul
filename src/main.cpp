@@ -50,7 +50,9 @@
 #include <QFile>
 #include <QTextStream>
 #include <QTimer>
-#include <QWindow>
+#ifdef _WIN32
+# include <QWindow> // jamony: 仅 Win 贴边v3.x量dpr用;headless构建无QtGui,无条件引入炸编译(10-02服务器编译实测)
+#endif
 #ifdef _WIN32
 #define WIN32_LEAN_AND_MEAN  // 10-01: 防 windows.h 拖入旧 winsock.h 与 winsock2.h 冲突(sockaddr 重定义)
 #include <windows.h>
