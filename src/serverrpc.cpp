@@ -50,20 +50,20 @@
 CServerRpc::CServerRpc ( CServer* pServer, CRpcServer* pRpcServer, QObject* parent ) : QObject ( parent )
 {
     // API doc already part of CClientRpc
-    pRpcServer->HandleMethod ( "jamulus/getMode", [=] ( const QJsonObject& params, QJsonObject& response ) {
+    pRpcServer->HandleMethod ( "jamsoul/getMode", [=] ( const QJsonObject& params, QJsonObject& response ) {
         QJsonObject result{ { "mode", "server" } };
         response["result"] = result;
         Q_UNUSED ( params );
     } );
 
-    /// @rpc_method jamulusserver/getRecorderStatus
+    /// @rpc_method jamsoulserver/getRecorderStatus
     /// @brief Returns the recorder state.
     /// @param {object} params - No parameters (empty object).
     /// @result {boolean} result.initialised - True if the recorder is initialised.
     /// @result {string} result.errorMessage - The recorder error message, if any.
     /// @result {boolean} result.enabled - True if the recorder is enabled.
     /// @result {string} result.recordingDirectory - The recorder recording directory.
-    pRpcServer->HandleMethod ( "jamulusserver/getRecorderStatus", [=] ( const QJsonObject& params, QJsonObject& response ) {
+    pRpcServer->HandleMethod ( "jamsoulserver/getRecorderStatus", [=] ( const QJsonObject& params, QJsonObject& response ) {
         QJsonObject result{
             { "initialised", pServer->GetRecorderInitialised() },
             { "errorMessage", pServer->GetRecorderErrMsg() },
@@ -75,7 +75,7 @@ CServerRpc::CServerRpc ( CServer* pServer, CRpcServer* pRpcServer, QObject* pare
         Q_UNUSED ( params );
     } );
 
-    /// @rpc_method jamulusserver/getClients
+    /// @rpc_method jamsoulserver/getClients
     /// @brief Returns the list of connected clients along with details about them.
     /// @param {object} params - No parameters (empty object).
     /// @result {number} result.connections - The number of active connections.
@@ -89,7 +89,7 @@ CServerRpc::CServerRpc ( CServer* pServer, CRpcServer* pRpcServer, QObject* pare
     /// @result {string} result.clients[*].city - The city name provided by the user for this channel.
     /// @result {number} result.clients[*].countryName - The text name of the country specified by the user for this channel (see QLocale::Country).
     /// @result {number} result.clients[*].skillLevelCode - The skill level id provided by the user for this channel.
-    pRpcServer->HandleMethod ( "jamulusserver/getClients", [=] ( const QJsonObject& params, QJsonObject& response ) {
+    pRpcServer->HandleMethod ( "jamsoulserver/getClients", [=] ( const QJsonObject& params, QJsonObject& response ) {
         QJsonArray                clients;
         CVector<CHostAddress>     vecHostAddresses;
         CVector<QString>          vecsName;
@@ -137,7 +137,7 @@ CServerRpc::CServerRpc ( CServer* pServer, CRpcServer* pRpcServer, QObject* pare
         Q_UNUSED ( params );
     } );
 
-    /// @rpc_method jamulusserver/getServerProfile
+    /// @rpc_method jamsoulserver/getServerProfile
     /// @brief Returns the server registration profile and status.
     /// @param {object} params - No parameters (empty object).
     /// @result {string} result.name - The server name.
@@ -149,7 +149,7 @@ CServerRpc::CServerRpc ( CServer* pServer, CRpcServer* pRpcServer, QObject* pare
     /// and registrationStatus is "registered").
     /// @result {string} result.directory - The directory with which this server requested registration, or blank if none.
     /// @result {string} result.registrationStatus - The server registration status as string (see ESvrRegStatus and SerializeRegistrationStatus).
-    pRpcServer->HandleMethod ( "jamulusserver/getServerProfile", [=] ( const QJsonObject& params, QJsonObject& response ) {
+    pRpcServer->HandleMethod ( "jamsoulserver/getServerProfile", [=] ( const QJsonObject& params, QJsonObject& response ) {
         EDirectoryType directoryType    = pServer->GetDirectoryType();
         QString        directoryAddress = pServer->GetDirectoryAddress();
         QString        dsName           = ( AT_NONE == directoryType ) ? "" : NetworkUtil::GetDirectoryAddress ( directoryType, directoryAddress );
@@ -168,12 +168,12 @@ CServerRpc::CServerRpc ( CServer* pServer, CRpcServer* pRpcServer, QObject* pare
         Q_UNUSED ( params );
     } );
 
-    /// @rpc_method jamulusserver/setDirectory
+    /// @rpc_method jamsoulserver/setDirectory
     /// @brief Set the directory type and, for custom, the directory address.
     /// @param {string} params.directoryType - The directory type as a string (see EDirectoryType and DeserializeDirectoryType).
     /// @param {string} [params.directoryAddress] - (optional) The directory address, required if `directoryType` is "custom".
     /// @result {string} result - Always "ok".
-    pRpcServer->HandleMethod ( "jamulusserver/setDirectory", [=] ( const QJsonObject& params, QJsonObject& response ) {
+    pRpcServer->HandleMethod ( "jamsoulserver/setDirectory", [=] ( const QJsonObject& params, QJsonObject& response ) {
         auto           jsonDirectoryType = params["directoryType"];
         auto           directoryAddress  = params["directoryAddress"];
         EDirectoryType directoryType     = AT_NONE;
@@ -210,11 +210,11 @@ CServerRpc::CServerRpc ( CServer* pServer, CRpcServer* pRpcServer, QObject* pare
         response["result"] = "ok";
     } );
 
-    /// @rpc_method jamulusserver/setServerName
+    /// @rpc_method jamsoulserver/setServerName
     /// @brief Sets the server name.
     /// @param {string} params.serverName - The new server name.
     /// @result {string} result - Always "ok".
-    pRpcServer->HandleMethod ( "jamulusserver/setServerName", [=] ( const QJsonObject& params, QJsonObject& response ) {
+    pRpcServer->HandleMethod ( "jamsoulserver/setServerName", [=] ( const QJsonObject& params, QJsonObject& response ) {
         auto jsonServerName = params["serverName"];
         if ( !jsonServerName.isString() )
         {
@@ -226,11 +226,11 @@ CServerRpc::CServerRpc ( CServer* pServer, CRpcServer* pRpcServer, QObject* pare
         response["result"] = "ok";
     } );
 
-    /// @rpc_method jamulusserver/setWelcomeMessage
+    /// @rpc_method jamsoulserver/setWelcomeMessage
     /// @brief Sets the server welcome message.
     /// @param {string} params.welcomeMessage - The new welcome message.
     /// @result {string} result - Always "ok".
-    pRpcServer->HandleMethod ( "jamulusserver/setWelcomeMessage", [=] ( const QJsonObject& params, QJsonObject& response ) {
+    pRpcServer->HandleMethod ( "jamsoulserver/setWelcomeMessage", [=] ( const QJsonObject& params, QJsonObject& response ) {
         auto jsonWelcomeMessage = params["welcomeMessage"];
         if ( !jsonWelcomeMessage.isString() )
         {
@@ -242,12 +242,12 @@ CServerRpc::CServerRpc ( CServer* pServer, CRpcServer* pRpcServer, QObject* pare
         response["result"] = "ok";
     } );
 
-    /// @rpc_method jamulusserver/setRecordingDirectory
+    /// @rpc_method jamsoulserver/setRecordingDirectory
     /// @brief Sets the server recording directory.
     /// @param {string} params.recordingDirectory - The new recording directory.
     /// @result {string} result - Always "acknowledged".
-    ///  To check if the directory was changed, call `jamulusserver/getRecorderStatus` again.
-    pRpcServer->HandleMethod ( "jamulusserver/setRecordingDirectory", [=] ( const QJsonObject& params, QJsonObject& response ) {
+    ///  To check if the directory was changed, call `jamsoulserver/getRecorderStatus` again.
+    pRpcServer->HandleMethod ( "jamsoulserver/setRecordingDirectory", [=] ( const QJsonObject& params, QJsonObject& response ) {
         auto jsonRecordingDirectory = params["recordingDirectory"];
         if ( !jsonRecordingDirectory.isString() )
         {
@@ -260,34 +260,34 @@ CServerRpc::CServerRpc ( CServer* pServer, CRpcServer* pRpcServer, QObject* pare
         response["result"] = "acknowledged";
     } );
 
-    /// @rpc_method jamulusserver/startRecording
+    /// @rpc_method jamsoulserver/startRecording
     /// @brief Starts the server recording.
     /// @param {object} params - No parameters (empty object).
     /// @result {string} result - Always "acknowledged".
-    ///  To check if the recording was enabled, call `jamulusserver/getRecorderStatus` again.
-    pRpcServer->HandleMethod ( "jamulusserver/startRecording", [=] ( const QJsonObject& params, QJsonObject& response ) {
+    ///  To check if the recording was enabled, call `jamsoulserver/getRecorderStatus` again.
+    pRpcServer->HandleMethod ( "jamsoulserver/startRecording", [=] ( const QJsonObject& params, QJsonObject& response ) {
         pServer->SetEnableRecording ( true );
         response["result"] = "acknowledged";
         Q_UNUSED ( params );
     } );
 
-    /// @rpc_method jamulusserver/stopRecording
+    /// @rpc_method jamsoulserver/stopRecording
     /// @brief Stops the server recording.
     /// @param {object} params - No parameters (empty object).
     /// @result {string} result - Always "acknowledged".
-    ///  To check if the recording was disabled, call `jamulusserver/getRecorderStatus` again.
-    pRpcServer->HandleMethod ( "jamulusserver/stopRecording", [=] ( const QJsonObject& params, QJsonObject& response ) {
+    ///  To check if the recording was disabled, call `jamsoulserver/getRecorderStatus` again.
+    pRpcServer->HandleMethod ( "jamsoulserver/stopRecording", [=] ( const QJsonObject& params, QJsonObject& response ) {
         pServer->SetEnableRecording ( false );
         response["result"] = "acknowledged";
         Q_UNUSED ( params );
     } );
 
-    /// @rpc_method jamulusserver/restartRecording
+    /// @rpc_method jamsoulserver/restartRecording
     /// @brief Restarts the recording into a new directory.
     /// @param {object} params - No parameters (empty object).
     /// @result {string} result - Always "acknowledged".
-    ///  To check if the recording was restarted or if there is any error, call `jamulusserver/getRecorderStatus` again.
-    pRpcServer->HandleMethod ( "jamulusserver/restartRecording", [=] ( const QJsonObject& params, QJsonObject& response ) {
+    ///  To check if the recording was restarted or if there is any error, call `jamsoulserver/getRecorderStatus` again.
+    pRpcServer->HandleMethod ( "jamsoulserver/restartRecording", [=] ( const QJsonObject& params, QJsonObject& response ) {
         pServer->RequestNewRecording();
         response["result"] = "acknowledged";
         Q_UNUSED ( params );

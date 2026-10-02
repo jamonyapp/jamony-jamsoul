@@ -51,27 +51,27 @@ CClientRpc::CClientRpc ( CClient* pClient, CClientSettings* pSettings, CRpcServe
     QObject ( parent ),
     m_pSettings ( pSettings )
 {
-    /// @rpc_notification jamulusclient/chatTextReceived
+    /// @rpc_notification jamsoulclient/chatTextReceived
     /// @brief Emitted when a chat text is received.
     /// @param {string} params.chatText - The chat text.
     connect ( pClient, &CClient::ChatTextReceived, [=] ( QString strChatText ) {
-        pRpcServer->BroadcastNotification ( "jamulusclient/chatTextReceived",
+        pRpcServer->BroadcastNotification ( "jamsoulclient/chatTextReceived",
                                             QJsonObject{
                                                 { "chatText", strChatText },
                                             } );
     } );
 
-    /// @rpc_notification jamulusclient/connected
+    /// @rpc_notification jamsoulclient/connected
     /// @brief Emitted when the client is connected to the server.
     /// @param {number} params.id - The channel ID assigned to the client.
     connect ( pClient, &CClient::ClientIDReceived, [=] ( int iChanID ) {
-        pRpcServer->BroadcastNotification ( "jamulusclient/connected",
+        pRpcServer->BroadcastNotification ( "jamsoulclient/connected",
                                             QJsonObject{
                                                 { "id", iChanID },
                                             } );
     } );
 
-    /// @rpc_notification jamulusclient/clientListReceived
+    /// @rpc_notification jamsoulclient/clientListReceived
     /// @brief Emitted when the client list is received.
     /// @param {array} params.clients - The client list.
     /// @param {number} params.clients[*].id - The channel ID.
@@ -98,17 +98,17 @@ CClientRpc::CClientRpc ( CClient* pClient, CClientSettings* pSettings, CRpcServe
             };
             arrChanInfo.append ( objChanInfo );
         }
-        pRpcServer->BroadcastNotification ( "jamulusclient/clientListReceived",
+        pRpcServer->BroadcastNotification ( "jamsoulclient/clientListReceived",
                                             QJsonObject{
                                                 { "clients", arrChanInfo },
                                             } );
         arrStoredChanInfo = arrChanInfo;
     } );
 
-    /// @rpc_notification jamulusclient/channelLevelListReceived
+    /// @rpc_notification jamsoulclient/channelLevelListReceived
     /// @brief Emitted when the channel level list is received.
     /// @param {array} params.channelLevelList - The channel level list.
-    ///  Each item corresponds to the respective client retrieved from the jamulusclient/clientListReceived notification.
+    ///  Each item corresponds to the respective client retrieved from the jamsoulclient/clientListReceived notification.
     /// @param {number} params.channelLevelList[*] - The channel level, an integer between 0 and 9.
     connect ( pClient, &CClient::CLChannelLevelListReceived, [=] ( CHostAddress /* unused */, CVector<uint16_t> vecLevelList ) {
         QJsonArray arrLevelList;
@@ -116,13 +116,13 @@ CClientRpc::CClientRpc ( CClient* pClient, CClientSettings* pSettings, CRpcServe
         {
             arrLevelList.append ( level );
         }
-        pRpcServer->BroadcastNotification ( "jamulusclient/channelLevelListReceived",
+        pRpcServer->BroadcastNotification ( "jamsoulclient/channelLevelListReceived",
                                             QJsonObject{
                                                 { "channelLevelList", arrLevelList },
                                             } );
     } );
 
-    /// @rpc_notification jamulusclient/serverListReceived
+    /// @rpc_notification jamsoulclient/serverListReceived
     /// @brief Emitted when the server list is received.
     /// @param {array} params.servers - The server list.
     /// @param {string} params.servers[*].address - Socket address (ip_address:port).
@@ -146,40 +146,40 @@ CClientRpc::CClientRpc ( CClient* pClient, CClientSettings* pSettings, CRpcServe
                       arrServerInfo.append ( objServerInfo );
                       pClient->CreateCLServerListPingMes ( serverInfo.HostAddr );
                   }
-                  pRpcServer->BroadcastNotification ( "jamulusclient/serverListReceived",
+                  pRpcServer->BroadcastNotification ( "jamsoulclient/serverListReceived",
                                                       QJsonObject{
                                                           { "servers", arrServerInfo },
                                                       } );
               } );
 
-    /// @rpc_notification jamulusclient/serverInfoReceived
+    /// @rpc_notification jamsoulclient/serverInfoReceived
     /// @brief Emitted when a server info is received.
     /// @param {string} params.address - The server socket address.
     /// @param {number} params.pingtime - The round-trip ping time, in milliseconds.
     /// @param {number} params.numClients - The number of clients connected to the server.
     connect ( pClient, &CClient::CLPingTimeWithNumClientsReceived, [=] ( CHostAddress InetAddr, int iPingTime, int iNumClients ) {
         pRpcServer->BroadcastNotification (
-            "jamulusclient/serverInfoReceived",
+            "jamsoulclient/serverInfoReceived",
             QJsonObject{ { "address", InetAddr.toString() }, { "pingTime", iPingTime }, { "numClients", iNumClients } } );
     } );
 
-    /// @rpc_notification jamulusclient/disconnected
+    /// @rpc_notification jamsoulclient/disconnected
     /// @brief Emitted when the client is disconnected from the server.
     /// @param {object} params - No parameters (empty object).
-    connect ( pClient, &CClient::Disconnected, [=]() { pRpcServer->BroadcastNotification ( "jamulusclient/disconnected", QJsonObject{} ); } );
+    connect ( pClient, &CClient::Disconnected, [=]() { pRpcServer->BroadcastNotification ( "jamsoulclient/disconnected", QJsonObject{} ); } );
 
-    /// @rpc_notification jamulusclient/recorderState
+    /// @rpc_notification jamsoulclient/recorderState
     /// @brief Emitted when the client is connected to a server whose recorder state changes.
     /// @param {number} params.state - The recorder state.
     connect ( pClient, &CClient::RecorderStateReceived, [=] ( const ERecorderState newRecorderState ) {
-        pRpcServer->BroadcastNotification ( "jamulusclient/recorderState", QJsonObject{ { "state", newRecorderState } } );
+        pRpcServer->BroadcastNotification ( "jamsoulclient/recorderState", QJsonObject{ { "state", newRecorderState } } );
     } );
 
-    /// @rpc_method jamulusclient/pollServerList
+    /// @rpc_method jamsoulclient/pollServerList
     /// @brief Request list of servers in a directory.
     /// @param {string} params.directory - Socket address of directory to query. Example: anygenre1.jamulus.io:22124
     /// @result {string} result - "ok" or "error" if bad arguments.
-    pRpcServer->HandleMethod ( "jamulusclient/pollServerList", [=] ( const QJsonObject& params, QJsonObject& response ) {
+    pRpcServer->HandleMethod ( "jamsoulclient/pollServerList", [=] ( const QJsonObject& params, QJsonObject& response ) {
         auto jsonDirectoryIp = params["directory"];
         if ( !jsonDirectoryIp.isString() )
         {
@@ -209,23 +209,23 @@ CClientRpc::CClientRpc ( CClient* pClient, CClientSettings* pSettings, CRpcServe
     /// @brief Returns the current mode, i.e. whether Jamulus is running as a server or client.
     /// @param {object} params - No parameters (empty object).
     /// @result {string} result.mode - The current mode (server or client).
-    pRpcServer->HandleMethod ( "jamulus/getMode", [=] ( const QJsonObject& params, QJsonObject& response ) {
+    pRpcServer->HandleMethod ( "jamsoul/getMode", [=] ( const QJsonObject& params, QJsonObject& response ) {
         QJsonObject result{ { "mode", "client" } };
         response["result"] = result;
         Q_UNUSED ( params );
     } );
 
-    /// @rpc_method jamulusclient/getClientInfo
+    /// @rpc_method jamsoulclient/getClientInfo
     /// @brief Returns the client information.
     /// @param {object} params - No parameters (empty object).
     /// @result {boolean} result.connected - Whether the client is connected to the server.
-    pRpcServer->HandleMethod ( "jamulusclient/getClientInfo", [=] ( const QJsonObject& params, QJsonObject& response ) {
+    pRpcServer->HandleMethod ( "jamsoulclient/getClientInfo", [=] ( const QJsonObject& params, QJsonObject& response ) {
         QJsonObject result{ { "connected", pClient->IsConnected() } };
         response["result"] = result;
         Q_UNUSED ( params );
     } );
 
-    /// @rpc_method jamulusclient/getChannelInfo
+    /// @rpc_method jamsoulclient/getChannelInfo
     /// @brief Returns the client's profile information.
     /// @param {object} params - No parameters (empty object).
     /// @result {number} result.id - The channel ID.
@@ -237,7 +237,7 @@ CClientRpc::CClientRpc ( CClient* pClient, CClientSettings* pSettings, CRpcServe
     /// @result {number} result.instrumentId - The musician’s instrument ID (see CInstPictures::GetTable).
     /// @result {string} result.instrument - The musician’s instrument.
     /// @result {string} result.skillLevel - Your skill level (beginner, intermediate, expert, or null).
-    pRpcServer->HandleMethod ( "jamulusclient/getChannelInfo", [=] ( const QJsonObject& params, QJsonObject& response ) {
+    pRpcServer->HandleMethod ( "jamsoulclient/getChannelInfo", [=] ( const QJsonObject& params, QJsonObject& response ) {
         QJsonObject result{
             // TODO: We cannot include "id" here is pClient->ChannelInfo is a CChannelCoreInfo which lacks that field.
             { "name", pClient->ChannelInfo.strName },
@@ -252,11 +252,11 @@ CClientRpc::CClientRpc ( CClient* pClient, CClientSettings* pSettings, CRpcServe
         Q_UNUSED ( params );
     } );
 
-    /// @rpc_method jamulusclient/getClientList
+    /// @rpc_method jamsoulclient/getClientList
     /// @brief Returns the client list.
     /// @param {object} params - No parameters (empty object).
-    /// @result {array} result.clients - The client list. See jamulusclient/clientListReceived for the format.
-    pRpcServer->HandleMethod ( "jamulusclient/getClientList", [=] ( const QJsonObject& params, QJsonObject& response ) {
+    /// @result {array} result.clients - The client list. See jamsoulclient/clientListReceived for the format.
+    pRpcServer->HandleMethod ( "jamsoulclient/getClientList", [=] ( const QJsonObject& params, QJsonObject& response ) {
         if ( !pClient->IsConnected() )
         {
             response["error"] = CRpcServer::CreateJsonRpcError ( 1, "Client is not connected" );
@@ -270,11 +270,11 @@ CClientRpc::CClientRpc ( CClient* pClient, CClientSettings* pSettings, CRpcServe
         Q_UNUSED ( params );
     } );
 
-    /// @rpc_method jamulusclient/setName
+    /// @rpc_method jamsoulclient/setName
     /// @brief Sets your name.
     /// @param {string} params.name - The new name.
     /// @result {string} result - Always "ok".
-    pRpcServer->HandleMethod ( "jamulusclient/setName", [=] ( const QJsonObject& params, QJsonObject& response ) {
+    pRpcServer->HandleMethod ( "jamsoulclient/setName", [=] ( const QJsonObject& params, QJsonObject& response ) {
         auto jsonName = params["name"];
         if ( !jsonName.isString() )
         {
@@ -288,11 +288,11 @@ CClientRpc::CClientRpc ( CClient* pClient, CClientSettings* pSettings, CRpcServe
         response["result"] = "ok";
     } );
 
-    /// @rpc_method jamulusclient/setSkillLevel
+    /// @rpc_method jamsoulclient/setSkillLevel
     /// @brief Sets your skill level.
     /// @param {string} params.skillLevel - The new skill level (beginner, intermediate, expert, or null).
     /// @result {string} result - Always "ok".
-    pRpcServer->HandleMethod ( "jamulusclient/setSkillLevel", [=] ( const QJsonObject& params, QJsonObject& response ) {
+    pRpcServer->HandleMethod ( "jamsoulclient/setSkillLevel", [=] ( const QJsonObject& params, QJsonObject& response ) {
         auto jsonSkillLevel = params["skillLevel"];
         if ( jsonSkillLevel.isNull() )
         {
@@ -331,11 +331,11 @@ CClientRpc::CClientRpc ( CClient* pClient, CClientSettings* pSettings, CRpcServe
         response["result"] = "ok";
     } );
 
-    /// @rpc_method jamulusclient/sendChatText
+    /// @rpc_method jamsoulclient/sendChatText
     /// @brief Sends a chat text message.
     /// @param {string} params.chatText - The chat text message.
     /// @result {string} result - Always "ok".
-    pRpcServer->HandleMethod ( "jamulusclient/sendChatText", [=] ( const QJsonObject& params, QJsonObject& response ) {
+    pRpcServer->HandleMethod ( "jamsoulclient/sendChatText", [=] ( const QJsonObject& params, QJsonObject& response ) {
         auto jsonMessage = params["chatText"];
         if ( !jsonMessage.isString() )
         {
@@ -353,13 +353,13 @@ CClientRpc::CClientRpc ( CClient* pClient, CClientSettings* pSettings, CRpcServe
         response["result"] = "ok";
     } );
 
-    /// @rpc_method jamulusclient/setFaderLevel
-    /// @brief Sets the fader level. Example: {"id":1,"jsonrpc":"2.0","method":"jamulusclient/setFaderLevel","params":{"channelIndex": 0,"level":
+    /// @rpc_method jamsoulclient/setFaderLevel
+    /// @brief Sets the fader level. Example: {"id":1,"jsonrpc":"2.0","method":"jamsoulclient/setFaderLevel","params":{"channelIndex": 0,"level":
     /// 50}}.
     /// @param {number} params.channelIndex - The channel index of the fader to be set.
     /// @param {number} params.level - The fader level in range 0..100.
     /// @result {string} result - Always "ok".
-    pRpcServer->HandleMethod ( "jamulusclient/setFaderLevel", [=] ( const QJsonObject& params, QJsonObject& response ) {
+    pRpcServer->HandleMethod ( "jamsoulclient/setFaderLevel", [=] ( const QJsonObject& params, QJsonObject& response ) {
         auto jsonChannelIndex = params["channelIndex"];
         if ( !jsonChannelIndex.isDouble() || ( jsonChannelIndex.toInt() < 0 ) || ( jsonChannelIndex.toInt() > MAX_NUM_CHANNELS ) )
         {
@@ -380,11 +380,11 @@ CClientRpc::CClientRpc ( CClient* pClient, CClientSettings* pSettings, CRpcServe
         response["result"] = "ok";
     } );
 
-    /// @rpc_method jamulusclient/getMidiSettings
+    /// @rpc_method jamsoulclient/getMidiSettings
     /// @brief Returns all MIDI controller settings.
     /// @param {object} params - No parameters (empty object).
     /// @result {object} result - MIDI settings object.
-    pRpcServer->HandleMethod ( "jamulusclient/getMidiSettings", [=] ( const QJsonObject& params, QJsonObject& response ) {
+    pRpcServer->HandleMethod ( "jamsoulclient/getMidiSettings", [=] ( const QJsonObject& params, QJsonObject& response ) {
         QJsonObject jsonMidiParams{ { "bUseMIDIController", m_pSettings->bUseMIDIController },
                                     { "midiDevice", m_pSettings->strMidiDevice },
                                     { "midiChannel", m_pSettings->iMidiChannel },
@@ -407,11 +407,11 @@ CClientRpc::CClientRpc ( CClient* pClient, CClientSettings* pSettings, CRpcServe
         Q_UNUSED ( params );
     } );
 
-    /// @rpc_method jamulusclient/setMidiSettings
+    /// @rpc_method jamsoulclient/setMidiSettings
     /// @brief Sets one or more MIDI controller settings.
     /// @param {object} params - Any subset of MIDI settings fields to set.
     /// @result {string} result - Always "ok".
-    pRpcServer->HandleMethod ( "jamulusclient/setMidiSettings", [=] ( const QJsonObject& params, QJsonObject& response ) {
+    pRpcServer->HandleMethod ( "jamsoulclient/setMidiSettings", [=] ( const QJsonObject& params, QJsonObject& response ) {
         bool bPreviousMIDIState = m_pSettings->bUseMIDIController;
 
         QHash<QString, std::function<void ( const QJsonValue& )>> setters = {
@@ -483,11 +483,11 @@ CClientRpc::CClientRpc ( CClient* pClient, CClientSettings* pSettings, CRpcServe
         response["result"] = "ok";
     } );
 
-    /// @rpc_method jamulusclient/getMidiDevices
+    /// @rpc_method jamsoulclient/getMidiDevices
     /// @brief Returns a list of available MIDI input devices.
     /// @param {object} params - No parameters (empty object).
     /// @result {array} result - Array of MIDI device name strings.
-    pRpcServer->HandleMethod ( "jamulusclient/getMidiDevices", [=] ( const QJsonObject& params, QJsonObject& response ) {
+    pRpcServer->HandleMethod ( "jamsoulclient/getMidiDevices", [=] ( const QJsonObject& params, QJsonObject& response ) {
         QStringList deviceNames = pClient->GetMIDIDevNames();
         QJsonArray  jsonDevices;
         for ( const QString& deviceName : deviceNames )

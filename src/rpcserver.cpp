@@ -61,7 +61,7 @@ CRpcServer::CRpcServer ( QObject* parent, QString strBindIP, int iPort, QString 
     /// @brief Returns Jamulus version.
     /// @param {object} params - No parameters (empty object).
     /// @result {string} result.version - The Jamulus version.
-    HandleMethod ( "jamulus/getVersion", [=] ( const QJsonObject& params, QJsonObject& response ) {
+    HandleMethod ( "jamsoul/getVersion", [=] ( const QJsonObject& params, QJsonObject& response ) {
         QJsonObject result{ { "version", VERSION } };
         response["result"] = result;
         Q_UNUSED ( params );
@@ -245,7 +245,7 @@ void CRpcServer::ProcessMessage ( QTcpSocket* pSocket, QJsonObject message, QJso
     auto method = message["method"].toString();
 
     // Authentication must be allowed when un-authed
-    if ( method == "jamulus/apiAuth" )
+    if ( method == "jamsoul/apiAuth" )
     {
         /// @rpc_method jamulus/apiAuth
         /// @brief Authenticates the connection which is a requirement for calling further methods.
