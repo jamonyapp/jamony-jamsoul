@@ -82,11 +82,11 @@ CClient::CClient ( const quint16  iPortNumber,
     iReverbDamping ( 24 ),   // jamony: 默认 -> pole≈0.2 (保持原混响听感)
     bReverbEnabled ( false ),
     iBoostLevel ( 0 ),
-    bBoostEnabled ( true ),
+    bBoostEnabled ( false ), // jamony: 新用户首启效果器机架全灭(欢哥10-02拍板:Win/Mac一致,干净初始态)
     iOverdriveDrive ( 0 ),
     iOverdriveLevel ( 100 ),
     iOverdriveTone ( 50 ),
-    bOverdriveEnabled ( true ),
+    bOverdriveEnabled ( false ), // jamony: 同上,过载默认关
     iDistortionDrive ( 0 ),
     iDistortionLevel ( 100 ),
     iDistortionTone ( 50 ),
