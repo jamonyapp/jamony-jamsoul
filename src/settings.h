@@ -179,7 +179,7 @@ public:
         eDirectoryType ( AT_DEFAULT ),
         bEnableFeedbackDetection ( true ),
         bEnableAudioAlerts ( false ),
-        bShowToolTip ( true ), // jamony 08-14: 全局悬停提示开关(默认开, 新手友好)
+        bShowToolTip ( false ), // jamony 08-14: 全局悬停提示开关;10-02 欢哥改判默认关(原"默认开,新手友好"作废)
         vecWindowPosSettings(), // empty array
         vecWindowPosChat(),     // empty array
         vecWindowPosConnect(),  // empty array
