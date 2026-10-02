@@ -91,7 +91,9 @@ public:
         bJackWasShutDown ( false ),
         fInOutLatencyMs ( 0.0f )
     {
-        QString strJackName = qEnvironmentVariable( "JAMULUS_JACK_NAME", APP_NAME );
+        // jamony 10-02: JACK 环境变量随品牌化更名 JAMULUS_JACK_NAME→JAMSOUL_JACK_NAME
+        // （仅 Linux JACK 路径;Win/Mac 不走此分支;与 api/manage-jamsoul.js 同批部署）
+        QString strJackName = qEnvironmentVariable( "JAMSOUL_JACK_NAME", APP_NAME );
 
         if ( !strJackClientName.isEmpty() )
         {
