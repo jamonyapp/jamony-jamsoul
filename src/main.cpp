@@ -1093,10 +1093,10 @@ int main ( int argc, char** argv )
                                 const int    iInvisR = outer.right - vis.right;
                                 const int    iInvisB = outer.bottom - vis.bottom;
                                 const int    iVisW   = vis.right - vis.left;
-                                // 1px 空隙：10-02 下午欢哥 A/B 测试贴边观感——2px 互叠改 1px 净缝。
-                                // 语义：正=互叠/负=空隙；可见左缘 = jamony可见右缘 - iOverlapPx，
-                                // +1px 缝为 jamsoul 单侧右移 3px，jamony 不动（非两窗各退 1px）
-                                const int    iOverlapPx = -1;
+                                // 2px 边框互叠：两窗边框线叠成一道利落的缝。10-02 欢哥两轮目测定稿
+                                // （凌晨：0px 双线感/3px 重叠感→2px；下午复验：0px 仍见缝/1px 缝仍可见→2px 完美）。
+                                // 语义：正=互叠/负=空隙；可见左缘 = jamony可见右缘 - iOverlapPx
+                                const int    iOverlapPx = 2;
                                 const BOOL   bRet = SetWindowPos ( hwnd, 0, iPxJx - iInvisL - iOverlapPx, iPxJy - iInvisT,
                                                                    iVisW + iInvisL + iInvisR, iPxJh + iInvisT + iInvisB,
                                                                    SWP_NOACTIVATE | SWP_NOZORDER );
