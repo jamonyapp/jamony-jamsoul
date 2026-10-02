@@ -91,14 +91,17 @@ LED bar:      lbr
 #define APP_NAME "jamony"
 
 // Windows registry key name of auto run entry for the server
-#define AUTORUN_SERVER_REG_NAME "Jamulus server"
+// jamony 10-02: 品牌清理,去 jamulus 字样(原 "Jamulus server")
+#define AUTORUN_SERVER_REG_NAME "jamsoul server"
 
 // default names of the ini-file for client and server
-#define DEFAULT_INI_FILE_NAME        "Jamulus.ini"
-#define DEFAULT_INI_FILE_NAME_SERVER "Jamulusserver.ini"
+// jamony 10-02: 品牌清理,原 Jamulus.ini/Jamulusserver.ini 更名;
+// 老用户旧档案由 settings.cpp SetFileName 自动一次性改名迁移
+#define DEFAULT_INI_FILE_NAME        "jamsoul.ini"
+#define DEFAULT_INI_FILE_NAME_SERVER "jamsoulserver.ini"
 
 // file name for logging file
-#define DEFAULT_LOG_FILE_NAME "Jamulussrvlog.txt"
+#define DEFAULT_LOG_FILE_NAME "jamsoulsrvlog.txt"
 
 // System block size, this is the block size on which the audio coder works.
 // All other block sizes must be a multiple of this size.

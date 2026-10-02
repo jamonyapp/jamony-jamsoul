@@ -113,6 +113,27 @@ void CSettings::SetFileName ( const QString& sNFiName, const QString& sDefaultFi
 
         // append the actual file name
         strFileName = sConfigDir + "/" + sDefaultFileName;
+
+        // jamony 10-02: 品牌清理更名后的老档案一次性迁移——仅当新文件不存在而旧文件
+        // 存在时改名（老用户设置无损；新文件已存在则绝不覆盖）
+        QString sLegacyName;
+        if ( sDefaultFileName == "jamsoul.ini" )
+        {
+            sLegacyName = "Jamulus.ini";
+        }
+        else if ( sDefaultFileName == "jamsoulserver.ini" )
+        {
+            sLegacyName = "Jamulusserver.ini";
+        }
+        if ( !sLegacyName.isEmpty() )
+        {
+            const QString sNewFilePath = sConfigDir + "/" + sDefaultFileName;
+            const QString sOldFilePath = sConfigDir + "/" + sLegacyName;
+            if ( !QFile::exists ( sNewFilePath ) && QFile::exists ( sOldFilePath ) )
+            {
+                QFile::rename ( sOldFilePath, sNewFilePath );
+            }
+        }
     }
 }
 
