@@ -195,7 +195,7 @@ win32 {
     # jamony: 兼容新版 macOS SDK（implicit-function-declaration / deprecated-declarations 默认当 error）
     QMAKE_CXXFLAGS += -Wno-error=implicit-function-declaration -Wno-error=deprecated-declarations
     QMAKE_OBJECTIVE_CXXFLAGS += -Wno-error=implicit-function-declaration -Wno-error=deprecated-declarations
-    QMAKE_TARGET_BUNDLE_PREFIX = app.jamulussoftware
+    QMAKE_TARGET_BUNDLE_PREFIX = com.jamony
 
     OSX_ENTITLEMENTS.files = mac/Jamulus.entitlements
     OSX_ENTITLEMENTS.path = Contents/Resources
@@ -249,7 +249,7 @@ win32 {
     HEADERS += src/ios/ios_app_delegate.h
     HEADERS += src/sound/coreaudio-ios/sound.h
     OBJECTIVE_SOURCES += src/sound/coreaudio-ios/sound.mm
-    QMAKE_TARGET_BUNDLE_PREFIX = app.jamulussoftware
+    QMAKE_TARGET_BUNDLE_PREFIX = com.jamony
     LIBS += -framework AVFoundation \
         -framework AudioToolbox
 } else:android {
