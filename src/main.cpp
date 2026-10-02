@@ -1049,9 +1049,45 @@ int main ( int argc, char** argv )
                                 if ( pfnDGA ( hwnd, 9 /* DWMWA_EXTENDED_FRAME_BOUNDS */, &vis, sizeof ( vis ) ) != 0 ) { return; }
                                 QWindow* pWin = ClientDlg.windowHandle();
                                 const double dDpr = pWin ? pWin->devicePixelRatio() : 1.0;
-                                const int    iPxJx = qRound ( jx * dDpr );
-                                const int    iPxJy = qRound ( jy * dDpr );
-                                const int    iPxJh = qRound ( jh * dDpr );
+                                // v3.4: env 的 jx/jy/jh 来自 Electron getBounds()=外框，Win 上
+                                // jamony 自身还有 DWM 隐形边框（实测 7/0/7/7），v3.3 把外框值当
+                                // 可见矩形用 → 横向多 7px 缝、底部多探 7px（10-02 欢哥装机实测）。
+                                // 改为直接量 jamony 窗口的 EFB 地面真相（与 10-02 外部调参脚本同
+                                // 方法学，物理像素，不乘 dpr）；量不到才回退 env 值（=v3.3 行为）。
+                                int  iPxJx   = qRound ( jx * dDpr );
+                                int  iPxJy   = qRound ( jy * dDpr );
+                                int  iPxJh   = qRound ( jh * dDpr );
+                                bool bRefEfb = false;
+                                HWND hwndJamony = FindWindowW ( nullptr, L"jamony" );
+                                if ( hwndJamony != nullptr && !IsIconic ( hwndJamony ) )
+                                {
+                                    DWORD dwJamonyPid = 0;
+                                    GetWindowThreadProcessId ( hwndJamony, &dwJamonyPid );
+                                    HANDLE hJamonyProc = OpenProcess ( PROCESS_QUERY_LIMITED_INFORMATION, FALSE, dwJamonyPid );
+                                    if ( hJamonyProc != nullptr )
+                                    {
+                                        WCHAR wszImg[MAX_PATH] = {};
+                                        DWORD dwImgLen        = MAX_PATH;
+                                        if ( QueryFullProcessImageNameW ( hJamonyProc, 0, wszImg, &dwImgLen ) )
+                                        {
+                                            const WCHAR* wszName = wcsrchr ( wszImg, L'\\' );
+                                            wszName               = wszName ? wszName + 1 : wszImg;
+                                            if ( lstrcmpiW ( wszName, L"jamony.exe" ) == 0 )
+                                            {
+                                                RECT rcJamonyVis;
+                                                if ( pfnDGA ( hwndJamony, 9 /* DWMWA_EXTENDED_FRAME_BOUNDS */,
+                                                              &rcJamonyVis, sizeof ( rcJamonyVis ) ) == 0 )
+                                                {
+                                                    iPxJx   = rcJamonyVis.right;
+                                                    iPxJy   = rcJamonyVis.top;
+                                                    iPxJh   = rcJamonyVis.bottom - rcJamonyVis.top;
+                                                    bRefEfb = true;
+                                                }
+                                            }
+                                        }
+                                        CloseHandle ( hJamonyProc );
+                                    }
+                                }
                                 const int    iInvisL = vis.left - outer.left;
                                 const int    iInvisT = vis.top - outer.top;
                                 const int    iInvisR = outer.right - vis.right;
@@ -1071,7 +1107,9 @@ int main ( int argc, char** argv )
                                           << " +" << iDelay << "ms"
                                           << " invis=" << iInvisL << "," << iInvisT << "," << iInvisR << "," << iInvisB
                                           << " dpr=" << dDpr
-                                          << " ret=" << bRet << "\n";
+                                          << " ret=" << bRet
+                                          << " ref=" << ( bRefEfb ? "efb" : "env" )
+                                          << " j=" << iPxJx << "," << iPxJy << "," << iPxJh << "\n";
                                 }
                             } );
                         }
