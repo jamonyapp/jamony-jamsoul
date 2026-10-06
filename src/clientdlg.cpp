@@ -1289,7 +1289,7 @@ void CClientDlg::closeEvent ( QCloseEvent* Event )
     {
         QMessageBox msgbox ( this );
         msgbox.setWindowTitle ( tr ( "退出 jamsoul" ) );
-        msgbox.setText ( tr ( "退出 jamsoul 将断开音频连接，若你是唯一合奏者将解散房间，确认退出？" ) );
+        msgbox.setText ( tr ( "退出 jamsoul 将断开音频连接并切换为听众身份，若你是唯一合奏者将解散房间，确认退出？" ) );
         msgbox.setStandardButtons ( QMessageBox::Yes | QMessageBox::No );
         msgbox.setDefaultButton ( QMessageBox::No );
         // jamony 08-14: 仿 jamony 本体 disconnect-dialog 的 lucide AlertTriangle(线框三角+感叹号, #FF5C5C)
