@@ -66,7 +66,7 @@ CClient::CClient ( const quint16  iPortNumber,
     eAudioCompressionType ( CT_OPUS ),
     iCeltNumCodedBytes ( OPUS_NUM_BYTES_MONO_LOW_QUALITY ),
     iOPUSFrameSizeSamples ( DOUBLE_SYSTEM_FRAME_SIZE_SAMPLES ),
-    eAudioQuality ( AQ_NORMAL ),
+    eAudioQuality ( AQ_HIGH ),  // jamony 10-07: 默认档 NORMAL 是 Jamulus 为单乐器省带宽设计,六轨全奏等密集素材出编码伪影(欢哥单变量实验定罪:同音频同增益仅 NORMAL→HIGH 毛刺消失)
     eAudioChannelConf ( CC_MONO ),
     iNumAudioChannels ( 1 ),
     bIsInitializationPhase ( true ),
