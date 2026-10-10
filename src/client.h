@@ -393,6 +393,11 @@ public:
 
     int EstimatedOverallDelay ( const int iPingTimeMs );
 
+    // jamony 10-10: GP 走带指针专用——单向输出延迟估计（EstimatedOverallDelay 是双向合奏语义，
+    // 含上行输入路径）。修正全部物理推导：①ping 取单程 ②声卡设备报的是 in+out 合计→取半；
+    // 估计路径 3×块(输入2+输出1)→1×块 ③网络包填充/双端抖动缓冲/Opus半帧全保留（均在输出路径）
+    int EstimatedPlaybackDelay ( const int iPingTimeMs );
+
     void GetBufErrorRates ( CVector<double>& vecErrRates, double& dLimit, double& dMaxUpLimit )
     {
         Channel.GetBufErrorRates ( vecErrRates, dLimit, dMaxUpLimit );

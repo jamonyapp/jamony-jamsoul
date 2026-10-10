@@ -55,6 +55,7 @@
 #include <QApplication> // jamony 08-14: qApp->installEventFilter (全局 tooltip 开关)
 #include <QPainter>     // jamony 08-14: closeEvent 弹窗自定义三角感叹号 icon
 #include <QPainterPath>
+#include <cstdio>       // jamony 10-10: JAMONY_DELAY 延迟上报 IPC（printf/fflush）
 #ifdef Q_OS_MACOS
 #include <objc/runtime.h>
 #include <objc/message.h>
@@ -1851,6 +1852,13 @@ void CClientDlg::OnPingTimeResult ( int iPingTime )
 {
     // calculate overall delay
     const int iOverallDelayMs = pClient->EstimatedOverallDelay ( iPingTime );
+
+    // jamony IPC (2026-10-10)：延迟上报到 stdout——electron main.js 监听转发给 web 层，
+    // GP 走带指针时延补偿用（测量代替常数，每用户/每网络自适应）。
+    // gp=单向输出估计（web 直接用）；overall=双向合奏语义（诊断参考）；ping=RTT（诊断参考）
+    const int iPlaybackDelayMs = pClient->EstimatedPlaybackDelay ( iPingTime );
+    printf ( "JAMONY_DELAY %d %d %d\n", iPlaybackDelayMs, iOverallDelayMs, iPingTime );
+    fflush ( stdout );
 
     // color definition: <= 43 ms green, <= 68 ms yellow, otherwise red
     CMultiColorLED::ELightColor eOverallDelayLEDColor;

@@ -1780,6 +1780,37 @@ int CClient::EstimatedOverallDelay ( const int iPingTimeMs )
     return MathUtils::round ( fTotalBufferDelayMs + iPingTimeMs );
 }
 
+// jamony 10-10: GP 走带指针专用单向输出估计（设计依据见 client.h 注释；
+// 欢哥产品原则：产品端可弥合的做到极致，物理不可观测残差接受，不做用户自校）
+int CClient::EstimatedPlaybackDelay ( const int iPingTimeMs )
+{
+    const float fSystemBlockDurationMs = static_cast<float> ( iOPUSFrameSizeSamples ) / SYSTEM_SAMPLE_RATE_HZ * 1000;
+
+    // 双端抖动缓冲都在输出路径（服务器发送缓冲+客户端接收缓冲），保留
+    const float fTotalJitterBufferDelayMs = fSystemBlockDurationMs * ( GetSockBufNumFrames() + GetServerSockBufNumFrames() ) * JITTBUF_COMP_FACTOR;
+
+    // 声卡仅输出方向：设备报 in+out 合计无法拆 → 取半；不报时原 3× 块估计（输入2+输出1）→ 1×
+    float fSoundCardDelayMs = GetSndCrdConvBufAdditionalDelayMonoBlSize() * 1000.0f / SYSTEM_SAMPLE_RATE_HZ;
+    const float fReportedLatencyMs = Sound.GetInOutLatencyMs();
+    if ( fReportedLatencyMs == 0.0f )
+    {
+        fSoundCardDelayMs += GetSndCrdActualMonoBlSize() * 1000.0f / SYSTEM_SAMPLE_RATE_HZ;
+    }
+    else
+    {
+        fSoundCardDelayMs += fReportedLatencyMs / 2.0f;
+    }
+
+    const float fDelayToFillNetworkPacketsMs = GetSystemMonoBlSize() * 1000.0f / SYSTEM_SAMPLE_RATE_HZ;
+    const float fAdditionalAudioCodecDelayMs = CurOpusDecoder != nullptr ? fSystemBlockDurationMs / 2 : 0.0f;
+
+    const float fTotalBufferDelayMs =
+        fDelayToFillNetworkPacketsMs + fTotalJitterBufferDelayMs + fSoundCardDelayMs + fAdditionalAudioCodecDelayMs;
+
+    // 网络取单程（EstimatedOverallDelay 用全程 RTT）
+    return MathUtils::round ( fTotalBufferDelayMs + iPingTimeMs / 2.0f );
+}
+
 // Management of Client Channels and mapping to/from Server Channels
 
 void CClient::ClearClientChannels()
