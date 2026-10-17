@@ -213,9 +213,9 @@ CClientDlg::CClientDlg ( CClient*         pNCliP,
         pOdLay->addWidget ( k );
         connect ( k, &JamonyKnob::valueChanged, this, slot );
     };
-    addOdKnob ( tr ( "Drive" ), pClient->GetOverdriveDrive(), 0, &CClientDlg::OnOverdriveDriveChanged );
+    addOdKnob ( tr ( "Drive" ), pClient->GetOverdriveDrive(), AUD_OVERDRIVE_MAX / 2, &CClientDlg::OnOverdriveDriveChanged ); // jamony 1018: 复位=默认,与出厂12点对齐
     addOdKnob ( tr ( "Tone" ), pClient->GetOverdriveTone(), AUD_OVERDRIVE_MAX / 2, &CClientDlg::OnOverdriveToneChanged );
-    addOdKnob ( tr ( "Level" ), pClient->GetOverdriveLevel(), AUD_OVERDRIVE_MAX, &CClientDlg::OnOverdriveLevelChanged );
+    addOdKnob ( tr ( "Level" ), pClient->GetOverdriveLevel(), AUD_OVERDRIVE_MAX / 2, &CClientDlg::OnOverdriveLevelChanged ); // jamony 1018: 复位=默认,与出厂12点对齐
     pOdPedal->bodyLayout()->addWidget ( pOdRow );
     connect ( pOdPedal, &PedalWidget::powerToggled, this, &CClientDlg::OnOverdriveOnOffToggled );
     m_pRackLayout->addWidget ( pOdPedal );
@@ -242,9 +242,9 @@ CClientDlg::CClientDlg ( CClient*         pNCliP,
         pDistLay->addWidget ( k );
         connect ( k, &JamonyKnob::valueChanged, this, slot );
     };
-    addDistKnob ( tr ( "Dis" ), pClient->GetDistortionDrive(), 0, &CClientDlg::OnDistortionDriveChanged );
+    addDistKnob ( tr ( "Dis" ), pClient->GetDistortionDrive(), AUD_DISTORTION_MAX / 2, &CClientDlg::OnDistortionDriveChanged ); // jamony 1018: 复位=默认,与出厂12点对齐
     addDistKnob ( tr ( "Tone" ), pClient->GetDistortionTone(), AUD_DISTORTION_MAX / 2, &CClientDlg::OnDistortionToneChanged );
-    addDistKnob ( tr ( "Level" ), pClient->GetDistortionLevel(), AUD_DISTORTION_MAX, &CClientDlg::OnDistortionLevelChanged );
+    addDistKnob ( tr ( "Level" ), pClient->GetDistortionLevel(), AUD_DISTORTION_MAX / 2, &CClientDlg::OnDistortionLevelChanged ); // jamony 1018: 复位=默认,与出厂12点对齐
     pDistPedal->bodyLayout()->addWidget ( pDistRow );
     connect ( pDistPedal, &PedalWidget::powerToggled, this, &CClientDlg::OnDistortionOnOffToggled );
     m_pRackLayout->addWidget ( pDistPedal );
@@ -325,7 +325,7 @@ CClientDlg::CClientDlg ( CClient*         pNCliP,
         pChLay->addWidget ( k );
         connect ( k, &JamonyKnob::valueChanged, this, slot );
     };
-    addChKnob ( tr ( "Rate" ), pClient->GetChorusRate(), 40,
+    addChKnob ( tr ( "Rate" ), pClient->GetChorusRate(), 50,
                 [] ( int v ) { return QString::number ( 0.1 + v * 0.019, 'f', 2 ) + "Hz"; },
                 &CClientDlg::OnChorusRateChanged );
     addChKnob ( tr ( "Depth" ), pClient->GetChorusDepth(), 50,
@@ -362,10 +362,10 @@ CClientDlg::CClientDlg ( CClient*         pNCliP,
         pDelayLay->addWidget ( k );
         connect ( k, &JamonyKnob::valueChanged, this, slot );
     };
-    addDelayKnob ( tr ( "Time" ), pClient->GetDelayTime(), 35,
+    addDelayKnob ( tr ( "Time" ), pClient->GetDelayTime(), 50,
                    [] ( int v ) { return QString::number ( 50 + v * 550 / 100 ) + "ms"; },
                    &CClientDlg::OnDelayTimeChanged );
-    addDelayKnob ( tr ( "Feedback" ), pClient->GetDelayFeedback(), 40,
+    addDelayKnob ( tr ( "Feedback" ), pClient->GetDelayFeedback(), 50,
                    [] ( int v ) { return QString::number ( v ); },
                    &CClientDlg::OnDelayFeedbackChanged );
     addDelayKnob ( tr ( "Level" ), pClient->GetDelayLevel(), 50,
@@ -400,13 +400,13 @@ CClientDlg::CClientDlg ( CClient*         pNCliP,
         pReverbKnobLay->addWidget ( k );
         connect ( k, &JamonyKnob::valueChanged, this, slot );
     };
-    addReverbKnob ( tr ( "Pre" ), pClient->GetReverbPreDelay(), 0, AUD_REVERB_PREDELAY_MAX,
+    addReverbKnob ( tr ( "Pre" ), pClient->GetReverbPreDelay(), 50, AUD_REVERB_PREDELAY_MAX,
                     [] ( int v ) { return QString::number ( v * 150 / 100 ) + "ms"; },
                     &CClientDlg::OnReverbPreDelayChanged );
-    addReverbKnob ( tr ( "Decay" ), pClient->GetReverbDecay(), 14, AUD_REVERB_DECAY_MAX,
+    addReverbKnob ( tr ( "Decay" ), pClient->GetReverbDecay(), 50, AUD_REVERB_DECAY_MAX,
                     [] ( int v ) { return QString::number ( 0.3 + v * 5.7 / 100, 'f', 1 ) + "s"; },
                     &CClientDlg::OnReverbDecayChanged );
-    addReverbKnob ( tr ( "Damp" ), pClient->GetReverbDamping(), 24, AUD_REVERB_DAMPING_MAX,
+    addReverbKnob ( tr ( "Damp" ), pClient->GetReverbDamping(), 50, AUD_REVERB_DAMPING_MAX,
                     [] ( int v ) { return QString::number ( v ); },
                     &CClientDlg::OnReverbDampingChanged );
     pReverbPedal->bodyLayout()->addWidget ( pReverbKnobRow );
@@ -612,15 +612,15 @@ CClientDlg::CClientDlg ( CClient*         pNCliP,
     // jamony: reverb 扩展旋钮 (Decay/PreDelay/Damping)
     knobReverbDecay->setRange ( 0, AUD_REVERB_DECAY_MAX );
     knobReverbDecay->setValue ( pClient->GetReverbDecay() );
-    knobReverbDecay->setDefaultValue ( 14 ); // -> 1.1s (保持原听感, 0-100 下 14≈1.1s)
+    knobReverbDecay->setDefaultValue ( AUD_REVERB_DECAY_MAX / 2 ); // jamony 1018: 复位=默认,与出厂12点对齐
     knobReverbDecay->setLabel ( tr ( "Decay" ) );
     knobReverbPreDelay->setRange ( 0, AUD_REVERB_PREDELAY_MAX );
     knobReverbPreDelay->setValue ( pClient->GetReverbPreDelay() );
-    knobReverbPreDelay->setDefaultValue ( 0 );
+    knobReverbPreDelay->setDefaultValue ( AUD_REVERB_PREDELAY_MAX / 2 ); // jamony 1018: 复位=默认,与出厂12点对齐
     knobReverbPreDelay->setLabel ( tr ( "Pre" ) );
     knobReverbDamping->setRange ( 0, AUD_REVERB_DAMPING_MAX );
     knobReverbDamping->setValue ( pClient->GetReverbDamping() );
-    knobReverbDamping->setDefaultValue ( 24 ); // -> pole≈0.2 (保持原听感)
+    knobReverbDamping->setDefaultValue ( AUD_REVERB_DAMPING_MAX / 2 ); // jamony 1018: 复位=默认,与出厂12点对齐
     knobReverbDamping->setLabel ( tr ( "Damp" ) );
 
     // init audio boost
@@ -636,11 +636,11 @@ CClientDlg::CClientDlg ( CClient*         pNCliP,
     // init audio overdrive knobs
     knobOverdriveDrive->setRange ( 0, AUD_OVERDRIVE_MAX );
     knobOverdriveDrive->setValue ( pClient->GetOverdriveDrive() );
-    knobOverdriveDrive->setDefaultValue ( 0 );
+    knobOverdriveDrive->setDefaultValue ( AUD_OVERDRIVE_MAX / 2 ); // jamony 1018: 复位=默认,与出厂12点对齐
     knobOverdriveDrive->setLabel ( tr ( "Drive" ) );
     knobOverdriveLevel->setRange ( 0, AUD_OVERDRIVE_MAX );
     knobOverdriveLevel->setValue ( pClient->GetOverdriveLevel() );
-    knobOverdriveLevel->setDefaultValue ( AUD_OVERDRIVE_MAX ); // Level 默认 100%
+    knobOverdriveLevel->setDefaultValue ( AUD_OVERDRIVE_MAX / 2 ); // jamony 1018: 复位=默认,与出厂12点对齐
     knobOverdriveLevel->setLabel ( tr ( "Level" ) );
     knobOverdriveTone->setRange ( 0, AUD_OVERDRIVE_MAX );
     knobOverdriveTone->setValue ( pClient->GetOverdriveTone() );
@@ -650,11 +650,11 @@ CClientDlg::CClientDlg ( CClient*         pNCliP,
     // init audio distortion knobs
     knobDistortionDrive->setRange ( 0, AUD_DISTORTION_MAX );
     knobDistortionDrive->setValue ( pClient->GetDistortionDrive() );
-    knobDistortionDrive->setDefaultValue ( 0 );
+    knobDistortionDrive->setDefaultValue ( AUD_DISTORTION_MAX / 2 ); // jamony 1018: 复位=默认,与出厂12点对齐
     knobDistortionDrive->setLabel ( tr ( "dis" ) );
     knobDistortionLevel->setRange ( 0, AUD_DISTORTION_MAX );
     knobDistortionLevel->setValue ( pClient->GetDistortionLevel() );
-    knobDistortionLevel->setDefaultValue ( AUD_DISTORTION_MAX ); // Level 默认 100%
+    knobDistortionLevel->setDefaultValue ( AUD_DISTORTION_MAX / 2 ); // jamony 1018: 复位=默认,与出厂12点对齐
     knobDistortionLevel->setLabel ( tr ( "Level" ) );
     knobDistortionTone->setRange ( 0, AUD_DISTORTION_MAX );
     knobDistortionTone->setValue ( pClient->GetDistortionTone() );
@@ -670,7 +670,7 @@ CClientDlg::CClientDlg ( CClient*         pNCliP,
     // init audio chorus knobs (Rate/Depth/Mix)
     knobChorusRate->setRange ( 0, AUD_CHORUS_MAX );
     knobChorusRate->setValue ( pClient->GetChorusRate() );
-    knobChorusRate->setDefaultValue ( 40 );
+    knobChorusRate->setDefaultValue ( AUD_CHORUS_MAX / 2 ); // jamony 1018: 复位=默认,与出厂12点对齐
     knobChorusRate->setLabel ( tr ( "Rate" ) );
     knobChorusDepth->setRange ( 0, AUD_CHORUS_MAX );
     knobChorusDepth->setValue ( pClient->GetChorusDepth() );
@@ -684,11 +684,11 @@ CClientDlg::CClientDlg ( CClient*         pNCliP,
     // init audio delay knobs (Time/Feedback/Level)
     knobDelayTime->setRange ( 0, AUD_DELAY_MAX );
     knobDelayTime->setValue ( pClient->GetDelayTime() );
-    knobDelayTime->setDefaultValue ( 35 );
+    knobDelayTime->setDefaultValue ( AUD_DELAY_MAX / 2 ); // jamony 1018: 复位=默认,与出厂12点对齐
     knobDelayTime->setLabel ( tr ( "Time" ) );
     knobDelayFeedback->setRange ( 0, AUD_DELAY_MAX );
     knobDelayFeedback->setValue ( pClient->GetDelayFeedback() );
-    knobDelayFeedback->setDefaultValue ( 40 );
+    knobDelayFeedback->setDefaultValue ( AUD_DELAY_MAX / 2 ); // jamony 1018: 复位=默认,与出厂12点对齐
     knobDelayFeedback->setLabel ( tr ( "Fb" ) );
     knobDelayLevel->setRange ( 0, AUD_DELAY_MAX );
     knobDelayLevel->setValue ( pClient->GetDelayLevel() );

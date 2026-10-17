@@ -76,31 +76,31 @@ CClient::CClient ( const quint16  iPortNumber,
     Sound ( AudioCallback, this, bNoAutoJackConnect, strNClientName ),
     iAudioInFader ( AUD_FADER_IN_MIDDLE ),
     bReverbOnLeftChan ( false ),
-    iReverbLevel ( 0 ),
-    iReverbDecay ( 14 ),     // jamony: 默认 -> 1.1s T60 (保持原混响听感, 0-100 下 14≈1.1s)
-    iReverbPreDelay ( 0 ),   // jamony: 默认无 pre-delay
-    iReverbDamping ( 24 ),   // jamony: 默认 -> pole≈0.2 (保持原混响听感)
+    iReverbLevel ( 50 ),   // jamony 1018 欢哥定标:出厂默认旋钮全12点(效果器默认全关,初值即标准位)
+    iReverbDecay ( 50 ),     // jamony 1018: 12点(旧14≈1.1s为听感调校值,欢哥定标12点)
+    iReverbPreDelay ( 50 ),   // jamony 1018: 12点
+    iReverbDamping ( 50 ),   // jamony 1018: 12点(旧24为听感调校值)
     bReverbEnabled ( false ),
     iBoostLevel ( 0 ),
     bBoostEnabled ( false ), // jamony: 新用户首启效果器机架全灭(欢哥10-02拍板:Win/Mac一致,干净初始态)
-    iOverdriveDrive ( 0 ),
-    iOverdriveLevel ( 100 ),
+    iOverdriveDrive ( 50 ),  // jamony 1018: 12点
+    iOverdriveLevel ( 50 ),  // jamony 1018: 12点
     iOverdriveTone ( 50 ),
     bOverdriveEnabled ( false ), // jamony: 同上,过载默认关
-    iDistortionDrive ( 0 ),
-    iDistortionLevel ( 100 ),
+    iDistortionDrive ( 50 ),  // jamony 1018: 12点
+    iDistortionLevel ( 50 ),  // jamony 1018: 12点
     iDistortionTone ( 50 ),
     bDistortionEnabled ( false ),
     iEqBands { 50, 50, 50, 50, 50, 50, 50 },
     iEqIn ( 50 ),
     iEqOut ( 50 ),
     bEqEnabled ( false ),
-    iChorusRate ( 40 ),
+    iChorusRate ( 50 ),      // jamony 1018: 12点
     iChorusDepth ( 50 ),
     iChorusMix ( 50 ),
     bChorusEnabled ( false ),
-    iDelayTime ( 35 ),
-    iDelayFeedback ( 40 ),
+    iDelayTime ( 50 ),      // jamony 1018: 12点
+    iDelayFeedback ( 50 ),   // jamony 1018: 12点
     iDelayLevel ( 50 ),
     bDelayEnabled ( false ),
     iInputBoost ( 1 ),
