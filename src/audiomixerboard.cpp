@@ -1102,9 +1102,14 @@ CAudioMixerBoard::CAudioMixerBoard ( QWidget* parent ) :
     // insert horizontal spacer (at position MAX_NUM_CHANNELS+1 which is index MAX_NUM_CHANNELS)
     pMainLayout->addItem ( new QSpacerItem ( 0, 0, QSizePolicy::Expanding ), 0, MAX_NUM_CHANNELS );
 
+    // jamony 10-17: 行2垫纵向 Expanding spacer —— 板内网格由默认垂直居中改顶部锚定。
+    // 分轨(690定高)顶部不再随窗口高度浮动、不再随水平滚动条出现/消失跳移(滚动条只吃底部空隙)。
+    // 行2 = 分轨最多占行0/行1(iNumMixerPanelRows≤2), 永不与分轨同格。
+    pMainLayout->addItem ( new QSpacerItem ( 0, 0, QSizePolicy::Ignored, QSizePolicy::Expanding ), 2, 0 );
+
     // set margins of the layout to zero to get maximum space for the controls
     pGroupBoxLayout->setContentsMargins ( 0, 0, 0, 1 ); // note: to avoid problems at the bottom, use a small margin for that
-    pMainLayout->setContentsMargins ( 0, 4, 0, 12 ); // jamony 08-17 二轮: right 12→0 —— C区右距33→12(板内右margin砍掉, 分轨内容右缘紧贴板缘; 底12保留防滚动条贴底)
+    pMainLayout->setContentsMargins ( 0, 8, 0, 12 ); // jamony 10-17: top 4→8 —— 顶部锚定后分轨顶=31+8=39, IN/OUT 可见顶与B栏消波灯顶(39)精确顶齐(08-17 二轮 right 12→0, 底12保留防滚动条贴底)
 
     // add the group box to the scroll area
     pScrollArea->setMinimumWidth ( 0 ); // jamony: 板宽由 MainMixerBoard setMinimumWidth 控制(2轨最小), 不强制200
