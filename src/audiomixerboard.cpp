@@ -867,8 +867,7 @@ void CChannelFader::SetChannelInfos ( const CChannelInfo& cChanInfo )
         strModText.prepend ( QString().setNum ( cChanInfo.iChanID ) + ":" );
     }
 
-    QTextBoundaryFinder tbfName ( QTextBoundaryFinder::Grapheme, cChanInfo.strName );
-    int                 iBreakPos;
+    int iBreakPos;
 
     // apply break position and font size depending on the selected design
     if ( eDesign == GD_SLIMFADER )
@@ -888,17 +887,47 @@ void CChannelFader::SetChannelInfos ( const CChannelInfo& cChanInfo )
         iBreakPos = MAX_LEN_FADER_TAG / 2;
     }
 
-    int iInsPos     = iBreakPos;
-    int iCount      = 0;
-    int iLineNumber = 0;
-    while ( tbfName.toNextBoundary() != -1 )
+    // jamony 10-17: 宽度实测兜底 —— 8字符周期断行是"数盲": W_等宽字符组合7字≈62px即超可用58px
+    // (首个W被用户名框左边框裁角), 中文昵称5字=65px必爆且永不触发8字符规则(dump实测: 图标列0宽,标签独享58px)。
+    // 单行实宽超54(58-4保险)且对半能装下(≤108)时, 改对半单次折行, 名字永远完整不裁字; 更宽长名交还原周期规则。
+    QFont       fTagFont = plblLabel->font();
+    fTagFont.setBold ( eDesign != GD_SLIMFADER );
+    fTagFont.setPixelSize ( 13 );
+    const int   iNameWidth = QFontMetrics ( fTagFont ).horizontalAdvance ( strModText );
+
+    if ( strModText.length() > 1 && iNameWidth > 54 && iNameWidth <= 108 )
     {
-        ++iCount;
-        if ( iCount == iInsPos && tbfName.position() + iLineNumber < strModText.length() )
+        // 对半单次折行(不进周期断行): W_WJyun→W_W/Jyun, 5字中文→2/3
+        QTextBoundaryFinder tbfHalf ( QTextBoundaryFinder::Grapheme, strModText );
+        int                 iHalfCnt  = 0;
+        const int           iHalfTrav = strModText.length() / 2;
+
+        while ( iHalfCnt < iHalfTrav && tbfHalf.toNextBoundary() != -1 )
         {
-            strModText.insert ( tbfName.position() + iLineNumber, QString ( "\n" ) );
-            iLineNumber++;
-            iInsPos += iBreakPos;
+            ++iHalfCnt;
+        }
+
+        if ( tbfHalf.position() > 0 && tbfHalf.position() < strModText.length() )
+        {
+            strModText.insert ( tbfHalf.position(), QString ( "\n" ) );
+        }
+    }
+    else
+    {
+        QTextBoundaryFinder tbfName ( QTextBoundaryFinder::Grapheme, cChanInfo.strName );
+
+        int iInsPos     = iBreakPos;
+        int iCount      = 0;
+        int iLineNumber = 0;
+        while ( tbfName.toNextBoundary() != -1 )
+        {
+            ++iCount;
+            if ( iCount == iInsPos && tbfName.position() + iLineNumber < strModText.length() )
+            {
+                strModText.insert ( tbfName.position() + iLineNumber, QString ( "\n" ) );
+                iLineNumber++;
+                iInsPos += iBreakPos;
+            }
         }
     }
 
