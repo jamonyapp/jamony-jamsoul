@@ -668,6 +668,25 @@ void CClientSettings::ReadSettingsFromXML ( const QDomDocument& IniXMLDocument, 
         pClient->SetReverbOnLeftChan ( bValue );
     }
 
+    // jamony 1018 出厂定标迁移(欢哥拍板:不删ini): fxver2 标记不存在 = 旧用户首次跑 v1.1.0+,
+    // 一次性把 11 个效果器参数覆盖为 12 点新默认(昵称/音频设备/音质档等其余设置分毫不动);
+    // 新用户无 ini 本就走构造默认,此块自然跳过。WriteSettingsToXML 恒写 fxver2 标记。
+    bool bFxVer2Dummy = false;
+    if ( !GetFlagIniSet ( IniXMLDocument, "client", "fxver2", bFxVer2Dummy ) )
+    {
+        pClient->SetReverbLevel ( 50 );
+        pClient->SetReverbDecay ( 50 );
+        pClient->SetReverbPreDelay ( 50 );
+        pClient->SetReverbDamping ( 50 );
+        pClient->SetOverdriveDrive ( 50 );
+        pClient->SetOverdriveLevel ( 50 );
+        pClient->SetDistortionDrive ( 50 );
+        pClient->SetDistortionLevel ( 50 );
+        pClient->SetChorusRate ( 50 );
+        pClient->SetDelayTime ( 50 );
+        pClient->SetDelayFeedback ( 50 );
+    }
+
     // sound card selection
     const QString strError = pClient->SetSndCrdDev ( FromBase64ToString ( GetIniSetting ( IniXMLDocument, "client", "auddev_base64", "" ) ) );
 
@@ -1166,6 +1185,9 @@ void CClientSettings::WriteSettingsToXML ( QDomDocument& IniXMLDocument, bool is
 
     // reverberation channel assignment
     SetFlagIniSet ( IniXMLDocument, "client", "reverblchan", pClient->IsReverbOnLeftChan() );
+
+    // jamony 1018: 出厂定标迁移标记(见 Load 侧注释)
+    SetFlagIniSet ( IniXMLDocument, "client", "fxver2", true );
 
     // sound card selection
     PutIniSetting ( IniXMLDocument, "client", "auddev_base64", ToBase64 ( pClient->GetSndCrdDev() ) );
