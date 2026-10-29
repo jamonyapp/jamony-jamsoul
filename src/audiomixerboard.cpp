@@ -166,6 +166,10 @@ CChannelFader::CChannelFader ( QWidget* pNW ) :
     plblOutTag->setAlignment ( Qt::AlignCenter );
     plblInTag->setGeometry  ( 0, -2, 18, 13 );   // jamony: x=0 对齐电平槽0（A列左缘0=Pan左缘；A+B列整体左移3）
     plblOutTag->setGeometry ( 19, -2, 30, 13 );  // jamony: x=19 中心 34 对齐 groove（pFader 左 19+15; B列再左移6, 电平表-刻度线间距5）
+    // jamony 1029: 标签压到推子/电平层之下（欢哥保险：手柄任何情况下不被自己的说明文案盖住。
+    // 标签带 y-2..11 与 pLevelsBox y16+ 本无重叠，lower 后视觉零变化，仅层级兜底）
+    plblInTag->lower();
+    plblOutTag->lower();
     // jamony v0: pPanLabel(Pan文案)/pInfoLabel(静音icon) 舍弃显示，始终隐藏
     pPanLabel->hide();
     pInfoLabel->hide();
