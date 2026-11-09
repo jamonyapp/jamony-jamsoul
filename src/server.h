@@ -50,6 +50,7 @@
 #include <QDateTime>
 #include <QHostAddress>
 #include <QFileInfo>
+#include <QTimer>
 #include <algorithm>
 #ifdef USE_OPUS_SHARED_LIB
 #    include "opus/opus_custom.h"
@@ -326,6 +327,12 @@ protected:
     bool    bJamonyTicketEnforce;
     quint16 iServerPort;
 
+    // jamony 1110b: 无票宽限巡查(仅强制档+密钥在位时启动)——裸客户端(不带票连接)
+    // 宽限期内未呈有效票=踢;环回豁免同款;观察档不巡查不记日志(老壳无票是常态)
+    QTimer          TicketSweepTimer;
+    CVector<bool>   vecbTicketOk;
+    CVector<qint64> veciTicketDeadline;
+
     // for delay panning
     bool bDelayPan;
 
@@ -362,6 +369,8 @@ signals:
 
 public slots:
     void OnTimer();
+
+    void OnTicketSweep(); // jamony 1110b: 无票宽限巡查(强制档)
 
     void OnNewConnection ( int iChID, int iTotChans, CHostAddress RecHostAddr );
 
