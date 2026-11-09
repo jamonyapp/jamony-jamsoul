@@ -46,6 +46,8 @@
 
 #include "server.h"
 
+#include <QMessageAuthenticationCode> // jamony 1110: 入场票 HMAC-SHA256 验签
+
 // CServer implementation ******************************************************
 CServer::CServer ( const int          iNewMaxNumChan,
                    const QString&     strLoggingFileName,
@@ -88,6 +90,9 @@ CServer::CServer ( const int          iNewMaxNumChan,
     JamController ( this ),
     bDisableRecording ( bDisableRecording ),
     bAutoRunMinimized ( false ),
+    strJamonyTicketSecret ( qEnvironmentVariable ( "JAMONY_TICKET_SECRET", "" ) ), // jamony 1110
+    bJamonyTicketEnforce ( qEnvironmentVariable ( "JAMONY_TICKET_ENFORCE", "0" ) == QString ( "1" ) ),
+    iServerPort ( iPortNumber ),
     bDelayPan ( bNDelayPan ),
     bEnableIPv6 ( bNEnableIPv6 ),
     eLicenceType ( eNLicenceType ),
@@ -330,6 +335,8 @@ inline void CServer::connectChannelSignalsToServerSlots()
 
     void ( CServer::*pOnChatTextReceivedCh ) ( QString ) = &CServerSlots<slotId>::OnChatTextReceivedCh;
 
+    void ( CServer::*pOnTicketReceivedCh ) ( QString ) = &CServerSlots<slotId>::OnTicketReceivedCh; // jamony 1110
+
     void ( CServer::*pOnMuteStateHasChangedCh ) ( int, bool ) = &CServerSlots<slotId>::OnMuteStateHasChangedCh;
 
     void ( CServer::*pOnServerAutoSockBufSizeChangeCh ) ( int ) = &CServerSlots<slotId>::OnServerAutoSockBufSizeChangeCh;
@@ -345,6 +352,9 @@ inline void CServer::connectChannelSignalsToServerSlots()
 
     // chat text received
     QObject::connect ( &vecChannels[iCurChanID], &CChannel::ChatTextReceived, this, pOnChatTextReceivedCh );
+
+    // jamony 1110: one-time join ticket received
+    QObject::connect ( &vecChannels[iCurChanID], &CChannel::TicketReceived, this, pOnTicketReceivedCh );
 
     // other mute state has changed
     QObject::connect ( &vecChannels[iCurChanID], &CChannel::MuteStateHasChanged, this, pOnMuteStateHasChangedCh );
@@ -496,6 +506,112 @@ void CServer::OnCLDisconnection ( CHostAddress InetAddr )
     if ( iCurChanID != INVALID_CHANNEL_ID )
     {
         vecChannels[iCurChanID].Disconnect();
+    }
+}
+
+// jamony 1110: 入场票验签——堵「学到房间 IP:端口 后裸协议直连/冒充昵称」旁路(强登录唯一残余)。
+// 票=api 在 /join 签发:HMAC-SHA256 over "uid:port:nickname:exp"(密钥=JAMONY_TICKET_SECRET,与 api 同源),
+// 60s 有效,房间进程与 api 同机零钟差。环回豁免:ghost 录音/鼓机等本机客户端免票(外网无法伪造环回源)。
+// 两档: JAMONY_TICKET_ENFORCE=1 强制(拒),默认观察(只记日志不拒)——先上二进制观察,1.2.3 壳发齐后切强制。
+// 票紧随 CHANNEL_INFOS 之后送达(同流相邻包不乱序),验签时昵称已就位;昵称对不齐会以 name-mismatch 现形。
+void CServer::OnTicketReceived ( const int iChanID, const QString& strTicket )
+{
+    // 未配密钥=整段旁路(旧部署兼容)
+    if ( strJamonyTicketSecret.isEmpty() )
+    {
+        return;
+    }
+
+    if ( iChanID < 0 || iChanID >= iMaxNumChannels )
+    {
+        return;
+    }
+
+    const CHostAddress InetAddr = vecChannels[iChanID].GetAddress();
+
+    // 环回豁免(本机 ghost/鼓机走 127.0.0.1 连入)
+    if ( InetAddr.InetAddr.isLoopback() )
+    {
+        return;
+    }
+
+    // ---- 解票: uid:port:nickname:exp:hexsig(最后一个冒号=签名;载荷内头两个+最后一个冒号定界,中段=昵称可含冒号)
+    const int iSigPos = strTicket.lastIndexOf ( QLatin1Char ( ':' ) );
+    if ( iSigPos < 0 )
+    {
+        HandleTicketVerdict ( iChanID, InetAddr, false, "malformed" );
+        return;
+    }
+    const QString strSig     = strTicket.mid ( iSigPos + 1 );
+    const QString strPayload = strTicket.left ( iSigPos );
+
+    const int iC1 = strPayload.indexOf ( QLatin1Char ( ':' ) );
+    const int iC2 = strPayload.indexOf ( QLatin1Char ( ':' ), iC1 + 1 );
+    const int iCE = strPayload.lastIndexOf ( QLatin1Char ( ':' ) );
+    if ( iC1 < 0 || iC2 < 0 || iCE <= iC2 )
+    {
+        HandleTicketVerdict ( iChanID, InetAddr, false, "malformed-payload" );
+        return;
+    }
+    const QString strPort = strPayload.mid ( iC1 + 1, iC2 - iC1 - 1 );
+    const QString strNick = strPayload.mid ( iC2 + 1, iCE - iC2 - 1 );
+    const QString strExp  = strPayload.mid ( iCE + 1 );
+
+    // ---- HMAC-SHA256 验签
+    QMessageAuthenticationCode mac ( QCryptographicHash::Sha256, strJamonyTicketSecret.toUtf8() );
+    mac.addData ( strPayload.toUtf8() );
+    if ( QString::fromLatin1 ( mac.result().toHex() ).compare ( strSig, Qt::CaseInsensitive ) != 0 )
+    {
+        HandleTicketVerdict ( iChanID, InetAddr, false, "bad-signature" );
+        return;
+    }
+
+    // ---- 绑定校验: 端口=本房 / 昵称=CHANNEL_INFOS 呈上的名 / 未过期
+    bool       bPortOk = false;
+    const int  iTicketPort = strPort.toInt ( &bPortOk );
+    if ( !bPortOk || iTicketPort != static_cast<int> ( iServerPort ) )
+    {
+        HandleTicketVerdict ( iChanID, InetAddr, false, "port-mismatch" );
+        return;
+    }
+    if ( strNick != vecChannels[iChanID].GetChanInfo().strName )
+    {
+        HandleTicketVerdict ( iChanID, InetAddr, false, "name-mismatch" );
+        return;
+    }
+    bool        bExpOk = false;
+    const qint64 iExp  = strExp.toLongLong ( &bExpOk );
+    if ( !bExpOk || QDateTime::currentSecsSinceEpoch() > iExp )
+    {
+        HandleTicketVerdict ( iChanID, InetAddr, false, "expired" );
+        return;
+    }
+
+    // 验签通过=正常路径,静默(每次进房一条票,不刷日志)
+}
+
+void CServer::HandleTicketVerdict ( const int iChanID, const CHostAddress& InetAddr, const bool bOk, const QString& strReason )
+{
+    if ( bOk )
+    {
+        return;
+    }
+
+    if ( bJamonyTicketEnforce )
+    {
+        qWarning() << qUtf8Printable ( QString ( "[jamony-ticket] REJECT chan %1 from %2: %3" )
+                                           .arg ( iChanID )
+                                           .arg ( InetAddr.InetAddr.toString() )
+                                           .arg ( strReason ) );
+        ConnLessProtocol.CreateCLDisconnection ( InetAddr );
+        vecChannels[iChanID].Disconnect();
+    }
+    else
+    {
+        qWarning() << qUtf8Printable ( QString ( "[jamony-ticket] observe-accept chan %1 from %2: %3" )
+                                           .arg ( iChanID )
+                                           .arg ( InetAddr.InetAddr.toString() )
+                                           .arg ( strReason ) );
     }
 }
 

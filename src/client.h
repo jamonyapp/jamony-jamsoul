@@ -419,6 +419,9 @@ public:
     CChannelCoreInfo ChannelInfo;
     QString          strClientName;
 
+    // jamony 1110: 一次性入场票(--ticket 传入,连接握手期呈上;不入 ini,进程内即弃)
+    QString strTicket;
+
 public:
     void SetSettings ( CClientSettings* settings );
 

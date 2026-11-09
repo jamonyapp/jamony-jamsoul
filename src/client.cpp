@@ -344,6 +344,14 @@ void CClient::OnNewConnection()
     // connected clients list
     Channel.SetRemoteInfo ( ChannelInfo );
 
+    // jamony 1110: 一次性入场票,紧跟 CHANNEL_INFOS 之后(同流相邻包,服务端验签时昵称已就位;
+    // 旧服务器对未知消息 ID 无 case 即无视+无条件 ACK,无重发风暴)。断线重连会再走这里——
+    // 60s 内旧票仍有效,超时旧票在强制模式会被拒,需回 jamony 页面重拉(强刷保房已覆盖)。
+    if ( !strTicket.isEmpty() )
+    {
+        Channel.CreateTicketMes ( strTicket );
+    }
+
     // We have to send a connected clients list request since it can happen
     // that we just had connected to the server and then disconnected but
     // the server still thinks that we are connected (the server is still
