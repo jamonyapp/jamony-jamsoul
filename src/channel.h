@@ -119,9 +119,6 @@ public:
 
     void SetRemoteInfo ( const CChannelCoreInfo ChInfo ) { Protocol.CreateChanInfoMes ( ChInfo ); }
 
-    // jamony 1110: 一次性入场票(连接握手期发往服务端验签)
-    void CreateTicketMes ( const QString& strTicket ) { Protocol.CreateTicketMes ( strTicket ); }
-
     void CreateReqChanInfoMes() { Protocol.CreateReqChanInfoMes(); }
     void CreateVersionAndOSMes() { Protocol.CreateVersionAndOSMes(); }
     void CreateMuteStateHasChangedMes ( const int iChanID, const bool bIsMuted ) { Protocol.CreateMuteStateHasChangedMes ( iChanID, bIsMuted ); }
@@ -307,7 +304,6 @@ signals:
     void MuteStateHasChangedReceived ( int iChanID, bool bIsMuted );
     void ReqChanInfo();
     void ChatTextReceived ( QString strChatText );
-    void TicketReceived ( QString strTicket ); // jamony 1110
     void ReqNetTranspProps();
     void LicenceRequired ( ELicenceType eLicenceType );
     void VersionAndOSReceived ( COSUtil::EOpSystemType eOSType, QString strVersion );

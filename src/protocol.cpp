@@ -816,10 +816,6 @@ void CProtocol::ParseMessageBody ( const CVector<uint8_t>& vecbyMesBodyData, con
                     EvaluateChanInfoMes ( vecbyMesBodyDataRef );
                     break;
 
-                case PROTMESSID_JAMONY_TICKET: // jamony 1110
-                    EvaluateTicketMes ( vecbyMesBodyDataRef );
-                    break;
-
                 case PROTMESSID_REQ_CHANNEL_INFOS:
                     EvaluateReqChanInfoMes();
                     break;
@@ -1351,44 +1347,6 @@ bool CProtocol::EvaluateChanInfoMes ( const CVector<uint8_t>& vecData )
 
     // invoke message action
     emit ChangeChanInfo ( ChanInfo );
-
-    return false; // no error
-}
-
-// jamony 1110: 一次性入场票。票串原样一条 UTF8 string(格式 uid:port:nickname:exp:hexsig,api 侧拼装),
-// 验签逻辑在 CServer::OnTicketReceived——协议层只负责搬运。
-void CProtocol::CreateTicketMes ( const QString& strTicket )
-{
-    const QByteArray strUTF8Ticket = strTicket.toUtf8();
-
-    CVector<uint8_t> vecData ( 2 + strUTF8Ticket.size() ); // 2 字节长度前缀
-    int              iPos = 0;
-
-    PutStringUTF8OnStream ( vecData, iPos, strUTF8Ticket );
-
-    CreateAndSendMessage ( PROTMESSID_JAMONY_TICKET, vecData );
-}
-
-bool CProtocol::EvaluateTicketMes ( const CVector<uint8_t>& vecData )
-{
-    int       iPos     = 0; // init position pointer
-    const int iDataLen = vecData.Size();
-    QString   strTicket;
-
-    // ticket (上限 256 字节: uid+port+昵称+10位exp+64hex签名绰绰有余)
-    if ( GetStringFromStream ( vecData, iPos, 256, strTicket ) )
-    {
-        return true; // return error code
-    }
-
-    // check size: all data is read, the position must now be at the end
-    if ( iPos != iDataLen )
-    {
-        return true; // return error code
-    }
-
-    // invoke message action
-    emit TicketReceived ( strTicket );
 
     return false; // no error
 }

@@ -82,8 +82,6 @@ public:
 
     void OnChatTextReceivedCh ( QString strChatText ) { CreateAndSendChatTextForAllConChannels ( slotId - 1, strChatText ); }
 
-    void OnTicketReceivedCh ( QString strTicket ) { OnTicketReceived ( slotId - 1, strTicket ); } // jamony 1110
-
     void OnMuteStateHasChangedCh ( int iChanID, bool bIsMuted ) { CreateOtherMuteStateChanged ( slotId - 1, iChanID, bIsMuted ); }
 
     void OnServerAutoSockBufSizeChangeCh ( int iNNumFra ) { CreateAndSendJitBufMessage ( slotId - 1, iNNumFra ); }
@@ -98,8 +96,6 @@ protected:
     virtual void CreateOtherMuteStateChanged ( const int iCurChanID, const int iOtherChanID, const bool bIsMuted ) = 0;
 
     virtual void CreateAndSendJitBufMessage ( const int iCurChanID, const int iNNumFra ) = 0;
-
-    virtual void OnTicketReceived ( const int iCurChanID, const QString& strTicket ) = 0; // jamony 1110
 };
 
 template<>
@@ -192,9 +188,6 @@ public:
     void SetAutoRunMinimized ( const bool NAuRuMin ) { bAutoRunMinimized = NAuRuMin; }
     bool GetAutoRunMinimized() { return bAutoRunMinimized; }
 
-    // jamony 1110: 验签不通过的处置(强制档=拒,观察档=记日志放行)
-    void HandleTicketVerdict ( const int iChanID, const CHostAddress& InetAddr, const bool bOk, const QString& strReason );
-
     void SetEnableDelayPanning ( bool bDelayPanningOn ) { bDelayPan = bDelayPanningOn; }
     bool IsDelayPanningEnabled() { return bDelayPan; }
 
@@ -216,8 +209,6 @@ protected:
     virtual void CreateOtherMuteStateChanged ( const int iCurChanID, const int iOtherChanID, const bool bIsMuted );
 
     virtual void CreateAndSendJitBufMessage ( const int iCurChanID, const int iNNumFra );
-
-    virtual void OnTicketReceived ( const int iCurChanID, const QString& strTicket ); // jamony 1110
 
     virtual void SendProtMessage ( int iChID, CVector<uint8_t> vecMessage );
 
@@ -319,12 +310,6 @@ protected:
 
     // GUI settings
     bool bAutoRunMinimized;
-
-    // jamony 1110: 入场票验签配置(env 注入,密钥与 api 同源: JAMONY_TICKET_SECRET;
-    // JAMONY_TICKET_ENFORCE=1 强制档,默认观察档;未配密钥=整段旁路兼容旧部署)
-    QString strJamonyTicketSecret;
-    bool    bJamonyTicketEnforce;
-    quint16 iServerPort;
 
     // for delay panning
     bool bDelayPan;

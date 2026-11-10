@@ -149,7 +149,6 @@ int main ( int argc, char** argv )
     QString      strWelcomeMessage           = "";
     QString      strClientName               = "";
     QString      strJsonRpcSecretFileName    = "";
-    QString      strTicket                   = ""; // jamony 1110: 一次性入场票
 
 #if defined( HEADLESS ) || defined( SERVER_ONLY )
     Q_UNUSED ( bStartMinimized )
@@ -572,21 +571,6 @@ int main ( int argc, char** argv )
             continue;
         }
 
-        // jamony 1110: 一次性入场票(api /join 签发,HMAC 绑 uid+端口+昵称+60s)——凭证不进日志,只记长度
-        if ( GetStringArgument ( argc,
-                                 argv,
-                                 i,
-                                 "--ticket", // no short form
-                                 "--ticket",
-                                 strArgument ) )
-        {
-            strTicket = strArgument;
-            qInfo() << qUtf8Printable ( QString ( "- join ticket: %1 bytes" ).arg ( strTicket.toUtf8().size() ) );
-            CommandLineOptions << "--ticket";
-            ClientOnlyOptions << "--ticket";
-            continue;
-        }
-
         // MIDI
         if ( GetStringArgument ( argc,
                                  argv,
@@ -1001,12 +985,6 @@ int main ( int argc, char** argv )
                 Client.ChannelInfo.strName = strClientName;
             }
 
-            // jamony 1110: 入场票存入客户端(连接握手期呈给房间进程验签;不入 ini,进程内即弃)
-            if ( !strTicket.isEmpty() )
-            {
-                Client.strTicket = strTicket;
-            }
-
 #    ifndef NO_JSON_RPC
             if ( pRpcServer )
             {
@@ -1314,7 +1292,6 @@ QString UsageArguments ( char** argv )
            "  -M, --mutestream        prevent others on a server from hearing what I play\n"
            "      --mutemyown         prevent me from hearing what I play in the server mix (headless only)\n"
            "      --clientname        client name (window title and JACK client name)\n"
-           "      --ticket            one-time join ticket issued by jamony api (HMAC)\n"
            "      --ctrlmidich        configure MIDI controller\n"
            "\n"
            "Example: %1 -s --inifile myinifile.ini\n"

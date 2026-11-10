@@ -123,9 +123,6 @@ CChannel::CChannel ( const bool bNIsServer ) :
 
     QObject::connect ( &Protocol, &CProtocol::LicenceRequired, this, &CChannel::LicenceRequired );
 
-    // jamony 1110: 入场票原样透传给上层(客户端没人接;服务端 CServer::OnTicketReceived 验签)
-    QObject::connect ( &Protocol, &CProtocol::TicketReceived, this, &CChannel::TicketReceived );
-
     QObject::connect ( &Protocol, &CProtocol::VersionAndOSReceived, this, &CChannel::OnVersionAndOSReceived );
 
     QObject::connect ( &Protocol, &CProtocol::RecorderStateReceived, this, &CChannel::RecorderStateReceived );

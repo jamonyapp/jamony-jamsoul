@@ -85,7 +85,6 @@
 #define PROTMESSID_REQ_SPLIT_MESS_SUPPORT   34 // request support for split messages
 #define PROTMESSID_SPLIT_MESS_SUPPORTED     35 // split messages are supported
 #define PROTMESSID_RAWAUDIO_SUPPORTED       36 // raw (uncompressed) audio is supported
-#define PROTMESSID_JAMONY_TICKET            37 // jamony 1110: one-time join ticket (HMAC signed by api /join, binds uid+port+nickname+exp)
 
 // message IDs of connection less messages (CLM)
 // DEFINITION -> start at 1000, end at 1999, see IsConnectionLessMessageID
@@ -142,9 +141,6 @@ public:
     void CreateConClientListMes ( const CVector<CChannelInfo>& vecChanInfo );
     void CreateReqConnClientsList();
     void CreateChanInfoMes ( const CChannelCoreInfo ChanInfo );
-
-    // jamony 1110: 一次性入场票——客户端连接握手期呈上,服务端验签(观察/强制两档)
-    void CreateTicketMes ( const QString& strTicket );
     void CreateReqChanInfoMes();
     void CreateChatTextMes ( const QString strChatText );
     void CreateNetwTranspPropsMes ( const CNetworkTransportProps& NetTrProps );
@@ -280,8 +276,6 @@ protected:
     bool EvaluateConClientListMes ( const CVector<uint8_t>& vecData );
     bool EvaluateReqConnClientsList();
     bool EvaluateChanInfoMes ( const CVector<uint8_t>& vecData );
-
-    bool EvaluateTicketMes ( const CVector<uint8_t>& vecData ); // jamony 1110
     bool EvaluateReqChanInfoMes();
     bool EvaluateChatTextMes ( const CVector<uint8_t>& vecData );
     bool EvaluateNetwTranspPropsMes ( const CVector<uint8_t>& vecData );
@@ -354,7 +348,6 @@ signals:
     void SplitMessSupported();
     void RawAudioSupported();
     void LicenceRequired ( ELicenceType eLicenceType );
-    void TicketReceived ( QString strTicket ); // jamony 1110
     void VersionAndOSReceived ( COSUtil::EOpSystemType eOSType, QString strVersion );
     void RecorderStateReceived ( ERecorderState eRecorderState );
 
