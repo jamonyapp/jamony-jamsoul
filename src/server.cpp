@@ -186,20 +186,6 @@ CServer::CServer ( const int          iNewMaxNumChan,
     vecNumFrameSizeConvBlocks.Init ( iMaxNumChannels );
     vecUseDoubleSysFraSizeConvBuf.Init ( iMaxNumChannels );
     vecAudioComprType.Init ( iMaxNumChannels );
-    vecbTicketOk.Init ( iMaxNumChannels ); // jamony 1110b: 无票宽限巡查状态
-    veciTicketDeadline.Init ( iMaxNumChannels );
-    for ( i = 0; i < iMaxNumChannels; i++ )
-    {
-        vecbTicketOk[i]       = false;
-        veciTicketDeadline[i] = 0;
-    }
-
-    // jamony 1110b: 仅强制档+密钥在位才巡查(观察档零成本零日志——老壳无票连接是常态)
-    if ( bJamonyTicketEnforce && !strJamonyTicketSecret.isEmpty() )
-    {
-        connect ( &TicketSweepTimer, &QTimer::timeout, this, &CServer::OnTicketSweep );
-        TicketSweepTimer.start ( 5000 );
-    }
 
     for ( i = 0; i < iMaxNumChannels; i++ )
     {
@@ -416,10 +402,6 @@ void CServer::OnNewConnection ( int iChID, int iTotChans, CHostAddress RecHostAd
 {
     QMutexLocker locker ( &Mutex );
 
-    // jamony 1110b: 新连接=重置票状态(槽位复用不吃旧豁免;宽限窗由巡查首见时开)
-    vecbTicketOk[iChID]       = false;
-    veciTicketDeadline[iChID] = 0;
-
     // inform the client about its own ID at the server (note that this
     // must be the first message to be sent for a new connection)
     vecChannels[iChID].CreateClientIDMes ( iChID );
@@ -550,7 +532,6 @@ void CServer::OnTicketReceived ( const int iChanID, const QString& strTicket )
     // 环回豁免(本机 ghost/鼓机走 127.0.0.1 连入)
     if ( InetAddr.InetAddr.isLoopback() )
     {
-        vecbTicketOk[iChanID] = true; // jamony 1110b: 巡查侧同款豁免
         return;
     }
 
@@ -606,8 +587,7 @@ void CServer::OnTicketReceived ( const int iChanID, const QString& strTicket )
         return;
     }
 
-    // 验签通过=正常路径,静默(每次进房一条票,不刷日志);巡查侧记免踢
-    vecbTicketOk[iChanID] = true; // jamony 1110b
+    // 验签通过=正常路径,静默(每次进房一条票,不刷日志)
 }
 
 void CServer::HandleTicketVerdict ( const int iChanID, const CHostAddress& InetAddr, const bool bOk, const QString& strReason )
@@ -632,56 +612,6 @@ void CServer::HandleTicketVerdict ( const int iChanID, const CHostAddress& InetA
                                            .arg ( iChanID )
                                            .arg ( InetAddr.InetAddr.toString() )
                                            .arg ( strReason ) );
-    }
-}
-
-// jamony 1110b: 无票宽限巡查(5s 一拍,仅强制档启动)——非环回连接宽限期内未呈有效票=踢。
-// 票在 CHANNEL_INFOS 后约 1s 内到,宽限 10s 裕量;空闲槽位清状态防复用吃旧豁免。
-void CServer::OnTicketSweep()
-{
-    QMutexLocker locker ( &Mutex );
-
-    const qint64 iNow = QDateTime::currentSecsSinceEpoch();
-
-    for ( int i = 0; i < iMaxNumChannels; i++ )
-    {
-        if ( !vecChannels[i].IsConnected() )
-        {
-            // 槽位空闲:清状态(OnNewConnection 也清,双保险)
-            vecbTicketOk[i]       = false;
-            veciTicketDeadline[i] = 0;
-            continue;
-        }
-
-        if ( vecbTicketOk[i] )
-        {
-            continue;
-        }
-
-        const CHostAddress Addr = vecChannels[i].GetAddress();
-
-        if ( Addr.InetAddr.isLoopback() )
-        {
-            // 环回豁免同款(本机 ghost/鼓机;外网无法伪造环回源)
-            vecbTicketOk[i] = true;
-            continue;
-        }
-
-        if ( veciTicketDeadline[i] == 0 )
-        {
-            // 首见:开宽限窗
-            veciTicketDeadline[i] = iNow + 10;
-            continue;
-        }
-
-        if ( iNow >= veciTicketDeadline[i] )
-        {
-            qWarning() << qUtf8Printable ( QString ( "[jamony-ticket] REJECT chan %1 from %2: no-ticket" )
-                                               .arg ( i )
-                                               .arg ( Addr.InetAddr.toString() ) );
-            ConnLessProtocol.CreateCLDisconnection ( Addr );
-            vecChannels[i].Disconnect();
-        }
     }
 }
 
