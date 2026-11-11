@@ -148,6 +148,7 @@ int main ( int argc, char** argv )
     QString      strServerListFilter         = "";
     QString      strWelcomeMessage           = "";
     QString      strClientName               = "";
+    QString      strClientBindIfName         = ""; // jamony 1112 P1: --bind-if 客户端绑物理网卡(VPN韧性)
     QString      strJsonRpcSecretFileName    = "";
 
 #if defined( HEADLESS ) || defined( SERVER_ONLY )
@@ -571,6 +572,23 @@ int main ( int argc, char** argv )
             continue;
         }
 
+        // Bind client UDP socket to a network interface (jamony P1) ------------
+        // 壳识别默认路由物理网卡后传入(如 en0);绑后所有 UDP 包从该接口出、源地址恒定,
+        // VPN 开关不再引发服务器侧"分轨闪换"。见 B 方案 VPN 韧性档案。
+        if ( GetStringArgument ( argc,
+                                 argv,
+                                 i,
+                                 "--bind-if", // no short form
+                                 "--bind-if",
+                                 strArgument ) )
+        {
+            strClientBindIfName = strArgument;
+            qInfo() << qUtf8Printable ( QString ( "- bind client socket to interface: %1" ).arg ( strClientBindIfName ) );
+            CommandLineOptions << "--bind-if";
+            ClientOnlyOptions << "--bind-if";
+            continue;
+        }
+
         // MIDI
         if ( GetStringArgument ( argc,
                                  argv,
@@ -972,7 +990,7 @@ int main ( int argc, char** argv )
 #ifndef SERVER_ONLY
         if ( bIsClient )
         {
-            CClient Client ( iPortNumber, iQosNumber, strConnOnStartupAddress, bNoAutoJackConnect, strClientName, bEnableIPv6, bMuteMeInPersonalMix );
+            CClient Client ( iPortNumber, iQosNumber, strConnOnStartupAddress, bNoAutoJackConnect, strClientName, bEnableIPv6, bMuteMeInPersonalMix, strClientBindIfName );
 
             // Create Settings with the client pointer
             CClientSettings Settings ( &Client, strIniFileName );
@@ -1292,6 +1310,7 @@ QString UsageArguments ( char** argv )
            "  -M, --mutestream        prevent others on a server from hearing what I play\n"
            "      --mutemyown         prevent me from hearing what I play in the server mix (headless only)\n"
            "      --clientname        client name (window title and JACK client name)\n"
+           "      --bind-if           bind the client UDP socket to a network interface (e.g. en0)\n"
            "      --ctrlmidich        configure MIDI controller\n"
            "\n"
            "Example: %1 -s --inifile myinifile.ini\n"

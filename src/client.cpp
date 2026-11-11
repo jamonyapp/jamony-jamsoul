@@ -55,7 +55,8 @@ CClient::CClient ( const quint16  iPortNumber,
                    const bool     bNoAutoJackConnect,
                    const QString& strNClientName,
                    const bool     bNEnableIPv6,
-                   const bool     bNMuteMeInPersonalMix ) :
+                   const bool     bNMuteMeInPersonalMix,
+                   const QString& strNBindIfName ) : // jamony 1112 P1: --bind-if 绑物理网卡
     ChannelInfo(),
     strClientName ( strNClientName ),
     pSignalHandler ( CSignalHandler::getSingletonP() ),
@@ -72,7 +73,7 @@ CClient::CClient ( const quint16  iPortNumber,
     bIsInitializationPhase ( true ),
     bMuteOutStream ( false ),
     fMuteOutStreamGain ( 1.0f ),
-    Socket ( &Channel, iPortNumber, iQosNumber, "", bNEnableIPv6 ),
+    Socket ( &Channel, iPortNumber, iQosNumber, "", bNEnableIPv6, strNBindIfName ), // jamony 1112 P1: 末位透传 --bind-if
     Sound ( AudioCallback, this, bNoAutoJackConnect, strNClientName ),
     iAudioInFader ( AUD_FADER_IN_MIDDLE ),
     bReverbOnLeftChan ( false ),

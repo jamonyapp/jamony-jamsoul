@@ -76,10 +76,10 @@ along with this program.  If not, see <https://www.gnu.org/licenses/>.
 	<key>CFBundleIconFile</key>
 	<string>mac-mainicon.icns</string>
 	<key>CFBundleGetInfoString</key>
-	<string>Jamulus - Created with QT</string>
+	<string>jamony - Created with QT</string>
 	<key>NSPrincipalClass</key>
 	<string>NSApplication</string>
 	<key>NSMicrophoneUsageDescription</key>
-	<string>Jamulus needs access to the microphone to record and stream your music to other musicians</string>
+	<string>jamony needs access to the microphone to record and stream your music to other musicians</string>
 </dict>
 </plist>

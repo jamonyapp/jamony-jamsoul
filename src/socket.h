@@ -75,7 +75,7 @@ class CSocket : public QObject
     Q_OBJECT
 
 public:
-    CSocket ( CChannel* pNewChannel, const quint16 iPortNumber, const quint16 iQosNumber, const QString& strServerBindIP, bool bEnableIPv6 );
+    CSocket ( CChannel* pNewChannel, const quint16 iPortNumber, const quint16 iQosNumber, const QString& strServerBindIP, bool bEnableIPv6, const QString& strNBindIfName = "" );
     CSocket ( CServer* pNServP, const quint16 iPortNumber, const quint16 iQosNumber, const QString& strServerBindIP, bool bEnableIPv6 );
 
     virtual ~CSocket();
@@ -90,6 +90,7 @@ protected:
     quint16 iPortNumber;
     quint16 iQosNumber;
     QString strServerBindIP;
+    QString strBindIfName; // jamony 1112 P1: --bind-if 客户端绑物理网卡(空 = 不绑 = P0 行为)
 
 #ifdef _WIN32
     SOCKET UdpSocket;
@@ -138,8 +139,8 @@ class CHighPrioSocket : public QObject
     Q_OBJECT
 
 public:
-    CHighPrioSocket ( CChannel* pNewChannel, const quint16 iPortNumber, const quint16 iQosNumber, const QString& strServerBindIP, bool bEnableIPv6 ) :
-        Socket ( pNewChannel, iPortNumber, iQosNumber, strServerBindIP, bEnableIPv6 )
+    CHighPrioSocket ( CChannel* pNewChannel, const quint16 iPortNumber, const quint16 iQosNumber, const QString& strServerBindIP, bool bEnableIPv6, const QString& strNBindIfName = "" ) :
+        Socket ( pNewChannel, iPortNumber, iQosNumber, strServerBindIP, bEnableIPv6, strNBindIfName )
     {
         Init();
     }

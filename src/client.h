@@ -176,7 +176,8 @@ public:
               const bool     bNoAutoJackConnect,
               const QString& strNClientName,
               const bool     bNEnableIPv6,
-              const bool     bNMuteMeInPersonalMix );
+              const bool     bNMuteMeInPersonalMix,
+              const QString& strNBindIfName = "" ); // jamony 1112 P1: --bind-if 绑物理网卡
 
     virtual ~CClient();
 

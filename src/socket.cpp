@@ -54,6 +54,11 @@
 #    include <arpa/inet.h>
 #endif
 
+#if defined( Q_OS_MAC )
+#    include <net/if.h> // jamony 1112 P1: if_nametoindex(IP_BOUND_IF 收接口索引非名字)
+#    include <errno.h>
+#endif
+
 /* Implementation *************************************************************/
 
 // Connections -------------------------------------------------------------
@@ -62,7 +67,50 @@
 
 // we have different connections for client and server, created after Init in corresponding constructor
 
-CSocket::CSocket ( CChannel* pNewChannel, const quint16 iPortNumber, const quint16 iQosNumber, const QString& strServerBindIP, bool bEnableIPv6 ) :
+// jamony 1112 P1 (VPN韧性): --bind-if 把客户端 UDP socket 绑到物理网卡——所有包从指定接口出、
+// 源地址恒定,VPN 开关不再引发服务器侧"分轨闪换"(壳决策接口名,C++ 只管执行)。
+// macOS IP_BOUND_IF / IPV6_BOUND_IF 收的是接口索引而非名字(if_nametoindex 转换)。
+// 一切失败 = qWarning + 不绑降级:漏绑 = 回到 P0 行为(顶多闪换),绑定失败变成死是绝不允许的。
+static void ApplyBindIfToSocket ( const int UdpSocket, const QString& strBindIfName, const bool bIsIPv6Socket )
+{
+    if ( strBindIfName.isEmpty() )
+    {
+        return; // 未传参 = 不绑(P0 行为)
+    }
+
+#if defined( Q_OS_MAC )
+    const unsigned int iIfIndex = if_nametoindex ( strBindIfName.toUtf8().constData() );
+
+    if ( iIfIndex == 0 )
+    {
+        qWarning() << "jamony --bind-if:" << strBindIfName << "is not a known interface, continuing unbound";
+        return;
+    }
+
+    if ( bIsIPv6Socket )
+    {
+        if ( setsockopt ( UdpSocket, IPPROTO_IPV6, IPV6_BOUND_IF, (const char*) &iIfIndex, sizeof ( iIfIndex ) ) == -1 )
+        {
+            qWarning() << "jamony --bind-if: IPV6_BOUND_IF failed with errno" << errno << ", continuing unbound";
+        }
+    }
+    else
+    {
+        if ( setsockopt ( UdpSocket, IPPROTO_IP, IP_BOUND_IF, (const char*) &iIfIndex, sizeof ( iIfIndex ) ) == -1 )
+        {
+            qWarning() << "jamony --bind-if: IP_BOUND_IF failed with errno" << errno << ", continuing unbound";
+        }
+    }
+#else
+    // Windows/Linux 随 Win 批实现(IP_UNICAST_IF 收 htonl(索引),已记账);当前平台不绑
+    Q_UNUSED ( UdpSocket )
+    Q_UNUSED ( bIsIPv6Socket )
+    qWarning() << "jamony --bind-if: not implemented on this platform, continuing unbound";
+#endif
+}
+
+CSocket::CSocket ( CChannel* pNewChannel, const quint16 iPortNumber, const quint16 iQosNumber, const QString& strServerBindIP, bool bEnableIPv6, const QString& strNBindIfName ) :
+    strBindIfName ( strNBindIfName ),
     pChannel ( pNewChannel ),
     bIsClient ( true ),
     bJitterBufferOK ( true ),
@@ -205,6 +253,10 @@ void CSocket::Init ( const quint16 iNewPortNumber, const quint16 iNewQosNumber, 
             UdpSocketAddr.sa4.sin_addr.s_addr = htonl ( QHostAddress ( strServerBindIP ).toIPv4Address() );
         }
     }
+
+    // jamony 1112 P1: 绑物理网卡(仅客户端路径;服务器 strBindIfName 恒空 = 行为不变)。须在
+    // 上面 socket() 创建之后、下面 ::bind 之前——先于一切 SendPacket(构造期保证)。
+    ApplyBindIfToSocket ( UdpSocket, strBindIfName, bEnableIPv6 );
 
 #ifdef Q_OS_IOS
     // ignore the broken pipe signal to avoid crash (iOS)
