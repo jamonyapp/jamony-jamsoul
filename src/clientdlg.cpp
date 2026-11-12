@@ -997,6 +997,15 @@ CClientDlg::CClientDlg ( CClient*         pNCliP,
 
     QObject::connect ( pClient, &CClient::Disconnected, this, &CClientDlg::OnDisconnected );
 
+    // jamony 1112 P2（VPN 韧性收官）：断线事件上报 stdout——electron main.js 监听触发壳自愈
+    // （3s 假死窗 → kill-then-spawn 重连）。与 JAMONY_DELAY 同通道同款式。
+    // 机理：客户端 30s 无入包（CON_TIME_OUT_SEC_MAX）→ emit Disconnected；GUI 侧 OnDisconnected
+    // 本就只 Disconnect() 等人工（上游无自动重连），壳接手把用户移出回路。
+    QObject::connect ( pClient, &CClient::Disconnected, this, []() {
+        printf ( "JAMONY_DISCONNECTED\n" );
+        fflush ( stdout );
+    } );
+
     QObject::connect ( pClient, &CClient::ChatTextReceived, this, &CClientDlg::OnChatTextReceived );
 
     QObject::connect ( pClient, &CClient::ClientIDReceived, this, &CClientDlg::OnClientIDReceived );
